@@ -1,0 +1,75 @@
+---
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - gradle-cache
+
+      - run:
+          name: Fetch dependencies
+          command: ./gradlew dependencies --refresh-dependencies
+
+      - run:
+          name: Run gradle build
+          command: ./gradlew clean shadowJar --stacktrace
+
+      - save_cache:
+          key: gradle-cache
+          paths:
+            - ~/.gradle
+
+      - save_cache:
+          key: artifacts-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - build/libs
+            - Dockerfile
+            - scripts
+
+  deploy:
+    docker:
+      - image: circleci/openjdk:8
+    steps:
+      - restore_cache:
+          keys:
+            - artifacts-{{ .Environment.CIRCLE_SHA1 }}
+
+      - setup_remote_docker:
+          docker_layer_caching: true
+
+      - run:
+          name: Build and push Docker image
+          command: |
+            cd ./scripts
+            chmod +x *.sh
+            case ${CIRCLE_BRANCH} in
+                master)
+                    ./docker-build.sh latest
+                    ;;
+                develop)
+                    ./docker-build.sh beta
+                    ;;
+                *)
+                    echo "Unsupported branch name: ${CIRCLE_BRANCH}"
+                    exit 1
+                    ;;
+            esac
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+               - master
+               - develop
