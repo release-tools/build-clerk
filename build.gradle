@@ -1,0 +1,63 @@
+buildscript {
+    ext {
+        kotlin_version = '1.2.51'
+        version_log4j = '2.5'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id "com.github.johnrengelman.shadow" version "2.0.4"
+}
+apply plugin: 'application'
+
+group 'com.gatehill'
+version '0.1.0'
+
+apply plugin: 'kotlin'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0"
+    compile 'io.vertx:vertx-web:3.5.1'
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+    implementation 'org.kodein.di:kodein-di-generic-jvm:5.2.0'
+
+    // redirect all logs to log4j2
+    compile "org.apache.logging.log4j:log4j-core:$version_log4j"
+    compile "org.apache.logging.log4j:log4j-jcl:$version_log4j"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:$version_log4j"
+    compile "org.apache.logging.log4j:log4j-1.2-api:$version_log4j"
+    compile "org.apache.logging.log4j:log4j-jul:$version_log4j"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+mainClassName = 'com.gatehill.scmwebhook.ServerKt'
+
+shadowJar {
+    baseName 'scmwebhook'
+    classifier = null
+    version = null
+}
