@@ -1,7 +1,7 @@
 package com.gatehill.scmwebhook.service
 
 import com.gatehill.scmwebhook.config.Settings
-import com.gatehill.scmwebhook.model.BuildOutcome
+import com.gatehill.scmwebhook.model.BuildStatus
 import com.gatehill.scmwebhook.model.PullRequestMergedEvent
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
@@ -26,13 +26,13 @@ class PullRequestEventService(
         }
 
         async {
-            branchStatusService.fetchStatus(branchName)?.let { branchStatus ->
+            branchStatusService.fetchStatus(branchName)?.let { buildOutcome ->
                 val branchStatusInfo =
-                    "branch name: $branchName status is currently: ${branchStatus.outcome}"
+                    "branch name: $branchName status is currently: ${buildOutcome.build.status}"
 
-                when (branchStatus.outcome) {
-                    BuildOutcome.SUCCESS -> logger.info("Verified $prInfo because $branchStatusInfo")
-                    BuildOutcome.FAILED -> {
+                when (buildOutcome.build.status) {
+                    BuildStatus.SUCCESS -> logger.info("Verified $prInfo because $branchStatusInfo")
+                    BuildStatus.FAILED -> {
                         logger.warn("Failed to validate $prInfo because $branchStatusInfo")
                         // TODO take action, e.g. fire notification
                     }

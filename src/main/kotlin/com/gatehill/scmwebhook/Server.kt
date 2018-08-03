@@ -3,7 +3,7 @@ package com.gatehill.scmwebhook
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.gatehill.scmwebhook.model.BranchStatus
+import com.gatehill.scmwebhook.model.BuildOutcome
 import com.gatehill.scmwebhook.model.PullRequestMergedEvent
 import com.gatehill.scmwebhook.service.BranchStatusService
 import com.gatehill.scmwebhook.service.PullRequestEventService
@@ -50,17 +50,9 @@ private fun buildRouter(vertx: Vertx, kodein: Kodein): Router {
         rc.response().end("SCM webhook receiver")
     }
 
-    router.post("/branches/:branchName").consumes("application/json").handler { rc ->
-        val branchName = try {
-            rc.request().getParam("branchName")
-        } catch (e: Exception) {
-            logger.error(e)
-            rc.response().setStatusCode(400).end("Cannot read branch name")
-            return@handler
-        }
-
-        val branchStatus = try {
-            jsonMapper.readValue<BranchStatus>(rc.bodyAsString)
+    router.post("/builds").consumes("application/json").handler { rc ->
+        val buildOutcome = try {
+            jsonMapper.readValue<BuildOutcome>(rc.bodyAsString)
         } catch (e: Exception) {
             logger.error(e)
             rc.response().setStatusCode(400).end("Cannot parse branch status")
@@ -68,7 +60,7 @@ private fun buildRouter(vertx: Vertx, kodein: Kodein): Router {
         }
 
         try {
-            branchStatusService.updateStatus(branchName, branchStatus)
+            branchStatusService.updateStatus(buildOutcome)
             rc.response().setStatusCode(200).end()
         } catch (e: Exception) {
             logger.error(e)

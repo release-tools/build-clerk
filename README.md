@@ -27,7 +27,7 @@ Set configuration:
 
 Test branch status:
 
-    curl -v -d '{ "buildNumber": 1, "outcome": "FAILED" }' -H 'Content-Type: application/json' http://localhost:9090/branches/master
+    curl -v -d '{ "name": "build", "build": { "number": 1, "status": "FAILED", "url": "http://example.com", "scm": { "branch": "master", "commit": "c0ffee" } } }' -H 'Content-Type: application/json' http://localhost:9090/builds
 
 Test PR merged event:
 
