@@ -5,9 +5,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.gatehill.scmwebhook.model.BuildOutcome
 import com.gatehill.scmwebhook.model.PullRequestMergedEvent
-import com.gatehill.scmwebhook.service.BranchStatusService
 import com.gatehill.scmwebhook.service.BuildAnalysisService
+import com.gatehill.scmwebhook.service.BuildOutcomeService
+import com.gatehill.scmwebhook.service.BuildRunnerService
+import com.gatehill.scmwebhook.service.NotificationService
 import com.gatehill.scmwebhook.service.PullRequestEventService
+import com.gatehill.scmwebhook.service.ScmService
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
@@ -24,9 +27,12 @@ fun main(args: Array<String>) {
     logger.info("Starting SCM webhook receiver")
 
     val kodein = Kodein {
-        bind<BranchStatusService>() with singleton { BranchStatusService(instance()) }
-        bind<PullRequestEventService>() with singleton { PullRequestEventService(instance()) }
-        bind<BuildAnalysisService>() with singleton { BuildAnalysisService() }
+        bind<BuildOutcomeService>() with singleton { BuildOutcomeService(instance()) }
+        bind<PullRequestEventService>() with singleton { PullRequestEventService(instance(), instance()) }
+        bind<BuildAnalysisService>() with singleton { BuildAnalysisService(instance(), instance(), instance(), instance()) }
+        bind<BuildRunnerService>() with singleton { BuildRunnerService() }
+        bind<ScmService>() with singleton { ScmService(instance()) }
+        bind<NotificationService>() with singleton { NotificationService() }
     }
 
     startServer(kodein)
@@ -37,13 +43,13 @@ private fun startServer(kodein: Kodein) {
     val server = vertx.createHttpServer()
     val router = buildRouter(vertx, kodein)
 
-    server.requestHandler({ router.accept(it) }).listen(9090)
+    server.requestHandler(router::accept).listen(9090)
     logger.info("Listening on http://localhost:9090")
 }
 
 private fun buildRouter(vertx: Vertx, kodein: Kodein): Router {
     val router = Router.router(vertx)
-    val branchStatusService: BranchStatusService by kodein.instance()
+    val buildOutcomeService: BuildOutcomeService by kodein.instance()
     val pullRequestEventService: PullRequestEventService by kodein.instance()
 
     router.route().handler(BodyHandler.create())
@@ -62,7 +68,7 @@ private fun buildRouter(vertx: Vertx, kodein: Kodein): Router {
         }
 
         try {
-            branchStatusService.updateStatus(buildOutcome)
+            buildOutcomeService.updateStatus(buildOutcome)
             rc.response().setStatusCode(200).end()
         } catch (e: Exception) {
             logger.error(e)

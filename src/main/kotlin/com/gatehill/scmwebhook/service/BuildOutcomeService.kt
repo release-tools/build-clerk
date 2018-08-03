@@ -5,10 +5,10 @@ import com.gatehill.scmwebhook.model.BuildStatus
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
 
-class BranchStatusService(
+class BuildOutcomeService(
     private val buildAnalysisService: BuildAnalysisService
 ) {
-    private val logger = LogManager.getLogger(BranchStatusService::class.java)
+    private val logger = LogManager.getLogger(BuildOutcomeService::class.java)
     private val store = mutableListOf<BuildOutcome>()
 
     fun updateStatus(buildOutcome: BuildOutcome) {
@@ -30,5 +30,9 @@ class BranchStatusService(
 
     suspend fun lastPassingCommitForBranch(branchName: String): BuildOutcome? = store.asReversed().find { outcome ->
         outcome.build.scm.branch == branchName && outcome.build.status == BuildStatus.SUCCESS
+    }
+
+    fun countFailuresForCommitOnBranch(commit: String, branch: String) = store.asReversed().count { outcome ->
+        outcome.build.scm.commit == commit && outcome.build.scm.branch == branch && outcome.build.status == BuildStatus.FAILED
     }
 }

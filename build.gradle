@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlin_version = '1.2.51'
+        kotlin_version = '1.2.60'
         version_log4j = '2.5'
     }
 
@@ -31,6 +31,8 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0"
     compile 'io.vertx:vertx-web:3.5.1'
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+
+    // DI
     implementation 'org.kodein.di:kodein-di-generic-jvm:5.2.0'
 
     // redirect all logs to log4j2
@@ -39,6 +41,9 @@ dependencies {
     compile "org.apache.logging.log4j:log4j-slf4j-impl:$version_log4j"
     compile "org.apache.logging.log4j:log4j-1.2-api:$version_log4j"
     compile "org.apache.logging.log4j:log4j-jul:$version_log4j"
+
+    // git
+    compile 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'
 }
 
 compileKotlin {

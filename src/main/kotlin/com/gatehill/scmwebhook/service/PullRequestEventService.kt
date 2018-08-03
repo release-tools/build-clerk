@@ -7,7 +7,8 @@ import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
 
 class PullRequestEventService(
-    private val branchStatusService: BranchStatusService
+        private val buildOutcomeService: BuildOutcomeService,
+        private val scmService: ScmService
 ) {
     private val logger = LogManager.getLogger(PullRequestEventService::class.java)
 
@@ -26,15 +27,18 @@ class PullRequestEventService(
         }
 
         async {
-            branchStatusService.fetchStatus(branchName)?.let { buildOutcome ->
+            buildOutcomeService.fetchStatus(branchName)?.let { buildOutcome ->
                 val branchStatusInfo =
-                    "branch name: $branchName status is currently: ${buildOutcome.build.status}"
+                        "branch name: $branchName status is currently: ${buildOutcome.build.status}"
 
                 when (buildOutcome.build.status) {
                     BuildStatus.SUCCESS -> logger.info("Verified $prInfo because $branchStatusInfo")
                     BuildStatus.FAILED -> {
-                        logger.warn("Failed to validate $prInfo because $branchStatusInfo")
-                        // TODO take action, e.g. fire notification
+                        logger.warn("Failed to validate $prInfo because $branchStatusInfo - reverting merge")
+                        scmService.revertCommit(
+                                commit = event.pullRequest.mergeCommit.hash,
+                                branchName = event.pullRequest.destination.branch.name
+                        )
                     }
                 }
 
