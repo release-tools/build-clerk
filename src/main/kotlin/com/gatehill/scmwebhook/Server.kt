@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.gatehill.scmwebhook.model.BuildOutcome
 import com.gatehill.scmwebhook.model.PullRequestMergedEvent
 import com.gatehill.scmwebhook.service.BranchStatusService
+import com.gatehill.scmwebhook.service.BuildAnalysisService
 import com.gatehill.scmwebhook.service.PullRequestEventService
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
@@ -23,8 +24,9 @@ fun main(args: Array<String>) {
     logger.info("Starting SCM webhook receiver")
 
     val kodein = Kodein {
-        bind<BranchStatusService>() with singleton { BranchStatusService() }
+        bind<BranchStatusService>() with singleton { BranchStatusService(instance()) }
         bind<PullRequestEventService>() with singleton { PullRequestEventService(instance()) }
+        bind<BuildAnalysisService>() with singleton { BuildAnalysisService() }
     }
 
     startServer(kodein)
