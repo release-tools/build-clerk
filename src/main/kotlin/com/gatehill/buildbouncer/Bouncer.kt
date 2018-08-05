@@ -2,9 +2,8 @@ package com.gatehill.buildbouncer
 
 import com.gatehill.buildbouncer.server.Server
 import com.gatehill.buildbouncer.service.BuildAnalysisService
-import com.gatehill.buildbouncer.service.BuildAnalysisServiceImpl
+import com.gatehill.buildbouncer.service.BuildEventService
 import com.gatehill.buildbouncer.service.BuildOutcomeService
-import com.gatehill.buildbouncer.service.BuildOutcomeServiceImpl
 import com.gatehill.buildbouncer.service.CommandExecutorService
 import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.PullRequestEventService
@@ -27,17 +26,18 @@ fun main(args: Array<String>) {
     logger.info("Starting Build Bouncer")
 
     val kodein = Kodein {
-        bind<BuildAnalysisService>() with singleton { BuildAnalysisServiceImpl(instance(), instance(), instance(), instance()) }
         bind<NotificationService>() with singleton { StdoutNotificationServiceImpl() }
         bind<PendingActionService>() with singleton { PendingActionService(instance()) }
         bind<CommandExecutorService>() with singleton { CommandExecutorService() }
 
         // server
-        bind<Server>() with singleton { Server(instance(), instance(), instance()) }
+        bind<Server>() with singleton { Server(instance(), instance()) }
 
         // event processors
-        bind<BuildOutcomeService>() with singleton { BuildOutcomeServiceImpl() }
+        bind<BuildOutcomeService>() with singleton { BuildOutcomeService() }
         bind<PullRequestEventService>() with singleton { PullRequestEventService(instance(), instance()) }
+        bind<BuildAnalysisService>() with singleton { BuildAnalysisService(instance(), instance()) }
+        bind<BuildEventService>() with singleton { BuildEventService(instance(), instance(), instance(), instance()) }
 
         // git
         bind<ScmService>() with singleton { GitScmService(instance()) }

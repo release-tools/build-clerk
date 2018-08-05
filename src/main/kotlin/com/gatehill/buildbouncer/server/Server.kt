@@ -4,7 +4,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.gatehill.buildbouncer.model.BuildOutcome
 import com.gatehill.buildbouncer.model.PullRequestMergedEvent
 import com.gatehill.buildbouncer.service.BuildAnalysisService
+import com.gatehill.buildbouncer.service.BuildEventService
 import com.gatehill.buildbouncer.service.BuildOutcomeService
+import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.PullRequestEventService
 import com.gatehill.buildbouncer.util.jsonMapper
 import io.vertx.core.Vertx
@@ -19,8 +21,7 @@ import org.apache.logging.log4j.LogManager
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class Server(
-        private val buildOutcomeService: BuildOutcomeService,
-        private val buildAnalysisService: BuildAnalysisService,
+        private val buildEventService: BuildEventService,
         private val pullRequestEventService: PullRequestEventService
 ) {
     private val logger = LogManager.getLogger(Server::class.java)
@@ -55,10 +56,7 @@ class Server(
             }
 
             try {
-                buildOutcomeService.updateStatus(buildOutcome)
-                async {
-                    buildAnalysisService.analyseBuild(buildOutcome)
-                }
+                buildEventService.handle(buildOutcome)
                 rc.response().setStatusCode(200).end()
 
             } catch (e: Exception) {

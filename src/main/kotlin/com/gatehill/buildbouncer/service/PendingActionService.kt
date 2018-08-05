@@ -17,6 +17,10 @@ class PendingActionService(
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
     private val pending = mutableMapOf<String, PendingAction>()
 
+    fun enqueue(pendingActions: List<PendingAction>) {
+        pendingActions.forEach(this::enqueue)
+    }
+
     fun enqueue(pendingAction: PendingAction) {
         logger.info("Enqueuing pending action: $pendingAction")
         pending[pendingAction.id] = pendingAction

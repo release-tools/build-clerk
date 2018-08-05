@@ -5,24 +5,16 @@ import com.gatehill.buildbouncer.model.Analysis
 import com.gatehill.buildbouncer.model.BuildOutcome
 import com.gatehill.buildbouncer.model.BuildStatus
 import com.gatehill.buildbouncer.model.action.RevertPendingAction
-import com.gatehill.buildbouncer.service.notify.NotificationService
 import com.gatehill.buildbouncer.service.runner.BuildRunnerService
 import org.apache.logging.log4j.LogManager
 
-interface BuildAnalysisService {
-    fun analyseBuild(outcome: BuildOutcome)
-}
-
-class BuildAnalysisServiceImpl(
+class BuildAnalysisService(
         private val buildOutcomeService: BuildOutcomeService,
-        private val buildRunnerService: BuildRunnerService,
-        private val pendingActionService: PendingActionService,
-        private val notificationService: NotificationService
-) : BuildAnalysisService {
-
+        private val buildRunnerService: BuildRunnerService
+) {
     private val logger = LogManager.getLogger(BuildAnalysisService::class.java)
 
-    override fun analyseBuild(outcome: BuildOutcome) {
+    fun analyseBuild(outcome: BuildOutcome): Analysis {
         val analysis = Analysis("Build ${outcome.build.number} on ${outcome.build.scm.branch}", logger)
 
         when (outcome.build.status) {
@@ -30,10 +22,8 @@ class BuildAnalysisServiceImpl(
             BuildStatus.FAILED -> analyseFailedBuild(outcome, analysis)
         }
 
-        if (analysis.isNotEmpty()) {
-            analysis.log("Analysis complete")
-            notificationService.notify(analysis)
-        }
+        analysis.log("Analysis complete")
+        return analysis
     }
 
     private fun analyseFailedBuild(outcome: BuildOutcome, analysis: Analysis) {
@@ -65,10 +55,10 @@ class BuildAnalysisServiceImpl(
     }
 
     private fun revertCommit(commit: String, branch: String, analysis: Analysis) {
-        analysis.log("Reverting commit $commit from branch $branch")
-        pendingActionService.enqueue(RevertPendingAction(
+        analysis.log("Recommending reversion of $commit from branch $branch")
+        analysis.actions += RevertPendingAction(
                 commit = commit,
                 branch = branch
-        ))
+        )
     }
 }
