@@ -1,13 +1,11 @@
 package com.gatehill.buildbouncer.model.action
 
-class RevertPendingAction(
+data class RevertPendingAction(
         val commit: String,
         val branch: String
-) : BasePendingAction() {
+) : PendingAction {
 
-    override fun describe() = "Revert commit $commit from branch $branch"
+    override val name = "revert"
 
-    override fun toString(): String {
-        return "RevertPendingAction(id='$id', commit='$commit', branch='$branch')"
-    }
+    override fun describe() = "revert commit $commit from branch $branch"
 }

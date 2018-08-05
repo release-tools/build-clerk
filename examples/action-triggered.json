@@ -1,0 +1,56 @@
+{
+  "type": "interactive_message",
+  "actions": [
+    {
+      "name": "revert",
+      "value": "revert",
+      "type": "button"
+    }
+  ],
+  "callback_id": "comic_1234_xyz",
+  "team": {
+    "id": "T47563693",
+    "domain": "watermelonsugar"
+  },
+  "channel": {
+    "id": "C065W1189",
+    "name": "forgotten-works"
+  },
+  "user": {
+    "id": "U045VRZFT",
+    "name": "brautigan"
+  },
+  "action_ts": "1458170917.164398",
+  "message_ts": "1458170866.000004",
+  "attachment_id": "1",
+  "token": "xAB3yVzGS4BQ3O9FACTa8Ho4",
+  "original_message": {
+    "text": "Commit c0ff33 will be reverted",
+    "attachments": [
+      {
+        "fallback": "Do you want to revert the commit?",
+        "title": "Do you want to revert the commit?",
+        "callback_id": "comic_1234_xyz",
+        "color": "#3AA3E3",
+        "attachment_type": "default",
+        "actions": [
+          {
+            "name": "revert",
+            "text": "Revert",
+            "style": "danger",
+            "type": "button",
+            "value": "revert"
+          },
+          {
+            "name": "no",
+            "text": "No",
+            "type": "button",
+            "value": "bad"
+          }
+        ]
+      }
+    ]
+  },
+  "response_url": "https://hooks.slack.com/actions/T47563693/6204672533/x7ZLaiVMoECAW50Gw1ZYAXEM",
+  "trigger_id": "13345224609.738474920.8088930838d88f008e0"
+}

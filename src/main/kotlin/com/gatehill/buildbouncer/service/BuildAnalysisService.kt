@@ -55,10 +55,9 @@ class BuildAnalysisService(
     }
 
     private fun revertCommit(commit: String, branch: String, analysis: Analysis) {
-        analysis.log("Recommending reversion of $commit from branch $branch")
-        analysis.actions += RevertPendingAction(
+        analysis.recommend(RevertPendingAction(
                 commit = commit,
                 branch = branch
-        )
+        ))
     }
 }

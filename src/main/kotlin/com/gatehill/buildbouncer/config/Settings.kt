@@ -5,6 +5,7 @@ import java.nio.file.Files
 
 object Settings {
     val repoName: String by lazy { System.getenv("REPO_NAME") }
+
     val branchName: String by lazy { System.getenv("BRANCH_NAME") }
 
     object Thresholds {
@@ -33,5 +34,13 @@ object Settings {
         val username: String? by lazy { System.getenv("JENKINS_USERNAME") }
 
         val password: String? by lazy { System.getenv("JENKINS_PASSWORD") }
+    }
+
+    object Slack {
+        val channel: String by lazy { System.getenv("SLACK_CHANNEL")
+                ?: throw IllegalStateException("Missing Slack channel") }
+
+        val userToken by lazy { System.getenv("SLACK_USER_TOKEN")
+                ?: throw IllegalStateException("Missing Slack user token") }
     }
 }

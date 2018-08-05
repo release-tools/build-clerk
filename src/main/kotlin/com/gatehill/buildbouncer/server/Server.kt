@@ -3,16 +3,14 @@ package com.gatehill.buildbouncer.server
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.gatehill.buildbouncer.model.BuildOutcome
 import com.gatehill.buildbouncer.model.PullRequestMergedEvent
-import com.gatehill.buildbouncer.service.BuildAnalysisService
+import com.gatehill.buildbouncer.model.action.ActionTriggeredEvent
 import com.gatehill.buildbouncer.service.BuildEventService
-import com.gatehill.buildbouncer.service.BuildOutcomeService
 import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.PullRequestEventService
 import com.gatehill.buildbouncer.util.jsonMapper
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
-import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -22,7 +20,8 @@ import org.apache.logging.log4j.LogManager
  */
 class Server(
         private val buildEventService: BuildEventService,
-        private val pullRequestEventService: PullRequestEventService
+        private val pullRequestEventService: PullRequestEventService,
+        private val pendingActionService: PendingActionService
 ) {
     private val logger = LogManager.getLogger(Server::class.java)
 
@@ -76,6 +75,24 @@ class Server(
 
             try {
                 pullRequestEventService.verify(event)
+                rc.response().setStatusCode(200).end()
+            } catch (e: Exception) {
+                logger.error(e)
+                rc.response().setStatusCode(500).end(e.localizedMessage)
+            }
+        }
+
+        router.post("/actions").consumes("application/json").handler { rc ->
+            val event = try {
+                jsonMapper.readValue<ActionTriggeredEvent>(rc.bodyAsString)
+            } catch (e: Exception) {
+                logger.error(e)
+                rc.response().setStatusCode(400).end("Cannot parse webhook")
+                return@handler
+            }
+
+            try {
+                pendingActionService.handle(event)
                 rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
                 logger.error(e)

@@ -1,7 +1,10 @@
 package com.gatehill.buildbouncer.service
 
+import com.gatehill.buildbouncer.model.action.ActionTriggeredEvent
 import com.gatehill.buildbouncer.model.action.PendingAction
+import com.gatehill.buildbouncer.model.action.PendingActionSet
 import com.gatehill.buildbouncer.model.action.RevertPendingAction
+import com.gatehill.buildbouncer.model.action.SlackAction
 import com.gatehill.buildbouncer.service.scm.ScmService
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -15,27 +18,39 @@ class PendingActionService(
         private val scmService: ScmService
 ) {
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
-    private val pending = mutableMapOf<String, PendingAction>()
+    private val pending = mutableMapOf<String, PendingActionSet>()
 
-    fun enqueue(pendingActions: List<PendingAction>) {
-        pendingActions.forEach(this::enqueue)
+    fun enqueue(actionSet: PendingActionSet) {
+        logger.info("Enqueuing ${actionSet.actions.size} pending actions: ${actionSet.actions}")
+        pending[actionSet.id] = actionSet
     }
 
-    fun enqueue(pendingAction: PendingAction) {
-        logger.info("Enqueuing pending action: $pendingAction")
-        pending[pendingAction.id] = pendingAction
+    fun handle(event: ActionTriggeredEvent) {
+        logger.info("Handling action trigger with callback ID: ${event.callbackId}")
+
+        event.actions?.let { actions ->
+            val actionSetId = event.callbackId
+            logger.debug("Attempting to resolve pending action set with ID: $actionSetId")
+
+            pending.remove(actionSetId)?.let { actionSet ->
+                // resolve each action based on its name and value
+                actions.forEach { action -> resolve(action, actionSet) }
+
+            } ?: logger.warn("No pending action set found with ID: $actionSetId")
+
+        } ?: logger.warn("No actions found in event: $event")
     }
 
-    fun resolve(pendingActionId: String, actionValue: String) {
-        logger.debug("Attempting to resolve pending action with ID: $pendingActionId")
+    private fun resolve(action: SlackAction, actionSet: PendingActionSet) {
+        logger.debug("Attempting to resolve pending action: $action")
 
-        pending.remove(pendingActionId)?.let { pendingAction ->
-            when (actionValue) {
+        actionSet.actions.find { it.name == action.name }?.let { pendingAction ->
+            when (action.value) {
                 "approve" -> executePendingAction(pendingAction)
-                else -> logger.info("Discarding pending action: $pendingAction [actionValue: $actionValue]")
+                else -> logger.info("Discarding pending action: $pendingAction [actionValue: ${action.value}]")
             }
 
-        } ?: logger.warn("No pending action found with ID: $pendingActionId")
+        } ?: logger.warn("No such action '${action.name}' in pending action set: ${actionSet.id}")
     }
 
     private fun executePendingAction(pendingAction: PendingAction) {

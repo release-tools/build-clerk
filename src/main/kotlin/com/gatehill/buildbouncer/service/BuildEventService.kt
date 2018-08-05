@@ -3,6 +3,7 @@ package com.gatehill.buildbouncer.service
 import com.gatehill.buildbouncer.model.BuildOutcome
 import com.gatehill.buildbouncer.service.notify.NotificationService
 import kotlinx.coroutines.experimental.async
+import org.apache.logging.log4j.LogManager
 
 /**
  * Records build events, triggers analysis and sends notifications of pending actions.
@@ -15,16 +16,21 @@ class BuildEventService(
         private val pendingActionService: PendingActionService,
         private val notificationService: NotificationService
 ) {
+    private val logger = LogManager.getLogger(BuildEventService::class.java)
 
     fun handle(buildOutcome: BuildOutcome) {
         buildOutcomeService.updateStatus(buildOutcome)
 
         async {
-            val analysis = buildAnalysisService.analyseBuild(buildOutcome)
+            try {
+                val analysis = buildAnalysisService.analyseBuild(buildOutcome)
 
-            if (analysis.isNotEmpty()) {
-                pendingActionService.enqueue(analysis.actions)
-                notificationService.notify(analysis)
+                if (analysis.isNotEmpty()) {
+                    pendingActionService.enqueue(analysis.actionSet)
+                    notificationService.notify(analysis)
+                }
+            } catch (e: Exception) {
+                logger.error("Error handling build outcome: $buildOutcome", e)
             }
         }
     }
