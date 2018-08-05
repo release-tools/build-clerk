@@ -1,12 +1,14 @@
 Build Bouncer
 =============
 
-Respond to events in your build pipeline and keep you main branch stable.
+Respond to events in your build pipeline and keep your main branch stable.
 
 ## Examples
 
 * Auto-reverts a commit after a failed build on your main branch, subject to certain thresholds and rules. 
-* Receives PR merged event webhooks from BitBucket but your main branch is failing the build, so reverts the commit and notifies the team on Slack.
+* Notifies the team when a PR was merged whilst your main branch is failing on CI.
+
+<img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-bouncer/raw/master/docs/img/build_analysis_revert.png" width="467">
 
 ## Build and run
 
