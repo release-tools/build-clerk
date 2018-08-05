@@ -1,4 +1,4 @@
-package com.gatehill.scmwebhook.model
+package com.gatehill.buildbouncer.model
 
 import org.apache.logging.log4j.Logger
 import java.time.ZonedDateTime

@@ -1,6 +1,6 @@
-package com.gatehill.scmwebhook.service
+package com.gatehill.buildbouncer.service
 
-import com.gatehill.scmwebhook.config.Settings
+import com.gatehill.buildbouncer.config.Settings
 import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Repository

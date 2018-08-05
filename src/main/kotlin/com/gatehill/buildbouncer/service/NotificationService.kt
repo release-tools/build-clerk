@@ -1,6 +1,6 @@
-package com.gatehill.scmwebhook.service
+package com.gatehill.buildbouncer.service
 
-import com.gatehill.scmwebhook.model.Analysis
+import com.gatehill.buildbouncer.model.Analysis
 
 class NotificationService {
     fun notify(analysis: Analysis) {

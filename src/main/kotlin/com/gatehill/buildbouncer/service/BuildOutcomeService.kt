@@ -1,7 +1,7 @@
-package com.gatehill.scmwebhook.service
+package com.gatehill.buildbouncer.service
 
-import com.gatehill.scmwebhook.model.BuildOutcome
-import com.gatehill.scmwebhook.model.BuildStatus
+import com.gatehill.buildbouncer.model.BuildOutcome
+import com.gatehill.buildbouncer.model.BuildStatus
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
 

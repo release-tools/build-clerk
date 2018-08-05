@@ -59,10 +59,10 @@ kotlin {
     }
 }
 
-mainClassName = 'com.gatehill.scmwebhook.ServerKt'
+mainClassName = 'com.gatehill.buildbouncer.ServerKt'
 
 shadowJar {
-    baseName 'scmwebhook'
+    baseName 'bouncer'
     classifier = null
     version = null
 }

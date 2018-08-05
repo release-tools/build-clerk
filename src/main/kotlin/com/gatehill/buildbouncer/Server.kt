@@ -1,16 +1,16 @@
-package com.gatehill.scmwebhook
+package com.gatehill.buildbouncer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.gatehill.scmwebhook.model.BuildOutcome
-import com.gatehill.scmwebhook.model.PullRequestMergedEvent
-import com.gatehill.scmwebhook.service.BuildAnalysisService
-import com.gatehill.scmwebhook.service.BuildOutcomeService
-import com.gatehill.scmwebhook.service.BuildRunnerService
-import com.gatehill.scmwebhook.service.NotificationService
-import com.gatehill.scmwebhook.service.PullRequestEventService
-import com.gatehill.scmwebhook.service.ScmService
+import com.gatehill.buildbouncer.model.BuildOutcome
+import com.gatehill.buildbouncer.model.PullRequestMergedEvent
+import com.gatehill.buildbouncer.service.BuildAnalysisService
+import com.gatehill.buildbouncer.service.BuildOutcomeService
+import com.gatehill.buildbouncer.service.BuildRunnerService
+import com.gatehill.buildbouncer.service.NotificationService
+import com.gatehill.buildbouncer.service.PullRequestEventService
+import com.gatehill.buildbouncer.service.ScmService
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
@@ -20,11 +20,11 @@ import org.kodein.di.generic.bind
 import org.kodein.di.generic.instance
 import org.kodein.di.generic.singleton
 
-private val logger = LogManager.getLogger("com.gatehill.scmwebhook.Server")
+private val logger = LogManager.getLogger("com.gatehill.buildbouncer.Server")
 private val jsonMapper by lazy { ObjectMapper().registerKotlinModule() }
 
 fun main(args: Array<String>) {
-    logger.info("Starting SCM webhook receiver")
+    logger.info("Starting Build Bouncer")
 
     val kodein = Kodein {
         bind<BuildOutcomeService>() with singleton { BuildOutcomeService(instance()) }
@@ -55,7 +55,25 @@ private fun buildRouter(vertx: Vertx, kodein: Kodein): Router {
     router.route().handler(BodyHandler.create())
 
     router.get("/").handler { rc ->
-        rc.response().end("SCM webhook receiver")
+        rc.response().end("""
+<html>
+    <head>
+        <title>Build Bouncer</title>
+    </head>
+    <body>
+        <h1>Build Bouncer</h1>
+        <p>
+            Respond to events in your build pipeline and keep you main branch stable.
+        </p>
+        <p>
+            Visit the project on <a href="https://github.com/outofcoffee/build-bouncer">GitHub</a>.
+        </p>
+    </body>
+</html>
+""".trimIndent())
+    }
+    router.get("/health").handler { rc ->
+        rc.response().end("ok")
     }
 
     router.post("/builds").consumes("application/json").handler { rc ->
@@ -63,7 +81,7 @@ private fun buildRouter(vertx: Vertx, kodein: Kodein): Router {
             jsonMapper.readValue<BuildOutcome>(rc.bodyAsString)
         } catch (e: Exception) {
             logger.error(e)
-            rc.response().setStatusCode(400).end("Cannot parse branch status")
+            rc.response().setStatusCode(400).end("Cannot parse build outcome")
             return@handler
         }
 

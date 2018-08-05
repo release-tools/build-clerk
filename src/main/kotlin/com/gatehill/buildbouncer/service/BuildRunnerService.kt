@@ -1,6 +1,6 @@
-package com.gatehill.scmwebhook.service
+package com.gatehill.buildbouncer.service
 
-import com.gatehill.scmwebhook.model.BuildOutcome
+import com.gatehill.buildbouncer.model.BuildOutcome
 
 class BuildRunnerService {
     fun rebuild(outcome: BuildOutcome) {

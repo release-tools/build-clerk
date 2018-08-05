@@ -1,8 +1,8 @@
-package com.gatehill.scmwebhook.service
+package com.gatehill.buildbouncer.service
 
-import com.gatehill.scmwebhook.config.Settings
-import com.gatehill.scmwebhook.model.BuildStatus
-import com.gatehill.scmwebhook.model.PullRequestMergedEvent
+import com.gatehill.buildbouncer.config.Settings
+import com.gatehill.buildbouncer.model.BuildStatus
+import com.gatehill.buildbouncer.model.PullRequestMergedEvent
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
 

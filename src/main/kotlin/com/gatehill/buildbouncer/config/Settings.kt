@@ -1,4 +1,4 @@
-package com.gatehill.scmwebhook.config
+package com.gatehill.buildbouncer.config
 
 import java.io.File
 import java.nio.file.Files

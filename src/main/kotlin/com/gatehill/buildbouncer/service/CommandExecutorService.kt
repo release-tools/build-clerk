@@ -1,4 +1,4 @@
-package com.gatehill.scmwebhook.service
+package com.gatehill.buildbouncer.service
 
 import java.io.File
 import java.io.IOException

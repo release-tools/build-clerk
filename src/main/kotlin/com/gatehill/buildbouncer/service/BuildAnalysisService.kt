@@ -1,9 +1,9 @@
-package com.gatehill.scmwebhook.service
+package com.gatehill.buildbouncer.service
 
-import com.gatehill.scmwebhook.config.Settings
-import com.gatehill.scmwebhook.model.Analysis
-import com.gatehill.scmwebhook.model.BuildOutcome
-import com.gatehill.scmwebhook.model.BuildStatus
+import com.gatehill.buildbouncer.config.Settings
+import com.gatehill.buildbouncer.model.Analysis
+import com.gatehill.buildbouncer.model.BuildOutcome
+import com.gatehill.buildbouncer.model.BuildStatus
 import org.apache.logging.log4j.LogManager
 
 class BuildAnalysisService(
