@@ -82,7 +82,7 @@ class Server(
             }
         }
 
-        router.post("/actions").consumes("application/json").handler { rc ->
+        router.post("/actions").handler { rc ->
             val event = try {
                 jsonMapper.readValue<ActionTriggeredEvent>(rc.bodyAsString)
             } catch (e: Exception) {
