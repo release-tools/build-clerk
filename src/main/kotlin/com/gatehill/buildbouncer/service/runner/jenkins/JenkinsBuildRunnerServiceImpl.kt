@@ -33,7 +33,7 @@ class JenkinsBuildRunnerServiceImpl(
 
             call = apiClient.enqueueBuild(
                     token = Settings.Jenkins.apiToken,
-                    jobName = jobName
+                    jobPath = outcome.url
             )
         } catch (e: Exception) {
             throw RuntimeException("Error building API client or obtaining CSRF token", e)

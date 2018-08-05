@@ -4,6 +4,11 @@ import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.service.rest.ApiClientBuilder
 import okhttp3.Credentials
 
+/**
+ * Builds Jenkins REST client.
+ *
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
+ */
 class JenkinsApiClientBuilder : ApiClientBuilder<JenkinsApi> {
     override val baseUrl: String
         get() = Settings.Jenkins.baseUrl

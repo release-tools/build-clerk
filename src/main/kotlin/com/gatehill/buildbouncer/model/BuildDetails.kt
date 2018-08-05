@@ -1,25 +1,37 @@
 package com.gatehill.buildbouncer.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BuildOutcome(
-    val name: String,
-    val build: BuildDetails
+        /**
+         * Example: `asgard`
+         */
+        val name: String,
+
+        /**
+         * Example: `job/asgard/`
+         */
+        val url: String,
+
+        val build: BuildDetails
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BuildDetails(
-    val number: Int,
-    val status: BuildStatus,
-    val url: String,
-    val scm: Scm
+        val number: Int,
+        val status: BuildStatus,
+        val scm: Scm,
+
+        @JsonProperty("full_url")
+        val fullUrl: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Scm (
-    val branch: String,
-    val commit: String
+data class Scm(
+        val branch: String,
+        val commit: String
 )
 
 enum class BuildStatus {

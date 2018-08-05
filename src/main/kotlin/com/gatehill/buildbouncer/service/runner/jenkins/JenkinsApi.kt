@@ -10,13 +10,15 @@ import retrofit2.http.Path
 
 /**
  * Models the Jenkins API.
+ *
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 interface JenkinsApi {
     @GET("crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)")
     fun fetchCrumb(): Call<ResponseBody>
 
-    @POST("job/{jobName}/build")
+    @POST("{jobPath}/build")
     @FormUrlEncoded
-    fun enqueueBuild(@Path("jobName") jobName: String,
+    fun enqueueBuild(@Path("jobPath", encoded = true) jobPath: String,
                      @Field("token") token: String?): Call<Void>
 }

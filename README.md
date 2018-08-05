@@ -32,7 +32,7 @@ Set configuration:
 
 Test branch status:
 
-    curl -v -d '{ "name": "build", "build": { "number": 1, "status": "FAILED", "url": "http://example.com", "scm": { "branch": "master", "commit": "c0ffee" } } }' -H 'Content-Type: application/json' http://localhost:9090/builds
+    curl -v -d '{ "name": "example", "url": "job/example", "build": { "number": 1, "status": "FAILED", "full_url": "http://example.com/job/example/1", "scm": { "branch": "master", "commit": "c0ffee" } } }' -H 'Content-Type: application/json' http://localhost:9090/builds
 
 Test PR merged event:
 

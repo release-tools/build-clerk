@@ -1,18 +1,19 @@
-package com.gatehill.buildbouncer.service
+package com.gatehill.buildbouncer.service.scm
 
 import com.gatehill.buildbouncer.config.Settings
+import com.gatehill.buildbouncer.service.CommandExecutorService
 import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
-class ScmService(
+class GitScmService(
         private val commandExecutorService: CommandExecutorService
-) {
+) : ScmService {
     private val logger = LogManager.getLogger(ScmService::class.java)
 
-    fun revertCommit(commit: String, branchName: String) {
+    override fun revertCommit(commit: String, branchName: String) {
         logger.info("Reverting commit $commit in branch $branchName")
 
         withRepo {
