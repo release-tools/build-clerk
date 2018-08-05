@@ -1,16 +1,18 @@
 package com.gatehill.buildbouncer
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.gatehill.buildbouncer.model.BuildOutcome
 import com.gatehill.buildbouncer.model.PullRequestMergedEvent
 import com.gatehill.buildbouncer.service.BuildAnalysisService
 import com.gatehill.buildbouncer.service.BuildOutcomeService
-import com.gatehill.buildbouncer.service.BuildRunnerService
-import com.gatehill.buildbouncer.service.NotificationService
 import com.gatehill.buildbouncer.service.PullRequestEventService
 import com.gatehill.buildbouncer.service.ScmService
+import com.gatehill.buildbouncer.service.notify.NotificationService
+import com.gatehill.buildbouncer.service.notify.StdoutNotificationServiceImpl
+import com.gatehill.buildbouncer.service.runner.BuildRunnerService
+import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsApiClientBuilder
+import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsBuildRunnerServiceImpl
+import com.gatehill.buildbouncer.util.jsonMapper
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
@@ -21,7 +23,6 @@ import org.kodein.di.generic.instance
 import org.kodein.di.generic.singleton
 
 private val logger = LogManager.getLogger("com.gatehill.buildbouncer.Server")
-private val jsonMapper by lazy { ObjectMapper().registerKotlinModule() }
 
 fun main(args: Array<String>) {
     logger.info("Starting Build Bouncer")
@@ -30,9 +31,10 @@ fun main(args: Array<String>) {
         bind<BuildOutcomeService>() with singleton { BuildOutcomeService(instance()) }
         bind<PullRequestEventService>() with singleton { PullRequestEventService(instance(), instance()) }
         bind<BuildAnalysisService>() with singleton { BuildAnalysisService(instance(), instance(), instance(), instance()) }
-        bind<BuildRunnerService>() with singleton { BuildRunnerService() }
+        bind<JenkinsApiClientBuilder>() with singleton { JenkinsApiClientBuilder() }
+        bind<BuildRunnerService>() with singleton { JenkinsBuildRunnerServiceImpl(instance()) }
         bind<ScmService>() with singleton { ScmService(instance()) }
-        bind<NotificationService>() with singleton { NotificationService() }
+        bind<NotificationService>() with singleton { StdoutNotificationServiceImpl() }
     }
 
     startServer(kodein)

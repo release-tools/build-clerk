@@ -4,6 +4,8 @@ import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.model.Analysis
 import com.gatehill.buildbouncer.model.BuildOutcome
 import com.gatehill.buildbouncer.model.BuildStatus
+import com.gatehill.buildbouncer.service.notify.NotificationService
+import com.gatehill.buildbouncer.service.runner.BuildRunnerService
 import org.apache.logging.log4j.LogManager
 
 class BuildAnalysisService(
