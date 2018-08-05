@@ -41,7 +41,7 @@ class SlackNotificationServiceImpl(
             "actions" to listOf(
                     mapOf(
                             "name" to action.name,
-                            "text" to action.name,
+                            "text" to action.title,
                             "style" to "danger",
                             "type" to "button",
                             "value" to action.name

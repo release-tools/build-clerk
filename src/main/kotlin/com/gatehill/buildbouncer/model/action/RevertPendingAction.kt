@@ -6,6 +6,7 @@ data class RevertPendingAction(
 ) : PendingAction {
 
     override val name = "revert"
+    override val title = "Revert"
 
     override fun describe() = "revert commit $commit from branch $branch"
 }

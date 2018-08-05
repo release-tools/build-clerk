@@ -30,7 +30,7 @@ class BuildAnalysisService(
         val commit = outcome.build.scm.commit
         val branch = outcome.build.scm.branch
 
-        analysis.log("Analysing failed build")
+        analysis.log("Build failed: ${outcome.build.fullUrl}")
 
         if (buildOutcomeService.hasEverSucceeded(commit)) {
             analysis.log("Commit $commit has previously succeeded (on at least 1 branch)")

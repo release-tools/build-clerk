@@ -30,15 +30,16 @@ class PendingActionService(
 
         event.actions?.let { actions ->
             val actionSetId = event.callbackId
-            logger.debug("Attempting to resolve pending action set with ID: $actionSetId")
 
             pending.remove(actionSetId)?.let { actionSet ->
-                // resolve each action based on its name and value
+                logger.debug("Found pending action set with ID: $actionSetId [${actionSet.actions.size} actions]")
                 actions.forEach { action -> resolve(action, actionSet) }
 
             } ?: logger.warn("No pending action set found with ID: $actionSetId")
 
         } ?: logger.warn("No actions found in event: $event")
+
+        // TODO remove action buttons from message
     }
 
     private fun resolve(action: SlackAction, actionSet: PendingActionSet) {
@@ -46,7 +47,7 @@ class PendingActionService(
 
         actionSet.actions.find { it.name == action.name }?.let { pendingAction ->
             when (action.value) {
-                "approve" -> executePendingAction(pendingAction)
+                pendingAction.name -> executePendingAction(pendingAction)
                 else -> logger.info("Discarding pending action: $pendingAction [actionValue: ${action.value}]")
             }
 

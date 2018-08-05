@@ -82,9 +82,10 @@ class Server(
             }
         }
 
+        // note: no 'consumes' call, as Slack sends JSON as an encoded parameter, not a raw body
         router.post("/actions").handler { rc ->
             val event = try {
-                jsonMapper.readValue<ActionTriggeredEvent>(rc.bodyAsString)
+                jsonMapper.readValue<ActionTriggeredEvent>(rc.request().getParam("payload"))
             } catch (e: Exception) {
                 logger.error(e)
                 rc.response().setStatusCode(400).end("Cannot parse webhook")
