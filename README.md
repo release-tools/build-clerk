@@ -18,7 +18,7 @@ Build it:
 
 You can run it with:
 
-	java -jar build/libs/bouncer.jar
+	java -jar server/build/libs/bouncer.jar
 
 ## Configuration options
 

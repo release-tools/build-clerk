@@ -1,2 +1,5 @@
-rootProject.name = 'scm-webhook-receiver'
+rootProject.name = 'build-bouncer'
 
+include ':core'
+include ':dsl'
+include ':server'

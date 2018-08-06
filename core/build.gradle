@@ -1,0 +1,34 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0"
+
+    compile project(':dsl')
+
+    // json
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+
+    // logging
+    compile "org.apache.logging.log4j:log4j-api:$version_log4j"
+
+    // git
+    compile 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'
+
+    // rest
+    compile "com.squareup.retrofit2:retrofit:$version_retrofit"
+    compile "com.squareup.retrofit2:converter-jackson:$version_retrofit"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}

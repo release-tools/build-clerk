@@ -61,4 +61,4 @@ function buildPushImage()
 }
 
 login
-buildPushImage scmwebhook .
+buildPushImage build-bouncer server
