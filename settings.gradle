@@ -2,4 +2,5 @@ rootProject.name = 'build-bouncer'
 
 include ':core'
 include ':dsl'
+include ':parser'
 include ':server'

@@ -1,9 +1,12 @@
 package com.gatehill.buildbouncer
 
+import com.gatehill.buildbouncer.api.service.BuildOutcomeService
+import com.gatehill.buildbouncer.api.service.BuildRunnerService
+import com.gatehill.buildbouncer.parser.Parser
 import com.gatehill.buildbouncer.server.Server
 import com.gatehill.buildbouncer.service.BuildAnalysisService
 import com.gatehill.buildbouncer.service.BuildEventService
-import com.gatehill.buildbouncer.service.BuildOutcomeService
+import com.gatehill.buildbouncer.service.BuildOutcomeServiceImpl
 import com.gatehill.buildbouncer.service.CommandExecutorService
 import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.PullRequestEventService
@@ -11,7 +14,6 @@ import com.gatehill.buildbouncer.service.notify.NotificationService
 import com.gatehill.buildbouncer.service.notify.slack.SlackApiService
 import com.gatehill.buildbouncer.service.notify.slack.SlackNotificationServiceImpl
 import com.gatehill.buildbouncer.service.notify.slack.SlackOperationsService
-import com.gatehill.buildbouncer.service.runner.BuildRunnerService
 import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsApiClientBuilder
 import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsBuildRunnerServiceImpl
 import com.gatehill.buildbouncer.service.scm.GitScmService
@@ -35,9 +37,9 @@ fun main(args: Array<String>) {
         bind<Server>() with singleton { Server(instance(), instance(), instance()) }
 
         // event processors
-        bind<BuildOutcomeService>() with singleton { BuildOutcomeService() }
+        bind<BuildOutcomeService>() with singleton { BuildOutcomeServiceImpl() }
         bind<PullRequestEventService>() with singleton { PullRequestEventService(instance(), instance()) }
-        bind<BuildAnalysisService>() with singleton { BuildAnalysisService(instance(), instance()) }
+        bind<BuildAnalysisService>() with singleton { BuildAnalysisService(instance()) }
         bind<BuildEventService>() with singleton { BuildEventService(instance(), instance(), instance(), instance()) }
 
         // slack
@@ -51,6 +53,9 @@ fun main(args: Array<String>) {
         // jenkins
         bind<BuildRunnerService>() with singleton { JenkinsBuildRunnerServiceImpl(instance()) }
         bind<JenkinsApiClientBuilder>() with singleton { JenkinsApiClientBuilder() }
+
+        // parser
+        bind<Parser>() with singleton { Parser(instance(), instance()) }
     }
 
     val server by kodein.instance<Server>()

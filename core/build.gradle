@@ -5,12 +5,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0"
 
     compile project(':dsl')
-
-    // json
-    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
-
-    // logging
-    compile "org.apache.logging.log4j:log4j-api:$version_log4j"
+    compile project(':parser')
 
     // git
     compile 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'

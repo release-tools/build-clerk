@@ -1,8 +1,8 @@
 package com.gatehill.buildbouncer.service.runner.jenkins
 
 import com.gatehill.buildbouncer.config.Settings
-import com.gatehill.buildbouncer.model.BuildOutcome
-import com.gatehill.buildbouncer.service.runner.BuildRunnerService
+import com.gatehill.buildbouncer.api.model.BuildOutcome
+import com.gatehill.buildbouncer.api.service.BuildRunnerService
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import retrofit2.Call

@@ -1,7 +1,5 @@
-package com.gatehill.buildbouncer.model
+package com.gatehill.buildbouncer.api.model
 
-import com.gatehill.buildbouncer.model.action.PendingAction
-import com.gatehill.buildbouncer.model.action.PendingActionSet
 import org.apache.logging.log4j.Logger
 import java.time.ZonedDateTime
 

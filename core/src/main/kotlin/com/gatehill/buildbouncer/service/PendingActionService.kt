@@ -1,10 +1,10 @@
 package com.gatehill.buildbouncer.service
 
-import com.gatehill.buildbouncer.model.action.ActionTriggeredEvent
-import com.gatehill.buildbouncer.model.action.PendingAction
-import com.gatehill.buildbouncer.model.action.PendingActionSet
-import com.gatehill.buildbouncer.model.action.RevertPendingAction
-import com.gatehill.buildbouncer.model.action.SlackAction
+import com.gatehill.buildbouncer.model.ActionTriggeredEvent
+import com.gatehill.buildbouncer.api.model.PendingAction
+import com.gatehill.buildbouncer.api.model.PendingActionSet
+import com.gatehill.buildbouncer.api.model.RevertPendingAction
+import com.gatehill.buildbouncer.model.SlackAction
 import com.gatehill.buildbouncer.service.scm.ScmService
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger

@@ -1,7 +1,8 @@
 package com.gatehill.buildbouncer.service
 
+import com.gatehill.buildbouncer.api.model.BuildStatus
+import com.gatehill.buildbouncer.api.service.BuildOutcomeService
 import com.gatehill.buildbouncer.config.Settings
-import com.gatehill.buildbouncer.model.BuildStatus
 import com.gatehill.buildbouncer.model.PullRequestMergedEvent
 import com.gatehill.buildbouncer.service.scm.ScmService
 import kotlinx.coroutines.experimental.async

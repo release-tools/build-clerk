@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.model.action
+package com.gatehill.buildbouncer.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty

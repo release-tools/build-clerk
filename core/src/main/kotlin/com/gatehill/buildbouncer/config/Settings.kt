@@ -2,15 +2,13 @@ package com.gatehill.buildbouncer.config
 
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 object Settings {
     val repoName: String by lazy { System.getenv("REPO_NAME") }
 
     val branchName: String by lazy { System.getenv("BRANCH_NAME") }
-
-    object Thresholds {
-        val maxFailuresForCommitOnBranch: Int by lazy { System.getenv("MAX_FAILURES_FOR_COMMIT")?.toInt() ?: 2 }
-    }
 
     object Repository {
         val localDir: File by lazy {
@@ -37,10 +35,21 @@ object Settings {
     }
 
     object Slack {
-        val channel: String by lazy { System.getenv("SLACK_CHANNEL")
-                ?: throw IllegalStateException("Missing Slack channel") }
+        val channel: String by lazy {
+            System.getenv("SLACK_CHANNEL")
+                    ?: throw IllegalStateException("Missing Slack channel")
+        }
 
-        val userToken by lazy { System.getenv("SLACK_USER_TOKEN")
-                ?: throw IllegalStateException("Missing Slack user token") }
+        val userToken by lazy {
+            System.getenv("SLACK_USER_TOKEN")
+                    ?: throw IllegalStateException("Missing Slack user token")
+        }
+    }
+
+    object Rules {
+        val configFile: Path by lazy {
+            System.getenv("RULES_FILE")?.let { Paths.get(it) }
+                    ?: throw IllegalStateException("Missing rules file")
+        }
     }
 }

@@ -1,4 +1,6 @@
-package com.gatehill.buildbouncer.model.action
+package com.gatehill.buildbouncer.api.model
+
+import com.gatehill.buildbouncer.api.model.PendingAction
 
 data class RevertPendingAction(
         val commit: String,

@@ -1,6 +1,6 @@
-package com.gatehill.buildbouncer.service.runner
+package com.gatehill.buildbouncer.api.service
 
-import com.gatehill.buildbouncer.model.BuildOutcome
+import com.gatehill.buildbouncer.api.model.BuildOutcome
 
 /**
  * Executes builds.

@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.model.action
+package com.gatehill.buildbouncer.api.model
 
 import java.util.UUID
 

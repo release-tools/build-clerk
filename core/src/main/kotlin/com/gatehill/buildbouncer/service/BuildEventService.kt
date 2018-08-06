@@ -1,6 +1,7 @@
 package com.gatehill.buildbouncer.service
 
-import com.gatehill.buildbouncer.model.BuildOutcome
+import com.gatehill.buildbouncer.api.model.BuildOutcome
+import com.gatehill.buildbouncer.api.service.BuildOutcomeService
 import com.gatehill.buildbouncer.service.notify.NotificationService
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager

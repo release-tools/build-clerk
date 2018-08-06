@@ -1,8 +1,8 @@
 package com.gatehill.buildbouncer.service.notify.slack
 
 import com.gatehill.buildbouncer.config.Settings
-import com.gatehill.buildbouncer.model.Analysis
-import com.gatehill.buildbouncer.model.action.PendingAction
+import com.gatehill.buildbouncer.api.model.Analysis
+import com.gatehill.buildbouncer.api.model.PendingAction
 import com.gatehill.buildbouncer.service.notify.StdoutNotificationServiceImpl
 
 /**
