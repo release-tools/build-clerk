@@ -16,11 +16,31 @@ Build it:
 
 	./gradlew clean shadowjar
 
-You can run it with:
+Run it:
 
 	java -jar server/build/libs/bouncer.jar
 
 ## Configuration options
+
+* RULES_FILE - Path to rules file to respond to build lifecycle events
+
+Git repository configuration:
+
+* GIT_REPO_LOCAL_DIR - Path to a local repository clone
+* GIT_REPO_PUSH_CHANGES - Whether to push changes to the remote
+
+Jenkins configuration:
+
+* JENKINS_BASE_URL
+* JENKINS_USERNAME
+* JENKINS_API_KEY
+* JENKINS_PASSWORD
+
+Slack configuration:
+
+* SLACK_USER_TOKEN - A token with the `chat.postmessage` permission
+
+Configuration for pull request events:
 
 * REPO_NAME
 * BRANCH_NAME
@@ -32,14 +52,14 @@ Set configuration:
     export REPO_NAME="myrepo"
     export BRANCH_NAME="master"
 
-Test branch status:
+Build notification:
 
     curl -v -d '{ "name": "example", "url": "job/example", "build": { "number": 1, "status": "FAILED", "full_url": "http://example.com/job/example/1", "scm": { "branch": "master", "commit": "c0ff33" } } }' -H 'Content-Type: application/json' http://localhost:9090/builds
 
-Test PR merged event:
-
-    curl -v -d @./examples/pr-merged.json -H 'Content-Type: application/json' http://localhost:9090/pull-requests/merged
-
-Test incoming action notification:
+Slack action trigger:
 
     curl -v -d @./examples/action-triggered.json -H 'Content-Type: application/json' http://localhost:9090/actions
+
+PR merged event:
+
+    curl -v -d @./examples/pr-merged.json -H 'Content-Type: application/json' http://localhost:9090/pull-requests/merged
