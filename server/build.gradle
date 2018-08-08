@@ -10,6 +10,7 @@ dependencies {
 
     // DI
     implementation 'org.kodein.di:kodein-di-generic-jvm:5.2.0'
+    compile group: 'org.kodein.di', name: 'kodein-di-jx-inject-jvm', version: '5.2.0'
 
     // server
     compile 'io.vertx:vertx-web:3.5.1'

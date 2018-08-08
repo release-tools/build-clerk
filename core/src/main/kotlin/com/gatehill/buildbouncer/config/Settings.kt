@@ -35,11 +35,6 @@ object Settings {
     }
 
     object Slack {
-        val channel: String by lazy {
-            System.getenv("SLACK_CHANNEL")
-                    ?: throw IllegalStateException("Missing Slack channel")
-        }
-
         val userToken by lazy {
             System.getenv("SLACK_USER_TOKEN")
                     ?: throw IllegalStateException("Missing Slack user token")

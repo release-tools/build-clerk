@@ -31,7 +31,13 @@ class BuildOutcomeServiceImpl : BuildOutcomeService {
         outcome.build.scm.branch == branchName && outcome.build.status == BuildStatus.SUCCESS
     }
 
-    override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int = store.asReversed().count { outcome ->
-        outcome.build.scm.commit == commit && outcome.build.scm.branch == branch && outcome.build.status == BuildStatus.FAILED
-    }
+    override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int =
+        store.asReversed().count { outcome ->
+            outcome.build.scm.commit == commit && outcome.build.scm.branch == branch && outcome.build.status == BuildStatus.FAILED
+        }
+
+    override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus? =
+        store.asReversed().firstOrNull { outcome ->
+            outcome.build.scm.branch == branchName && outcome.build.number == buildNumber
+        }?.build?.status
 }

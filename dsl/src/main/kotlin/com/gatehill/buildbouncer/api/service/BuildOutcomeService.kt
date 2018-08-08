@@ -1,6 +1,7 @@
 package com.gatehill.buildbouncer.api.service
 
 import com.gatehill.buildbouncer.api.model.BuildOutcome
+import com.gatehill.buildbouncer.api.model.BuildStatus
 
 /**
  * Stores build outcomes and provides access to build metadata.
@@ -13,4 +14,5 @@ interface BuildOutcomeService {
     fun hasEverSucceeded(commit: String): Boolean
     fun lastPassingCommitForBranch(branchName: String): BuildOutcome?
     fun countFailuresForCommitOnBranch(commit: String, branch: String): Int
+    fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus?
 }

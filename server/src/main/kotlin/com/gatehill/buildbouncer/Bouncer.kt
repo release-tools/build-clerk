@@ -10,7 +10,7 @@ import com.gatehill.buildbouncer.service.BuildOutcomeServiceImpl
 import com.gatehill.buildbouncer.service.CommandExecutorService
 import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.PullRequestEventService
-import com.gatehill.buildbouncer.service.notify.NotificationService
+import com.gatehill.buildbouncer.api.service.NotificationService
 import com.gatehill.buildbouncer.service.notify.slack.SlackApiService
 import com.gatehill.buildbouncer.service.notify.slack.SlackNotificationServiceImpl
 import com.gatehill.buildbouncer.service.notify.slack.SlackOperationsService
@@ -23,6 +23,7 @@ import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.instance
 import org.kodein.di.generic.singleton
+import org.kodein.di.jxinject.Jx
 
 private val logger = LogManager.getLogger("com.gatehill.buildbouncer.Bouncer")
 
@@ -39,8 +40,8 @@ fun main(args: Array<String>) {
         // event processors
         bind<BuildOutcomeService>() with singleton { BuildOutcomeServiceImpl() }
         bind<PullRequestEventService>() with singleton { PullRequestEventService(instance(), instance()) }
-        bind<BuildAnalysisService>() with singleton { BuildAnalysisService(instance()) }
-        bind<BuildEventService>() with singleton { BuildEventService(instance(), instance(), instance(), instance()) }
+        bind<BuildAnalysisService>() with singleton { BuildAnalysisService(instance(), instance()) }
+        bind<BuildEventService>() with singleton { BuildEventService(instance(), instance(), instance()) }
 
         // slack
         bind<NotificationService>() with singleton { SlackNotificationServiceImpl(instance()) }
@@ -55,7 +56,14 @@ fun main(args: Array<String>) {
         bind<JenkinsApiClientBuilder>() with singleton { JenkinsApiClientBuilder() }
 
         // parser
-        bind<Parser>() with singleton { Parser(instance(), instance()) }
+        bind<Parser>() with singleton { Parser() }
+    }
+
+    val jxInjector = Jx.of(kodein)
+    InstanceFactoryLocator.instanceFactory = object : InstanceFactory {
+        override fun <T : Any> instance(clazz: Class<T>): T {
+            return jxInjector.newInstance(clazz)
+        }
     }
 
     val server by kodein.instance<Server>()
