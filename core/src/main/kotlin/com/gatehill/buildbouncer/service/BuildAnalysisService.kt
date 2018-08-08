@@ -9,8 +9,9 @@ import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.dsl.BaseBlock
 import com.gatehill.buildbouncer.parser.Parser
 import org.apache.logging.log4j.LogManager
+import javax.inject.Inject
 
-class BuildAnalysisService(
+class BuildAnalysisService @Inject constructor(
     private val parser: Parser,
     private val buildOutcomeService: BuildOutcomeService
 ) {

@@ -3,13 +3,14 @@ package com.gatehill.buildbouncer.service.notify.slack
 import com.gatehill.buildbouncer.api.model.Analysis
 import com.gatehill.buildbouncer.api.model.action.PendingAction
 import com.gatehill.buildbouncer.service.notify.StdoutNotificationServiceImpl
+import javax.inject.Inject
 
 /**
  * Sends Slack notifications and actions.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class SlackNotificationServiceImpl(
+class SlackNotificationServiceImpl @Inject constructor(
     private val slackOperationsService: SlackOperationsService
 ) : StdoutNotificationServiceImpl() {
 

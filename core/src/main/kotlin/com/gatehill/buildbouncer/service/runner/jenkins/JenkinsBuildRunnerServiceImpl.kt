@@ -8,13 +8,14 @@ import org.apache.logging.log4j.Logger
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
 /**
  * Triggers Jenkins jobs and obtains basic job status.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class JenkinsBuildRunnerServiceImpl(
+class JenkinsBuildRunnerServiceImpl @Inject constructor(
         private val apiClientBuilder: JenkinsApiClientBuilder
 ) : BuildRunnerService {
 

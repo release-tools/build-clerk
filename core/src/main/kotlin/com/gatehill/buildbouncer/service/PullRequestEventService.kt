@@ -7,8 +7,9 @@ import com.gatehill.buildbouncer.model.PullRequestMergedEvent
 import com.gatehill.buildbouncer.service.scm.ScmService
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
+import javax.inject.Inject
 
-class PullRequestEventService(
+class PullRequestEventService @Inject constructor(
         private val buildOutcomeService: BuildOutcomeService,
         private val scmService: ScmService
 ) {

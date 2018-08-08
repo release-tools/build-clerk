@@ -4,13 +4,14 @@ import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.api.service.BuildOutcomeService
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
+import javax.inject.Inject
 
 /**
  * Records build events and triggers analysis.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class BuildEventService(
+class BuildEventService @Inject constructor(
     private val buildOutcomeService: BuildOutcomeService,
     private val buildAnalysisService: BuildAnalysisService,
     private val pendingActionService: PendingActionService

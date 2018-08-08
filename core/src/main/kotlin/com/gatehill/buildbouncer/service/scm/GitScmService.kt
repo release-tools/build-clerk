@@ -7,8 +7,9 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import javax.inject.Inject
 
-class GitScmService(
+class GitScmService @Inject constructor(
     private val commandExecutorService: CommandExecutorService
 ) : ScmService {
     private val logger = LogManager.getLogger(ScmService::class.java)

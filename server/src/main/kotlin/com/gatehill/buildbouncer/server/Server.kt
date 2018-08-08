@@ -12,13 +12,14 @@ import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import org.apache.logging.log4j.LogManager
+import javax.inject.Inject
 
 /**
  * Listens for connections and routes requests.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class Server(
+class Server @Inject constructor(
         private val buildEventService: BuildEventService,
         private val pullRequestEventService: PullRequestEventService,
         private val pendingActionService: PendingActionService

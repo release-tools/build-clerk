@@ -11,13 +11,14 @@ import com.gatehill.buildbouncer.model.SlackAction
 import com.gatehill.buildbouncer.service.scm.ScmService
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import javax.inject.Inject
 
 /**
  * Completes pending actions.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class PendingActionService(
+class PendingActionService @Inject constructor(
         private val scmService: ScmService,
         private val buildRunnerService: BuildRunnerService
 ) {
