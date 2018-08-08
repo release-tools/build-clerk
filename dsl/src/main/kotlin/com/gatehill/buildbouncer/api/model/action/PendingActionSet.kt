@@ -1,6 +1,6 @@
-package com.gatehill.buildbouncer.api.model
+package com.gatehill.buildbouncer.api.model.action
 
-import java.util.UUID
+import java.util.*
 
 /**
  * Identifies a set of pending actions.

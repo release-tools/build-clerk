@@ -1,5 +1,7 @@
 package com.gatehill.buildbouncer.api.model
 
+import com.gatehill.buildbouncer.api.model.action.PendingAction
+import com.gatehill.buildbouncer.api.model.action.PendingActionSet
 import org.apache.logging.log4j.Logger
 import java.time.ZonedDateTime
 
@@ -42,8 +44,3 @@ ${actionSet.actions.joinToString("\n")}
 """.trimMargin()
     }
 }
-
-data class Event(
-        val timestamp: ZonedDateTime,
-        val message: String
-)

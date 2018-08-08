@@ -9,7 +9,7 @@ import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 class GitScmService(
-        private val commandExecutorService: CommandExecutorService
+    private val commandExecutorService: CommandExecutorService
 ) : ScmService {
     private val logger = LogManager.getLogger(ScmService::class.java)
 
@@ -35,19 +35,23 @@ class GitScmService(
         }
     }
 
+    override fun lockBranch(branchName: String) {
+        TODO("locking branches is not implemented")
+    }
+
     private fun cleanCheckout(git: Git, branchName: String) {
         logger.info("Performing clean checkout of branch $branchName")
 
         git.clean()
-                .setCleanDirectories(true)
-                .setForce(true)
-                .call()
+            .setCleanDirectories(true)
+            .setForce(true)
+            .call()
 
         git.fetch().call()
 
         git.checkout()
-                .setName(branchName)
-                .call()
+            .setName(branchName)
+            .call()
 
         git.pull()
 
@@ -65,16 +69,16 @@ class GitScmService(
         } else {
             // jgit doesn't support reverting commits with multiple parents (e.g. merge commits)
             commandExecutorService.exec(
-                    command = "git revert $commit --mainline 1",
-                    workingDir = Settings.Repository.localDir
+                command = "git revert $commit --mainline 1",
+                workingDir = Settings.Repository.localDir
             )
         }
     }
 
     private fun withRepo(block: Repository.() -> Unit) {
         FileRepositoryBuilder()
-                .setGitDir(Settings.Repository.localDir)
-                .build()
-                .use(block)
+            .setGitDir(Settings.Repository.localDir)
+            .build()
+            .use(block)
     }
 }

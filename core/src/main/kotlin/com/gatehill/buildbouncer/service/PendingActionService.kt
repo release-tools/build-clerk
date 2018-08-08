@@ -1,9 +1,12 @@
 package com.gatehill.buildbouncer.service
 
+import com.gatehill.buildbouncer.api.model.action.LockBranchAction
 import com.gatehill.buildbouncer.model.ActionTriggeredEvent
-import com.gatehill.buildbouncer.api.model.PendingAction
-import com.gatehill.buildbouncer.api.model.PendingActionSet
-import com.gatehill.buildbouncer.api.model.RevertPendingAction
+import com.gatehill.buildbouncer.api.model.action.PendingAction
+import com.gatehill.buildbouncer.api.model.action.PendingActionSet
+import com.gatehill.buildbouncer.api.model.action.RebuildBranchAction
+import com.gatehill.buildbouncer.api.model.action.RevertAction
+import com.gatehill.buildbouncer.api.service.BuildRunnerService
 import com.gatehill.buildbouncer.model.SlackAction
 import com.gatehill.buildbouncer.service.scm.ScmService
 import org.apache.logging.log4j.LogManager
@@ -15,7 +18,8 @@ import org.apache.logging.log4j.Logger
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class PendingActionService(
-        private val scmService: ScmService
+        private val scmService: ScmService,
+        private val buildRunnerService: BuildRunnerService
 ) {
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
     private val pending = mutableMapOf<String, PendingActionSet>()
@@ -57,7 +61,9 @@ class PendingActionService(
     private fun executePendingAction(pendingAction: PendingAction) {
         logger.info("Executing pending action: $pendingAction")
         when (pendingAction) {
-            is RevertPendingAction -> scmService.revertCommit(pendingAction.commit, pendingAction.branch)
+            is RevertAction -> scmService.revertCommit(pendingAction.commit, pendingAction.branch)
+            is RebuildBranchAction -> buildRunnerService.rebuild(pendingAction.outcome)
+            is LockBranchAction -> scmService.lockBranch(pendingAction.branch)
             else -> throw NotImplementedError("Unsupported pending action: $pendingAction")
         }
     }

@@ -8,13 +8,12 @@ config {
             log("Commit ${outcome.build.scm.commit} has previously succeeded (on at least 1 branch)")
 
             val failuresForCommitOnBranch = countFailuresForCommitOnBranch()
-            log("Commit has failed $failuresForCommitOnBranch time on ${outcome.build.scm.branch}")
+            log("Commit has failed $failuresForCommitOnBranch time(s) on ${outcome.build.scm.branch}")
 
-            if (failuresForCommitOnBranch < 2) {
-                log("Rebuilding ${outcome.build.number} on ${outcome.build.scm.branch}")
-                rebuild()
+            if (failuresForCommitOnBranch < 3) {
+                rebuildBranch()
             } else {
-                revertCommit()
+                lockBranch()
             }
 
         } else {

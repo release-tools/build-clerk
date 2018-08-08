@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.api.model
+package com.gatehill.buildbouncer.api.model.action
 
 interface PendingAction {
     val name: String

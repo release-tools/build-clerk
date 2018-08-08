@@ -11,6 +11,8 @@ import com.gatehill.buildbouncer.service.CommandExecutorService
 import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.PullRequestEventService
 import com.gatehill.buildbouncer.api.service.NotificationService
+import com.gatehill.buildbouncer.parser.inject.InstanceFactory
+import com.gatehill.buildbouncer.parser.inject.InstanceFactoryLocator
 import com.gatehill.buildbouncer.service.notify.slack.SlackApiService
 import com.gatehill.buildbouncer.service.notify.slack.SlackNotificationServiceImpl
 import com.gatehill.buildbouncer.service.notify.slack.SlackOperationsService
@@ -31,7 +33,7 @@ fun main(args: Array<String>) {
     logger.info("Starting Build Bouncer")
 
     val kodein = Kodein {
-        bind<PendingActionService>() with singleton { PendingActionService(instance()) }
+        bind<PendingActionService>() with singleton { PendingActionService(instance(), instance()) }
         bind<CommandExecutorService>() with singleton { CommandExecutorService() }
 
         // server
@@ -60,7 +62,8 @@ fun main(args: Array<String>) {
     }
 
     val jxInjector = Jx.of(kodein)
-    InstanceFactoryLocator.instanceFactory = object : InstanceFactory {
+    InstanceFactoryLocator.instanceFactory = object :
+        InstanceFactory {
         override fun <T : Any> instance(clazz: Class<T>): T {
             return jxInjector.newInstance(clazz)
         }

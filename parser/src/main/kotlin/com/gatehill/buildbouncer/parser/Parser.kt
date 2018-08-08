@@ -1,8 +1,6 @@
 package com.gatehill.buildbouncer.parser
 
-import com.gatehill.buildbouncer.api.model.Analysis
-import com.gatehill.buildbouncer.api.model.BuildOutcome
-import com.gatehill.buildbouncer.dsl.ConfigWrapper
+import com.gatehill.buildbouncer.dsl.ConfigBlock
 import java.nio.file.Path
 import javax.script.ScriptEngineManager
 
@@ -14,14 +12,11 @@ import javax.script.ScriptEngineManager
 class Parser {
     private val engine by lazy { ScriptEngineManager().getEngineByExtension("kts")!! }
 
-    fun parse(rulesFile: Path, outcome: BuildOutcome, analysis: Analysis): ConfigWrapper {
-        val config = engine.eval(rulesFile.toFile().reader()) as? ConfigWrapper
+    fun parse(rulesFile: Path): ConfigBlock {
+        val config = engine.eval(rulesFile.toFile().reader()) as? ConfigBlock
                 ?: throw IllegalStateException("No configuration defined")
 
-        config.buildOutcome = outcome
-        config.analysis = analysis
-        config.eval()
-
+        config.body(config)
         return config
     }
 }
