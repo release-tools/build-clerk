@@ -33,6 +33,7 @@ class BuildAnalysisService @Inject constructor(
                 invoke(outcome, analysis, config.bodyHolder.buildPassed)
 
                 if (previousBuildStatus == BuildStatus.FAILED) {
+                    logger.info("Build started passing: $outcome")
                     invoke(outcome, analysis, config.bodyHolder.branchStartsPassing)
                 }
             }
@@ -41,6 +42,7 @@ class BuildAnalysisService @Inject constructor(
                 invoke(outcome, analysis, config.bodyHolder.buildFailed)
 
                 if (previousBuildStatus == BuildStatus.SUCCESS) {
+                    logger.info("Build started failing: $outcome")
                     invoke(outcome, analysis, config.bodyHolder.branchStartsFailing)
                 }
             }
