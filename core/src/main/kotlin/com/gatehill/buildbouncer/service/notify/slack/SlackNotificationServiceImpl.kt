@@ -2,6 +2,9 @@ package com.gatehill.buildbouncer.service.notify.slack
 
 import com.gatehill.buildbouncer.api.model.Analysis
 import com.gatehill.buildbouncer.api.model.action.PendingAction
+import com.gatehill.buildbouncer.model.slack.SlackAttachmentAction
+import com.gatehill.buildbouncer.model.slack.SlackMessage
+import com.gatehill.buildbouncer.model.slack.SlackMessageAttachment
 import com.gatehill.buildbouncer.service.notify.StdoutNotificationServiceImpl
 import javax.inject.Inject
 
@@ -17,12 +20,12 @@ class SlackNotificationServiceImpl @Inject constructor(
     override fun notify(channelName: String, message: String, color: String) {
         super.notify(channelName, message, color)
 
-        val content: Map<String, *> = mapOf(
-            "channel" to channelName,
-            "attachments" to listOf(
-                mapOf(
-                    "text" to message,
-                    "color" to color
+        val content = SlackMessage(
+            channel = channelName,
+            attachments = listOf(
+                SlackMessageAttachment(
+                    text = message,
+                    color = color
                 )
             )
         )
@@ -31,45 +34,45 @@ class SlackNotificationServiceImpl @Inject constructor(
     }
 
     override fun notify(channelName: String, analysis: Analysis, color: String) {
-        super.notify(channelName, analysis, color)
+        super.notify(channelName, analysis.toString(), color)
 
         if (analysis.actionSet.actions.isEmpty()) {
             return
         }
 
-        val content: Map<String, *> = mapOf(
-            "text" to analysis.describeEvents(),
-            "channel" to channelName,
-            "attachments" to analysis.actionSet.actions.map { action ->
-                buildMessageAction(analysis.actionSet.id, action, color)
+        val content = SlackMessage(
+            text = analysis.describeEvents(),
+            channel = channelName,
+            attachments = analysis.actionSet.actions.map { action ->
+                buildMessageAttachment(analysis.actionSet.id, action, color)
             }
         )
 
         slackOperationsService.sendMessage(content)
     }
 
-    private fun buildMessageAction(
+    private fun buildMessageAttachment(
         actionSetId: String,
         action: PendingAction, color: String
-    ): Map<String, Any> = mapOf(
-        "fallback" to "Do you want to ${action.describe()}?",
-        "title" to "Do you want to ${action.describe()}?",
-        "callback_id" to actionSetId,
-        "color" to color,
-        "attachment_type" to "default",
-        "actions" to listOf(
-            mapOf(
-                "name" to action.name,
-                "text" to action.title,
-                "style" to "danger",
-                "type" to "button",
-                "value" to action.name
+    ) = SlackMessageAttachment(
+        fallback = "Do you want to ${action.describe()}?",
+        title = "Do you want to ${action.describe()}?",
+        callbackId = actionSetId,
+        color = color,
+        attachmentType = "default",
+        actions = listOf(
+            SlackAttachmentAction(
+                name = action.name,
+                text = action.title,
+                style = "danger",
+                type = "button",
+                value = action.name
             ),
-            mapOf(
-                "name" to "no",
-                "text" to "No",
-                "type" to "button",
-                "value" to "bad"
+            SlackAttachmentAction(
+                name = "no",
+                text = "No",
+                type = "button",
+                value = "bad"
             )
         )
     )

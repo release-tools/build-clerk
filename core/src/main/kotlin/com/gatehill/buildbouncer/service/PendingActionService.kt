@@ -1,13 +1,14 @@
 package com.gatehill.buildbouncer.service
 
 import com.gatehill.buildbouncer.api.model.action.LockBranchAction
-import com.gatehill.buildbouncer.model.ActionTriggeredEvent
 import com.gatehill.buildbouncer.api.model.action.PendingAction
 import com.gatehill.buildbouncer.api.model.action.PendingActionSet
 import com.gatehill.buildbouncer.api.model.action.RebuildBranchAction
 import com.gatehill.buildbouncer.api.model.action.RevertAction
 import com.gatehill.buildbouncer.api.service.BuildRunnerService
-import com.gatehill.buildbouncer.model.SlackAction
+import com.gatehill.buildbouncer.model.slack.ActionTriggeredEvent
+import com.gatehill.buildbouncer.model.slack.SlackMessage
+import com.gatehill.buildbouncer.model.slack.SlackAttachmentAction
 import com.gatehill.buildbouncer.service.scm.ScmService
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -19,8 +20,8 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class PendingActionService @Inject constructor(
-        private val scmService: ScmService,
-        private val buildRunnerService: BuildRunnerService
+    private val scmService: ScmService,
+    private val buildRunnerService: BuildRunnerService
 ) {
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
     private val pending = mutableMapOf<String, PendingActionSet>()
@@ -30,7 +31,7 @@ class PendingActionService @Inject constructor(
         pending[actionSet.id] = actionSet
     }
 
-    fun handle(event: ActionTriggeredEvent) {
+    fun handle(event: ActionTriggeredEvent): SlackMessage {
         logger.info("Handling action trigger with callback ID: ${event.callbackId}")
 
         event.actions?.let { actions ->
@@ -44,10 +45,17 @@ class PendingActionService @Inject constructor(
 
         } ?: logger.warn("No actions found in event: $event")
 
-        // TODO remove action buttons from message
+        // remove action buttons from message
+        return event.originalMessage.copy(
+            attachments = event.originalMessage.attachments?.map { attachment ->
+                attachment.copy(
+                    actions = emptyList()
+                )
+            }
+        )
     }
 
-    private fun resolve(action: SlackAction, actionSet: PendingActionSet) {
+    private fun resolve(action: SlackAttachmentAction, actionSet: PendingActionSet) {
         logger.debug("Attempting to resolve pending action: $action")
 
         actionSet.actions.find { it.name == action.name }?.let { pendingAction ->
