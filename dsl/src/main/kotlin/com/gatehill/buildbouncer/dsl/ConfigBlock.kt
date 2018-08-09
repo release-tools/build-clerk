@@ -40,11 +40,11 @@ class ConfigBlock(
 }
 
 class BodyHolder {
-    lateinit var buildPassed: BuildPassedBlock.() -> Unit
-    lateinit var buildFailed: BuildFailedBlock.() -> Unit
-    lateinit var branchStartsPassing: BuildHealthyBlock.() -> Unit
-    lateinit var branchStartsFailing: BuildFailingBlock.() -> Unit
-    lateinit var repository: RepositoryBlock.() -> Unit
+    var buildPassed: (BuildPassedBlock.() -> Unit)? = null
+    var buildFailed: (BuildFailedBlock.() -> Unit)? = null
+    var branchStartsPassing: (BuildHealthyBlock.() -> Unit)? = null
+    var branchStartsFailing: (BuildFailingBlock.() -> Unit)? = null
+    var repository: (RepositoryBlock.() -> Unit)? = null
 }
 
 abstract class BaseBlock(

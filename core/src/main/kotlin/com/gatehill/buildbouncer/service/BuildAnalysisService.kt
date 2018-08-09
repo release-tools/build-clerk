@@ -59,15 +59,17 @@ class BuildAnalysisService @Inject constructor(
     private inline fun <reified B : Any> invoke(
         outcome: BuildOutcome,
         analysis: Analysis,
-        body: B.() -> Unit
+        noinline body: (B.() -> Unit)?
     ) {
-        val block = InstanceFactoryLocator.instance<B>()
-        when (block) {
-            is BaseBlock -> {
-                block.outcome = outcome
-                block.analysis = analysis
+        body?.let {
+            val block = InstanceFactoryLocator.instance<B>()
+            when (block) {
+                is BaseBlock -> {
+                    block.outcome = outcome
+                    block.analysis = analysis
+                }
             }
+            block.body()
         }
-        block.body()
     }
 }

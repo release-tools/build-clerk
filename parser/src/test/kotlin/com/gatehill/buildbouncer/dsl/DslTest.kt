@@ -1,7 +1,7 @@
 package com.gatehill.buildbouncer.dsl
 
 import com.gatehill.buildbouncer.parser.Parser
-import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Test
 import java.nio.file.Paths
 
@@ -12,10 +12,10 @@ class DslTest {
         val config = Parser().parse(rules)
         config.body(config)
 
-        Assert.assertNotNull(config.bodyHolder.buildPassed)
-        Assert.assertNotNull(config.bodyHolder.buildFailed)
-        Assert.assertNotNull(config.bodyHolder.branchStartsPassing)
-        Assert.assertNotNull(config.bodyHolder.branchStartsFailing)
-        Assert.assertNotNull(config.bodyHolder.repository)
+        assertNotNull(config.bodyHolder.buildPassed)
+        assertNotNull(config.bodyHolder.buildFailed)
+        assertNotNull(config.bodyHolder.branchStartsPassing)
+        assertNotNull(config.bodyHolder.branchStartsFailing)
+        assertNotNull(config.bodyHolder.repository)
     }
 }
