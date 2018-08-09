@@ -62,17 +62,17 @@ class SlackNotificationServiceImpl @Inject constructor(
         attachmentType = "default",
         actions = listOf(
             SlackAttachmentAction(
+                type = "button",
                 name = action.name,
                 text = action.title,
-                style = "danger",
-                type = "button",
-                value = action.name
+                value = action.name,
+                style = "danger"
             ),
             SlackAttachmentAction(
-                name = "no",
-                text = "No",
                 type = "button",
-                value = "bad"
+                name = action.name,
+                text = "No",
+                value = "no"
             )
         )
     )

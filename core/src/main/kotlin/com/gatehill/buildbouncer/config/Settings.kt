@@ -47,4 +47,8 @@ object Settings {
                     ?: throw IllegalStateException("Missing rules file")
         }
     }
+
+    object Server {
+        val port: Int by lazy { System.getenv("SERVER_PORT")?.toInt() ?: 9090 }
+    }
 }

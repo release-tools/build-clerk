@@ -2,6 +2,7 @@ package com.gatehill.buildbouncer.server
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.gatehill.buildbouncer.api.model.BuildOutcome
+import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.model.bitbucket.PullRequestMergedEvent
 import com.gatehill.buildbouncer.model.slack.ActionTriggeredEvent
 import com.gatehill.buildbouncer.service.BuildEventService
@@ -22,19 +23,23 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class Server @Inject constructor(
-    private val buildEventService: BuildEventService,
-    private val pullRequestEventService: PullRequestEventService,
-    private val pendingActionService: PendingActionService
+        private val buildEventService: BuildEventService,
+        private val pullRequestEventService: PullRequestEventService,
+        private val pendingActionService: PendingActionService
 ) {
     private val logger = LogManager.getLogger(Server::class.java)
+
+    private val homePage by lazy {
+        Server::class.java.getResourceAsStream("/index.html").bufferedReader().use { it.readText() }
+    }
 
     fun startServer() {
         val vertx = Vertx.vertx()
         val server = vertx.createHttpServer()
         val router = buildRouter(vertx)
 
-        server.requestHandler(router::accept).listen(9090)
-        logger.info("Listening on http://localhost:9090")
+        server.requestHandler(router::accept).listen(Settings.Server.port)
+        logger.info("Listening on http://localhost:${Settings.Server.port}")
     }
 
     private fun buildRouter(vertx: Vertx): Router {
@@ -42,13 +47,13 @@ class Server @Inject constructor(
         router.route().handler(BodyHandler.create())
 
         router.get("/").handler { rc ->
-            rc.response().end(buildHomePage())
+            rc.response().end(homePage)
         }
         router.get("/health").handler { rc ->
             rc.response().end("ok")
         }
 
-        router.post("/builds").consumes("application/json").handler { rc ->
+        router.post("/builds").consumes(JSON_CONTENT_TYPE).handler { rc ->
             val buildOutcome = try {
                 rc.readBodyJson<BuildOutcome>()
             } catch (e: Exception) {
@@ -67,7 +72,7 @@ class Server @Inject constructor(
             }
         }
 
-        router.post("/pull-requests/merged").consumes("application/json").handler { rc ->
+        router.post("/pull-requests/merged").consumes(JSON_CONTENT_TYPE).handler { rc ->
             val event = try {
                 rc.readBodyJson<PullRequestMergedEvent>()
             } catch (e: Exception) {
@@ -106,30 +111,14 @@ class Server @Inject constructor(
         return router
     }
 
-    private fun buildHomePage(): String {
-        return """
-<html>
-    <head>
-        <title>Build Bouncer</title>
-    </head>
-    <body>
-        <h1>Build Bouncer</h1>
-        <p>
-            Respond to events in your build pipeline and keep you main branch stable.
-        </p>
-        <p>
-            Visit the project on <a href="https://github.com/outofcoffee/build-bouncer">GitHub</a>.
-        </p>
-    </body>
-</html>
-""".trimIndent()
+    private inline fun <reified T : Any> RoutingContext.readBodyJson(): T = jsonMapper.readValue(bodyAsString)
+
+    private fun HttpServerResponse.sendJsonResponse(response: Any) {
+        putHeader("Content-Type", JSON_CONTENT_TYPE)
+        end(jsonMapper.writeValueAsString(response))
     }
-}
 
-private inline fun <reified T : Any> RoutingContext.readBodyJson(): T {
-    return jsonMapper.readValue(this.bodyAsString)
-}
-
-private fun HttpServerResponse.sendJsonResponse(response: Any) {
-    this.end(jsonMapper.writeValueAsString(response))
+    companion object {
+        private const val JSON_CONTENT_TYPE = "application/json"
+    }
 }
