@@ -9,7 +9,9 @@ import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.PullRequestEventService
 import com.gatehill.buildbouncer.util.jsonMapper
 import io.vertx.core.Vertx
+import io.vertx.core.http.HttpServerResponse
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
@@ -20,9 +22,9 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class Server @Inject constructor(
-        private val buildEventService: BuildEventService,
-        private val pullRequestEventService: PullRequestEventService,
-        private val pendingActionService: PendingActionService
+    private val buildEventService: BuildEventService,
+    private val pullRequestEventService: PullRequestEventService,
+    private val pendingActionService: PendingActionService
 ) {
     private val logger = LogManager.getLogger(Server::class.java)
 
@@ -48,7 +50,7 @@ class Server @Inject constructor(
 
         router.post("/builds").consumes("application/json").handler { rc ->
             val buildOutcome = try {
-                jsonMapper.readValue<BuildOutcome>(rc.bodyAsString)
+                rc.readBodyJson<BuildOutcome>()
             } catch (e: Exception) {
                 logger.error(e)
                 rc.response().setStatusCode(400).end("Cannot parse build outcome")
@@ -67,7 +69,7 @@ class Server @Inject constructor(
 
         router.post("/pull-requests/merged").consumes("application/json").handler { rc ->
             val event = try {
-                jsonMapper.readValue<PullRequestMergedEvent>(rc.bodyAsString)
+                rc.readBodyJson<PullRequestMergedEvent>()
             } catch (e: Exception) {
                 logger.error(e)
                 rc.response().setStatusCode(400).end("Cannot parse webhook")
@@ -89,13 +91,13 @@ class Server @Inject constructor(
                 jsonMapper.readValue<ActionTriggeredEvent>(rc.request().getParam("payload"))
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(400).end("Cannot parse webhook")
+                rc.response().setStatusCode(400).end("Cannot parse action")
                 return@handler
             }
 
             try {
                 val response = pendingActionService.handle(event)
-                rc.response().setStatusCode(200).end(jsonMapper.writeValueAsString(response))
+                rc.response().setStatusCode(200).sendJsonResponse(response)
             } catch (e: Exception) {
                 logger.error(e)
                 rc.response().setStatusCode(500).end(e.localizedMessage)
@@ -120,6 +122,14 @@ class Server @Inject constructor(
         </p>
     </body>
 </html>
-    """.trimIndent()
+""".trimIndent()
     }
+}
+
+private inline fun <reified T : Any> RoutingContext.readBodyJson(): T {
+    return jsonMapper.readValue(this.bodyAsString)
+}
+
+private fun HttpServerResponse.sendJsonResponse(response: Any) {
+    this.end(jsonMapper.writeValueAsString(response))
 }
