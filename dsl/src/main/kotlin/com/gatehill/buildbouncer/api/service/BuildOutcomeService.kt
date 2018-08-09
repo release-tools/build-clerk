@@ -15,4 +15,5 @@ interface BuildOutcomeService {
     fun lastPassingCommitForBranch(branchName: String): BuildOutcome?
     fun countFailuresForCommitOnBranch(commit: String, branch: String): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus?
+    fun countConsecutiveFailuresOnBranch(branchName: String): Int
 }

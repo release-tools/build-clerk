@@ -47,23 +47,45 @@ class BodyHolder {
     var repository: (RepositoryBlock.() -> Unit)? = null
 }
 
-abstract class BaseBlock(
-    private val notificationService: NotificationService,
+abstract class AbstractBlock(
     private val buildOutcomeService: BuildOutcomeService
 ) {
-    lateinit var outcome: BuildOutcome
     lateinit var analysis: Analysis
+    lateinit var branchName: String
+
+    val consecutiveFailuresOnBranch: Int by lazy {
+        buildOutcomeService.countConsecutiveFailuresOnBranch(branchName)
+    }
+
+    val lastPassingCommitForBranch: BuildOutcome? by lazy {
+        buildOutcomeService.lastPassingCommitForBranch(branchName)
+    }
+
+    fun lockBranch() {
+        analysis.recommend(
+            LockBranchAction(branchName)
+        )
+    }
+}
+
+abstract class AbstractBuildBlock(
+    private val notificationService: NotificationService,
+    private val buildOutcomeService: BuildOutcomeService
+) : AbstractBlock(
+    buildOutcomeService
+) {
+
+    lateinit var outcome: BuildOutcome
 
     fun log(message: String) = analysis.log(message)
 
-    fun hasEverSucceeded(): Boolean =
+    val commitHasEverSucceeded: Boolean by lazy {
         buildOutcomeService.hasEverSucceeded(outcome.build.scm.commit)
+    }
 
-    fun lastPassingCommitForBranch(): BuildOutcome? =
-        buildOutcomeService.lastPassingCommitForBranch(outcome.build.scm.branch)
-
-    fun countFailuresForCommitOnBranch(): Int =
+    val failuresForCommitOnBranch: Int by lazy {
         buildOutcomeService.countFailuresForCommitOnBranch(outcome.build.scm.commit, outcome.build.scm.branch)
+    }
 
     fun rebuildBranch() {
         analysis.recommend(
@@ -80,12 +102,6 @@ abstract class BaseBlock(
         )
     }
 
-    fun lockBranch() {
-        analysis.recommend(
-            LockBranchAction(outcome.build.scm.branch)
-        )
-    }
-
     fun notifyChannel(channelName: String, message: String, color: String = "#000000") {
         notificationService.notify(channelName, message, color)
     }
@@ -98,24 +114,40 @@ abstract class BaseBlock(
 class BuildPassedBlock(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
-) : BaseBlock(notificationService, buildOutcomeService)
+) : AbstractBuildBlock(
+    notificationService,
+    buildOutcomeService
+)
 
 class BuildFailedBlock(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
-) : BaseBlock(notificationService, buildOutcomeService)
+) : AbstractBuildBlock(
+    notificationService,
+    buildOutcomeService
+)
 
 class BuildHealthyBlock(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
-) : BaseBlock(notificationService, buildOutcomeService)
+) : AbstractBuildBlock(
+    notificationService,
+    buildOutcomeService
+)
 
 class BuildFailingBlock(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
-) : BaseBlock(notificationService, buildOutcomeService)
+) : AbstractBuildBlock(
+    notificationService,
+    buildOutcomeService
+)
 
-class RepositoryBlock
+class RepositoryBlock(
+    buildOutcomeService: BuildOutcomeService
+) : AbstractBlock(
+    buildOutcomeService
+)
 
 /**
  * Entrypoint into the DSL.

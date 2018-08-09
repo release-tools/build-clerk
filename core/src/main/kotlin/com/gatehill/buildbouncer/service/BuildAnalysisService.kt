@@ -1,13 +1,14 @@
 package com.gatehill.buildbouncer.service
 
-import com.gatehill.buildbouncer.parser.inject.InstanceFactoryLocator
 import com.gatehill.buildbouncer.api.model.Analysis
 import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.api.model.BuildStatus
 import com.gatehill.buildbouncer.api.service.BuildOutcomeService
 import com.gatehill.buildbouncer.config.Settings
-import com.gatehill.buildbouncer.dsl.BaseBlock
+import com.gatehill.buildbouncer.dsl.AbstractBlock
+import com.gatehill.buildbouncer.dsl.AbstractBuildBlock
 import com.gatehill.buildbouncer.parser.Parser
+import com.gatehill.buildbouncer.parser.inject.InstanceFactoryLocator
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -58,19 +59,20 @@ class BuildAnalysisService @Inject constructor(
     /**
      * Instantiate the block of type `B` and invoke the `body` on it.
      */
-    private inline fun <reified B : Any> invoke(
+    private inline fun <reified B : AbstractBlock> invoke(
         outcome: BuildOutcome,
         analysis: Analysis,
         noinline body: (B.() -> Unit)?
     ) {
         body?.let {
             val block = InstanceFactoryLocator.instance<B>()
+
+            block.analysis = analysis
+            block.branchName = outcome.build.scm.branch
             when (block) {
-                is BaseBlock -> {
-                    block.outcome = outcome
-                    block.analysis = analysis
-                }
+                is AbstractBuildBlock -> block.outcome = outcome
             }
+
             block.body()
         }
     }

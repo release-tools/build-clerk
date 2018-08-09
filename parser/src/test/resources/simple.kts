@@ -4,10 +4,8 @@ config {
     buildFailed {
         log("Job ${outcome.name} build failed: ${outcome.build.fullUrl}")
 
-        if (hasEverSucceeded()) {
+        if (commitHasEverSucceeded) {
             log("Commit ${outcome.build.scm.commit} has previously succeeded (on at least 1 branch)")
-
-            val failuresForCommitOnBranch = countFailuresForCommitOnBranch()
             log("Commit has failed $failuresForCommitOnBranch time(s) on ${outcome.build.scm.branch}")
 
             if (failuresForCommitOnBranch < 3) {
@@ -28,10 +26,6 @@ config {
         )
     }
 
-    buildPassed {
-        /* Nothing */
-    }
-
     branchStartsPassing {
         notifyChannel(
             channelName = "general",
@@ -40,11 +34,17 @@ config {
         )
     }
 
-    branchStartsFailing {
+    repository {
+        if (consecutiveFailuresOnBranch > 5) {
+            lockBranch()
+        }
+    }
+
+    buildPassed {
         /* Nothing */
     }
 
-    repository {
+    branchStartsFailing {
         /* Nothing */
     }
 }
