@@ -48,10 +48,13 @@ class BodyHolder {
 }
 
 abstract class AbstractBlock(
+    private val notificationService: NotificationService,
     private val buildOutcomeService: BuildOutcomeService
 ) {
     lateinit var analysis: Analysis
     lateinit var branchName: String
+
+    fun log(message: String) = analysis.log(message)
 
     val consecutiveFailuresOnBranch: Int by lazy {
         buildOutcomeService.countConsecutiveFailuresOnBranch(branchName)
@@ -66,18 +69,25 @@ abstract class AbstractBlock(
             LockBranchAction(branchName)
         )
     }
+
+    fun notifyChannel(channelName: String, message: String, color: String = "#000000") {
+        notificationService.notify(channelName, message, color)
+    }
+
+    fun notifyChannel(channelName: String, analysis: Analysis, color: String = "#000000") {
+        notificationService.notify(channelName, analysis, color)
+    }
 }
 
 abstract class AbstractBuildBlock(
-    private val notificationService: NotificationService,
+    notificationService: NotificationService,
     private val buildOutcomeService: BuildOutcomeService
 ) : AbstractBlock(
+    notificationService,
     buildOutcomeService
 ) {
 
     lateinit var outcome: BuildOutcome
-
-    fun log(message: String) = analysis.log(message)
 
     val commitHasEverSucceeded: Boolean by lazy {
         buildOutcomeService.hasEverSucceeded(outcome.build.scm.commit)
@@ -100,14 +110,6 @@ abstract class AbstractBuildBlock(
                 branch = outcome.build.scm.branch
             )
         )
-    }
-
-    fun notifyChannel(channelName: String, message: String, color: String = "#000000") {
-        notificationService.notify(channelName, message, color)
-    }
-
-    fun notifyChannel(channelName: String, analysis: Analysis, color: String = "#000000") {
-        notificationService.notify(channelName, analysis, color)
     }
 }
 
@@ -144,8 +146,10 @@ class BuildFailingBlock(
 )
 
 class RepositoryBlock(
+    notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
 ) : AbstractBlock(
+    notificationService,
     buildOutcomeService
 )
 

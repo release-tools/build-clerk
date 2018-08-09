@@ -6,7 +6,7 @@ config {
 
         if (commitHasEverSucceeded) {
             log("Commit ${outcome.build.scm.commit} has previously succeeded (on at least 1 branch)")
-            log("Commit has failed $failuresForCommitOnBranch time(s) on ${outcome.build.scm.branch}")
+            log("Commit has failed $failuresForCommitOnBranch time(s) on $branchName")
 
             if (failuresForCommitOnBranch < 3) {
                 rebuildBranch()
@@ -35,8 +35,15 @@ config {
     }
 
     repository {
-        if (consecutiveFailuresOnBranch > 5) {
+        if (consecutiveFailuresOnBranch >= 5) {
+            log("Branch $branchName has failed $consecutiveFailuresOnBranch times")
             lockBranch()
+
+            notifyChannel(
+                channelName = "general",
+                analysis = analysis,
+                color = "#ff0000"
+            )
         }
     }
 
