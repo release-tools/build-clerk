@@ -7,6 +7,7 @@ import com.gatehill.buildbouncer.api.model.action.RebuildBranchAction
 import com.gatehill.buildbouncer.api.model.action.RevertAction
 import com.gatehill.buildbouncer.api.service.BuildOutcomeService
 import com.gatehill.buildbouncer.api.service.NotificationService
+import javax.inject.Inject
 
 /**
  * Configuration file wrapper.
@@ -47,7 +48,7 @@ class BodyHolder {
     var repository: (RepositoryBlock.() -> Unit)? = null
 }
 
-abstract class AbstractBlock(
+abstract class AbstractBlock @Inject constructor(
     private val notificationService: NotificationService,
     private val buildOutcomeService: BuildOutcomeService
 ) {
@@ -79,7 +80,7 @@ abstract class AbstractBlock(
     }
 }
 
-abstract class AbstractBuildBlock(
+abstract class AbstractBuildBlock @Inject constructor(
     notificationService: NotificationService,
     private val buildOutcomeService: BuildOutcomeService
 ) : AbstractBlock(
@@ -113,7 +114,7 @@ abstract class AbstractBuildBlock(
     }
 }
 
-class BuildPassedBlock(
+class BuildPassedBlock @Inject constructor(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
 ) : AbstractBuildBlock(
@@ -121,7 +122,7 @@ class BuildPassedBlock(
     buildOutcomeService
 )
 
-class BuildFailedBlock(
+class BuildFailedBlock @Inject constructor(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
 ) : AbstractBuildBlock(
@@ -129,7 +130,7 @@ class BuildFailedBlock(
     buildOutcomeService
 )
 
-class BuildHealthyBlock(
+class BuildHealthyBlock @Inject constructor(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
 ) : AbstractBuildBlock(
@@ -137,7 +138,7 @@ class BuildHealthyBlock(
     buildOutcomeService
 )
 
-class BuildFailingBlock(
+class BuildFailingBlock @Inject constructor(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
 ) : AbstractBuildBlock(
@@ -145,7 +146,7 @@ class BuildFailingBlock(
     buildOutcomeService
 )
 
-class RepositoryBlock(
+class RepositoryBlock @Inject constructor(
     notificationService: NotificationService,
     buildOutcomeService: BuildOutcomeService
 ) : AbstractBlock(
