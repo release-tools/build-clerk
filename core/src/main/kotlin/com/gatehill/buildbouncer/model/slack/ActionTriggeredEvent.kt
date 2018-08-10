@@ -10,20 +10,20 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ActionTriggeredEvent(
-    val actions: List<SlackAttachmentAction>?,
+        val actions: List<SlackAttachmentAction>?,
 
-    @JsonProperty("original_message")
-    val originalMessage: SlackMessage,
+        @JsonProperty("original_message")
+        val originalMessage: SlackMessage,
 
-    val channel: SlackIdAndName,
-    val user: SlackIdAndName,
+        val channel: SlackIdAndName,
+        val user: SlackIdAndName,
 
-    @JsonProperty("callback_id")
-    val callbackId: String,
+        @JsonProperty("callback_id")
+        val callbackId: String,
 
-    /**
-     * Can be used to reply to the message that triggered the action.
-     */
-    @JsonProperty("response_url")
-    val responseUrl: String?
+        /**
+         * Can be used to reply to the message that triggered the action.
+         */
+        @JsonProperty("response_url")
+        val responseUrl: String?
 )

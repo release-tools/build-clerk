@@ -12,9 +12,9 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class BuildEventService @Inject constructor(
-    private val buildOutcomeService: BuildOutcomeService,
-    private val buildAnalysisService: BuildAnalysisService,
-    private val pendingActionService: PendingActionService
+        private val buildOutcomeService: BuildOutcomeService,
+        private val buildAnalysisService: BuildAnalysisService,
+        private val pendingActionService: PendingActionService
 ) {
     private val logger = LogManager.getLogger(BuildEventService::class.java)
 

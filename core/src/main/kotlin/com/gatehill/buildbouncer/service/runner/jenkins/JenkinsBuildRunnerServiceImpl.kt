@@ -1,8 +1,8 @@
 package com.gatehill.buildbouncer.service.runner.jenkins
 
-import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.api.service.BuildRunnerService
+import com.gatehill.buildbouncer.config.Settings
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import retrofit2.Call
@@ -47,7 +47,7 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
 
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
-                    handleTriggerResponse(call, jobName, response)
+                    handleTriggerResponse(jobName, call, response)
                 } else {
                     logger.error("Unsuccessfully triggered job [ID: $jobName, request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
                 }
@@ -58,7 +58,7 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
     /**
      * Process the response to triggering a build.
      */
-    private fun handleTriggerResponse(call: Call<Void>, jobName: String, response: Response<Void>) {
+    private fun handleTriggerResponse(jobName: String, call: Call<Void>, response: Response<Void>) {
         when (response.code()) {
             201 -> {
                 val queuedItemUrl: String? = response.headers()["Location"]

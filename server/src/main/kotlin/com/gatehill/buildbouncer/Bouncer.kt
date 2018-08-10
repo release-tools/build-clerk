@@ -18,8 +18,10 @@ import com.gatehill.buildbouncer.service.notify.slack.SlackNotificationServiceIm
 import com.gatehill.buildbouncer.service.notify.slack.SlackOperationsService
 import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsApiClientBuilder
 import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsBuildRunnerServiceImpl
-import com.gatehill.buildbouncer.service.scm.GitScmService
 import com.gatehill.buildbouncer.service.scm.ScmService
+import com.gatehill.buildbouncer.service.scm.bitbucket.BitbucketApiClientBuilder
+import com.gatehill.buildbouncer.service.scm.bitbucket.BitbucketOperationsService
+import com.gatehill.buildbouncer.service.scm.bitbucket.BitbucketScmServiceImpl
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Singleton
@@ -50,8 +52,10 @@ fun main(args: Array<String>) {
             bind(SlackOperationsService::class.java).asSingleton()
             bind(SlackApiService::class.java).asSingleton()
 
-            // git
-            bind(ScmService::class.java).to(GitScmService::class.java).asSingleton()
+            // bitbucket
+            bind(ScmService::class.java).to(BitbucketScmServiceImpl::class.java).asSingleton()
+            bind(BitbucketOperationsService::class.java).asSingleton()
+            bind(BitbucketApiClientBuilder::class.java).asSingleton()
 
             // jenkins
             bind(BuildRunnerService::class.java).to(JenkinsBuildRunnerServiceImpl::class.java).asSingleton()

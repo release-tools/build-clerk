@@ -13,8 +13,8 @@ import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
 class BuildAnalysisService @Inject constructor(
-    private val parser: Parser,
-    private val buildOutcomeService: BuildOutcomeService
+        private val parser: Parser,
+        private val buildOutcomeService: BuildOutcomeService
 ) {
     private val logger = LogManager.getLogger(BuildAnalysisService::class.java)
 
@@ -24,8 +24,8 @@ class BuildAnalysisService @Inject constructor(
         val config = parser.parse(Settings.Rules.configFile)
 
         val previousBuildStatus = buildOutcomeService.fetchBuildStatus(
-            branchName = outcome.build.scm.branch,
-            buildNumber = outcome.build.number - 1
+                branchName = outcome.build.scm.branch,
+                buildNumber = outcome.build.number - 1
         )
 
         when (outcome.build.status) {
@@ -60,9 +60,9 @@ class BuildAnalysisService @Inject constructor(
      * Instantiate the block of type `B` and invoke the `body` on it.
      */
     private inline fun <reified B : AbstractBlock> invoke(
-        outcome: BuildOutcome,
-        analysis: Analysis,
-        noinline body: (B.() -> Unit)?
+            outcome: BuildOutcome,
+            analysis: Analysis,
+            noinline body: (B.() -> Unit)?
     ) {
         body?.let {
             val block = InstanceFactoryLocator.instance<B>()

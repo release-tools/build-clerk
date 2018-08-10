@@ -51,4 +51,27 @@ object Settings {
     object Server {
         val port: Int by lazy { System.getenv("SERVER_PORT")?.toInt() ?: 9090 }
     }
+
+    object Bitbucket {
+        val repoUsername: String by lazy {
+            System.getenv("BITBUCKET_REPO_USERNAME")
+                    ?: throw IllegalStateException("Missing Bitbucket repository username")
+        }
+
+        val repoSlug: String by lazy {
+            System.getenv("BITBUCKET_REPO_SLUG")
+                    ?: throw IllegalStateException("Missing Bitbucket repository slug")
+        }
+
+        val authUsername: String by lazy {
+            System.getenv("BITBUCKET_AUTH_USERNAME")
+                    ?: repoUsername
+                    ?: throw IllegalStateException("Missing Bitbucket authentication username")
+        }
+
+        val password: String by lazy {
+            System.getenv("BITBUCKET_PASSWORD")
+                    ?: throw IllegalStateException("Missing Bitbucket password")
+        }
+    }
 }

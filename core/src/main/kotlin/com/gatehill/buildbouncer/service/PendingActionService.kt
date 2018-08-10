@@ -46,7 +46,7 @@ class PendingActionService @Inject constructor(
             pending.remove(actionSetId)?.let { actionSet ->
                 logger.debug("Found pending action set with ID: $actionSetId [${actionSet.actions.size} actions]")
                 actions.forEach { action ->
-                    val emoji = if(resolve(action, actionSet)) "white_check_mark" else "negative_squared_cross_mark"
+                    val emoji = if (resolve(action, actionSet)) "white_check_mark" else "negative_squared_cross_mark"
 
                     // indicate outcome
                     attachments += SlackMessageAttachment(
@@ -61,7 +61,7 @@ class PendingActionService @Inject constructor(
         return event.originalMessage.copy(attachments = attachments)
     }
 
-    private fun resolve(action: SlackAttachmentAction, actionSet: PendingActionSet) : Boolean {
+    private fun resolve(action: SlackAttachmentAction, actionSet: PendingActionSet): Boolean {
         logger.debug("Attempting to resolve pending action: $action")
 
         actionSet.actions.find { it.name == action.name }?.let { pendingAction ->

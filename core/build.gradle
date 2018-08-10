@@ -13,6 +13,10 @@ dependencies {
     // rest
     compile "com.squareup.retrofit2:retrofit:$version_retrofit"
     compile "com.squareup.retrofit2:converter-jackson:$version_retrofit"
+
+    // testing
+    testCompile 'junit:junit:4.11'
+    testCompile "org.apache.logging.log4j:log4j-core:$version_log4j"
 }
 
 compileKotlin {

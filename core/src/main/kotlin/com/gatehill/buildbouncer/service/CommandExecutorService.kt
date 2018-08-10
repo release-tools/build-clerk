@@ -5,7 +5,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class CommandExecutorService {
-    fun exec(command: String, workingDir: File) : String {
+    fun exec(command: String, workingDir: File): String {
         return try {
             val parts = command.split("\\s".toRegex())
             val proc = ProcessBuilder(*parts.toTypedArray())
@@ -16,7 +16,7 @@ class CommandExecutorService {
 
             proc.waitFor(5, TimeUnit.MINUTES)
             proc.inputStream.bufferedReader().readText()
-        } catch(e: IOException) {
+        } catch (e: IOException) {
             throw RuntimeException("Error executing command: $command", e)
         }
     }

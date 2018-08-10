@@ -5,10 +5,31 @@ Respond to events in your build pipeline and keep your main branch stable.
 
 ## Examples
 
-* Auto-reverts a commit after a failed build on your main branch, subject to certain thresholds and rules. 
-* Notifies the team when a PR was merged whilst your main branch is failing on CI.
+* Auto-revert a commit after a failed build on your main branch, subject to certain thresholds and rules. 
+* Notify the team when a PR was merged whilst your main branch is failing on CI.
 
 <img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-bouncer/raw/master/docs/img/build_analysis_revert.png" width="467">
+
+## Configure your way
+
+Bouncer has a powerful DSL that lets you customise your rules:
+
+```
+if (failuresForCommitOnBranch <= 1) {
+    rebuildBranch()
+} else {
+    revertCommit()
+    lockBranch()
+}
+
+notifyChannel(
+    channelName = "general",
+    analysis = analysis,
+    color = "#ff0000"
+)
+```
+
+> This is just a taste of what you can do. See the examples in the `parser` module for more.
 
 ## Build and run
 
@@ -38,19 +59,25 @@ Jenkins configuration:
 
 Slack configuration:
 
-* SLACK_USER_TOKEN - A token with the `chat.postmessage` permission
+* SLACK_USER_TOKEN - A token with the `chat.write` permission
+
+Bitbucket configuration:
+
+* BITBUCKET_REPO_USERNAME
+* BITBUCKET_REPO_SLUG
+* BITBUCKET_AUTH_USERNAME
+* BITBUCKET_PASSWORD
 
 Configuration for pull request events:
 
 * REPO_NAME
 * BRANCH_NAME
 
+Advanced configuration:
+
+* SERVER_PORT
+
 ## Testing
-
-Set configuration:
-
-    export REPO_NAME="myrepo"
-    export BRANCH_NAME="master"
 
 Build notification:
 

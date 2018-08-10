@@ -14,20 +14,20 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class SlackNotificationServiceImpl @Inject constructor(
-    private val slackOperationsService: SlackOperationsService
+        private val slackOperationsService: SlackOperationsService
 ) : StdoutNotificationServiceImpl() {
 
     override fun notify(channelName: String, message: String, color: String) {
         super.notify(channelName, message, color)
 
         val content = SlackMessage(
-            channel = channelName,
-            attachments = listOf(
-                SlackMessageAttachment(
-                    text = message,
-                    color = color
+                channel = channelName,
+                attachments = listOf(
+                        SlackMessageAttachment(
+                                text = message,
+                                color = color
+                        )
                 )
-            )
         )
 
         slackOperationsService.sendMessage(content)
@@ -41,39 +41,39 @@ class SlackNotificationServiceImpl @Inject constructor(
         }
 
         val content = SlackMessage(
-            text = analysis.describeEvents(),
-            channel = channelName,
-            attachments = analysis.actionSet.actions.map { action ->
-                buildMessageAttachment(analysis.actionSet.id, action, color)
-            }
+                text = analysis.describeEvents(),
+                channel = channelName,
+                attachments = analysis.actionSet.actions.map { action ->
+                    buildMessageAttachment(analysis.actionSet.id, action, color)
+                }
         )
 
         slackOperationsService.sendMessage(content)
     }
 
     private fun buildMessageAttachment(
-        actionSetId: String,
-        action: PendingAction, color: String
+            actionSetId: String,
+            action: PendingAction, color: String
     ) = SlackMessageAttachment(
-        fallback = "Do you want to ${action.describe()}?",
-        title = "Do you want to ${action.describe()}?",
-        callbackId = actionSetId,
-        color = color,
-        attachmentType = "default",
-        actions = listOf(
-            SlackAttachmentAction(
-                type = "button",
-                name = action.name,
-                text = action.title,
-                value = action.name,
-                style = "danger"
-            ),
-            SlackAttachmentAction(
-                type = "button",
-                name = action.name,
-                text = "No",
-                value = "no"
+            fallback = "Do you want to ${action.describe()}?",
+            title = "Do you want to ${action.describe()}?",
+            callbackId = actionSetId,
+            color = color,
+            attachmentType = "default",
+            actions = listOf(
+                    SlackAttachmentAction(
+                            type = "button",
+                            name = action.name,
+                            text = action.title,
+                            value = action.name,
+                            style = "danger"
+                    ),
+                    SlackAttachmentAction(
+                            type = "button",
+                            name = action.name,
+                            text = "No",
+                            value = "no"
+                    )
             )
-        )
     )
 }
