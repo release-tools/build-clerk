@@ -1,22 +1,21 @@
 package com.gatehill.buildbouncer.service.rest
 
-import com.gatehill.buildbouncer.util.jsonMapper
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
-interface ApiClientBuilder<T> {
-    val baseUrl: String
+abstract class ApiClientBuilder<T> {
+    abstract val baseUrl: String
 
-    fun buildApiClient(headers: Map<String, String> = emptyMap()): T
+    abstract fun buildApiClient(headers: Map<String, String> = emptyMap()): T
 
     /**
      * Builds an API client for the specified class using the baseUrl.
      */
     fun buildApiClient(clazz: Class<T>, headers: Map<String, String>): T {
-        if (!baseUrl.endsWith("/")) {
-            throw RuntimeException("Base URL must end with a slash")
-        }
+        val correctedBaseUrl = if (!baseUrl.endsWith("/")) "$baseUrl/" else baseUrl
 
         val clientBuilder = OkHttpClient.Builder()
 
@@ -29,10 +28,14 @@ interface ApiClientBuilder<T> {
         }
 
         return Retrofit.Builder()
-                .client(clientBuilder.build())
-                .baseUrl(baseUrl)
-                .addConverterFactory(JacksonConverterFactory.create(jsonMapper))
-                .build()
-                .create(clazz)
+            .client(clientBuilder.build())
+            .baseUrl(correctedBaseUrl)
+            .addConverterFactory(JacksonConverterFactory.create(jsonMapper))
+            .build()
+            .create(clazz)
+    }
+
+    companion object {
+        private val jsonMapper by lazy { ObjectMapper().registerKotlinModule() }
     }
 }

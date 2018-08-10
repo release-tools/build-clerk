@@ -10,12 +10,12 @@ class Analysis(
         private val logger: Logger
 ) {
     val actionSet = PendingActionSet()
-    private val events = mutableListOf<Event>()
+    private val events = mutableListOf<AnalysisEvent>()
 
     fun log(message: String) {
         logger.debug(message)
 
-        events += Event(
+        events += AnalysisEvent(
                 timestamp = ZonedDateTime.now(),
                 message = message
         )

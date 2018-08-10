@@ -9,7 +9,7 @@ import okhttp3.Credentials
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class JenkinsApiClientBuilder : ApiClientBuilder<JenkinsApi> {
+class JenkinsApiClientBuilder : ApiClientBuilder<JenkinsApi>() {
     override val baseUrl: String
         get() = Settings.Jenkins.baseUrl
 

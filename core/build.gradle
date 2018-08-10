@@ -6,13 +6,10 @@ dependencies {
 
     compile project(':dsl')
     compile project(':parser')
+    compile project(':rest')
 
     // git
     compile 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'
-
-    // rest
-    compile "com.squareup.retrofit2:retrofit:$version_retrofit"
-    compile "com.squareup.retrofit2:converter-jackson:$version_retrofit"
 
     // testing
     testCompile 'junit:junit:4.11'

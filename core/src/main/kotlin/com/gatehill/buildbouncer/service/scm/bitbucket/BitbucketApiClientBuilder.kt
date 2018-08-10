@@ -9,7 +9,7 @@ import okhttp3.Credentials
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class BitbucketApiClientBuilder : ApiClientBuilder<BitbucketApi> {
+class BitbucketApiClientBuilder : ApiClientBuilder<BitbucketApi>() {
     override val baseUrl = "https://api.bitbucket.org/"
 
     override fun buildApiClient(headers: Map<String, String>): BitbucketApi {
