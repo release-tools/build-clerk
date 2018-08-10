@@ -1,9 +1,6 @@
 package com.gatehill.buildbouncer.jenkins;
 
-import com.gatehill.buildbouncer.api.model.BuildDetails;
-import com.gatehill.buildbouncer.api.model.BuildOutcome;
-import com.gatehill.buildbouncer.api.model.BuildStatus;
-import com.gatehill.buildbouncer.api.model.Scm;
+import com.gatehill.buildbouncer.jenkins.service.NotificationService;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -18,22 +15,24 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import retrofit2.Call;
 
-import java.io.IOException;
-import java.util.Collections;
-
-public class BuildBouncerPlugin extends Notifier {
+/**
+ * Classic post build notifier.
+ *
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
+ */
+public class BuildBouncerNotifier extends Notifier {
+    private final NotificationService notificationService = new NotificationService();
     private final String serverUrl;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public BuildBouncerPlugin(final String serverUrl) {
+    public BuildBouncerNotifier(final String serverUrl) {
         this.serverUrl = serverUrl;
     }
 
     /**
-     * We'll use this from the <tt>config.jelly</tt>.
+     * Used from <tt>config.jelly</tt>.
      */
     public String getServerUrl() {
         return serverUrl;
@@ -44,38 +43,8 @@ public class BuildBouncerPlugin extends Notifier {
                            final Launcher launcher,
                            final BuildListener listener) {
 
-        try {
-            // logger prints to job 'Console Output'
-            listener.getLogger().println("Starting Post Build Action");
-            sendNotification(build);
-
-        } catch (Exception e) {
-            listener.getLogger().printf("Error Occurred : %s ", e);
-        }
-        listener.getLogger().println("Finished Post Build Action");
+        notificationService.sendNotification(listener.getLogger(), build, serverUrl);
         return true;
-    }
-
-    private void sendNotification(AbstractBuild build) throws IOException {
-        // TODO complete this
-        final BuildOutcome notification = new BuildOutcome(
-                build.getDisplayName(),
-                build.getUrl(),
-                new BuildDetails(
-                        build.getNumber(),
-                        // FIXME
-                        BuildStatus.SUCCESS,
-                        new Scm(
-                                "TODO",
-                                "TODO"
-                        ),
-                        "http://example.com/" + build.getUrl()
-                )
-        );
-
-        final BackendApiClientBuilder builder = new BackendApiClientBuilder();
-        final Call<Void> call = builder.buildApiClient(Collections.emptyMap()).notifyBuild(notification);
-        call.execute();
     }
 
     @Override
@@ -116,7 +85,7 @@ public class BuildBouncerPlugin extends Notifier {
         public FormValidation doCheckServerUrl(@QueryParameter String value) {
             if (value.length() == 0) {
                 return FormValidation.error("Please set a Server URL");
-            } else if (!value.startsWith("http") || !value.startsWith("https")) {
+            } else if (!value.startsWith("http://") || !value.startsWith("https://")) {
                 return FormValidation.warning("Server URL should start with http:// or https://");
             }
             return FormValidation.ok();

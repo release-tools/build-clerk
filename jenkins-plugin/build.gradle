@@ -23,7 +23,7 @@ dependencies {
     compile project(':rest')
 
     // other plugins
-    jenkinsPlugins group: 'org.jenkins-ci.plugins', name: 'pipeline-build-step', version: '2.7'
+    jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.10'
 
     // rest
     compile "com.squareup.retrofit2:retrofit:$version_retrofit"
@@ -32,7 +32,7 @@ dependencies {
 
 jenkinsPlugin {
     // version of Jenkins core this plugin depends on, must be 1.420 or later
-    coreVersion = '2.73'
+    coreVersion = '2.89.4'
 
     // ID of the plugin, defaults to the project name without trailing '-plugin'
     shortName = 'build-bouncer'

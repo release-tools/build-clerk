@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.jenkins;
+package com.gatehill.buildbouncer.jenkins.api;
 
 import com.gatehill.buildbouncer.api.model.BuildOutcome;
 import retrofit2.Call;

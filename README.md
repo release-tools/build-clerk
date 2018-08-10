@@ -10,7 +10,7 @@ Respond to events in your build pipeline and keep your main branch stable.
 
 <img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-bouncer/raw/master/docs/img/build_analysis_revert.png" width="467">
 
-## Configure your way
+## Configure your build
 
 Bouncer has a powerful DSL that lets you customise your rules:
 
