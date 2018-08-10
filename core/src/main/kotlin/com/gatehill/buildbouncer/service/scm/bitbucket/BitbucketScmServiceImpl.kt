@@ -4,13 +4,14 @@ import com.gatehill.buildbouncer.service.CommandExecutorService
 import com.gatehill.buildbouncer.service.scm.GitScmServiceImpl
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import javax.inject.Inject
 
 /**
  * Bitbucket SCM implementation.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class BitbucketScmServiceImpl(
+class BitbucketScmServiceImpl @Inject constructor(
         commandExecutorService: CommandExecutorService,
         private val apiClientBuilder: BitbucketApiClientBuilder,
         private val bitbucketOperationsService: BitbucketOperationsService
