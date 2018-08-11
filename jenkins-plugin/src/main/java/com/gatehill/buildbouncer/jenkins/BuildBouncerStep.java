@@ -1,6 +1,7 @@
 package com.gatehill.buildbouncer.jenkins;
 
 import com.gatehill.buildbouncer.jenkins.service.NotificationService;
+import com.gatehill.buildbouncer.jenkins.util.Constants;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.model.Run;
@@ -11,6 +12,7 @@ import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.Nonnull;
 import java.io.PrintStream;
 import java.util.Set;
 
@@ -23,7 +25,7 @@ public class BuildBouncerStep extends Step {
     private final String serverUrl;
 
     @DataBoundConstructor
-    public BuildBouncerStep(final String serverUrl) {
+    public BuildBouncerStep(@Nonnull final String serverUrl) {
         this.serverUrl = serverUrl;
     }
 
@@ -56,7 +58,7 @@ public class BuildBouncerStep extends Step {
 
         @Override
         public String getDisplayName() {
-            return "Notify Bouncer";
+            return Constants.DISPLAY_NAME;
         }
 
         @Override

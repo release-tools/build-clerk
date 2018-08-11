@@ -5,11 +5,13 @@ import com.gatehill.buildbouncer.api.model.BuildOutcome;
 import com.gatehill.buildbouncer.api.model.BuildStatus;
 import com.gatehill.buildbouncer.api.model.Scm;
 import com.gatehill.buildbouncer.jenkins.api.BackendApiClientBuilder;
+import hudson.model.Result;
 import hudson.model.Run;
-import org.jetbrains.annotations.NotNull;
+import jenkins.model.JenkinsLocationConfiguration;
+import org.apache.commons.lang.StringUtils;
 import retrofit2.Call;
 
-import java.io.IOException;
+import javax.annotation.CheckForNull;
 import java.io.PrintStream;
 import java.util.Collections;
 
@@ -19,11 +21,13 @@ import java.util.Collections;
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 public class NotificationService {
+    private final JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
+
     public void sendNotification(PrintStream logger, Run run, String serverUrl) {
         try {
             // logger prints to job 'Console Output'
-            logger.printf("Sending notification to %s", serverUrl);
             final BuildOutcome notification = createBuildOutcome(run);
+            logger.printf("Sending notification to %s: %s\n", serverUrl, notification);
 
             final BackendApiClientBuilder builder = new BackendApiClientBuilder(serverUrl);
             final Call<Void> call = builder.buildApiClient(Collections.emptyMap()).notifyBuild(notification);
@@ -32,7 +36,7 @@ public class NotificationService {
             logger.println("Notification sent");
 
         } catch (Exception e) {
-            logger.printf("Failed to send notification: %s", e);
+            logger.printf("Failed to send notification: %s\n", e);
         }
     }
 
@@ -43,14 +47,43 @@ public class NotificationService {
                 run.getUrl(),
                 new BuildDetails(
                         run.getNumber(),
-                        // FIXME
-                        BuildStatus.SUCCESS,
+                        convertResult(run.getResult()),
                         new Scm(
                                 "TODO",
                                 "TODO"
                         ),
-                        "http://example.com/" + run.getUrl()
+                        getJenkinsUrl() + run.getUrl()
                 )
         );
+    }
+
+    private String getJenkinsUrl() {
+        final String jenkinsUrl;
+        if (StringUtils.isNotBlank(jenkinsConfig.getUrl())) {
+            if (jenkinsConfig.getUrl().endsWith("/")) {
+                jenkinsUrl = jenkinsConfig.getUrl();
+            } else {
+                jenkinsUrl = jenkinsConfig.getUrl() + "/";
+            }
+        } else {
+            jenkinsUrl = "";
+        }
+        return jenkinsUrl;
+    }
+
+    /**
+     * Conservatively converts a Job Result to a BuildStatus.
+     *
+     * @param result the result of the Job
+     * @return the corresponding build status
+     */
+    private BuildStatus convertResult(@CheckForNull Result result) {
+        if (Result.FAILURE.equals(result) || Result.UNSTABLE.equals(result)) {
+            return BuildStatus.FAILED;
+        } else {
+            // By design we presume a positive outcome unless an explicit failure result is returned.
+            // Consider whether we should fail 'safe' the other way in future.
+            return BuildStatus.SUCCESS;
+        }
     }
 }

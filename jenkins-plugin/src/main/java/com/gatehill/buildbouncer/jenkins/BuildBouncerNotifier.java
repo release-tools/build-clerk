@@ -1,6 +1,7 @@
 package com.gatehill.buildbouncer.jenkins;
 
 import com.gatehill.buildbouncer.jenkins.service.NotificationService;
+import com.gatehill.buildbouncer.jenkins.util.Constants;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -16,6 +17,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.Nonnull;
+
 /**
  * Classic post build notifier.
  *
@@ -27,7 +30,7 @@ public class BuildBouncerNotifier extends Notifier {
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public BuildBouncerNotifier(final String serverUrl) {
+    public BuildBouncerNotifier(@Nonnull final String serverUrl) {
         this.serverUrl = serverUrl;
     }
 
@@ -112,7 +115,7 @@ public class BuildBouncerNotifier extends Notifier {
 
         @Override
         public String getDisplayName() {
-            return "Notify Bouncer";
+            return Constants.DISPLAY_NAME;
         }
     }
 
