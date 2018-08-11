@@ -5,13 +5,10 @@ import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.PrintStream;
@@ -23,7 +20,7 @@ import java.util.Set;
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 public class BuildBouncerStep extends Step {
-    private String serverUrl;
+    private final String serverUrl;
 
     @DataBoundConstructor
     public BuildBouncerStep(final String serverUrl) {
@@ -34,18 +31,13 @@ public class BuildBouncerStep extends Step {
         return serverUrl;
     }
 
-    @DataBoundSetter
-    public void setServerUrl(String serverUrl) {
-        this.serverUrl = serverUrl;
-    }
-
     @Override
     public StepExecution start(StepContext context) {
         return new BuildBouncerStepExecution(this, context);
     }
 
-    @Extension(optional = true)
     @Symbol("buildBouncer")
+    @Extension
     public static final class DescriptorImpl extends StepDescriptor {
         /**
          * Global configuration information variables. If you don't want fields
@@ -64,31 +56,12 @@ public class BuildBouncerStep extends Step {
 
         @Override
         public String getDisplayName() {
-            return "Build Bouncer step";
+            return "Notify Bouncer";
         }
 
         @Override
         public Set<? extends Class<?>> getRequiredContext() {
             return ImmutableSet.of(Run.class, TaskListener.class);
-        }
-
-        /**
-         * Performs on-the-fly validation of the form field 'serverUrl'.
-         *
-         * @param value This parameter receives the value that the user has typed.
-         * @return Indicates the outcome of the validation. This is sent to the browser.
-         * <p/>
-         * Note that returning {@link FormValidation#error(String)} does not
-         * prevent the form from being saved. It just means that a message
-         * will be displayed to the user.
-         */
-        public FormValidation doCheckServerUrl(@QueryParameter String value) {
-            if (value.length() == 0) {
-                return FormValidation.error("Please set a Server URL");
-            } else if (!value.startsWith("http://") || !value.startsWith("https://")) {
-                return FormValidation.warning("Server URL should start with http:// or https://");
-            }
-            return FormValidation.ok();
         }
 
         @Override

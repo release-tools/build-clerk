@@ -23,7 +23,8 @@ dependencies {
     compile project(':rest')
 
     // other plugins
-    jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.10'
+    jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13'
+    jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.42'
 
     // rest
     compile "com.squareup.retrofit2:retrofit:$version_retrofit"
