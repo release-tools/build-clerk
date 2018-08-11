@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import retrofit2.Call;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.io.PrintStream;
 import java.util.Collections;
 
@@ -27,7 +28,7 @@ public class NotificationService {
         try {
             // logger prints to job 'Console Output'
             final BuildOutcome notification = createBuildOutcome(run);
-            logger.printf("Sending notification to %s: %s\n", serverUrl, notification);
+            logger.printf("Sending notification to %s: %s%n", serverUrl, notification);
 
             final BackendApiClientBuilder builder = new BackendApiClientBuilder(serverUrl);
             final Call<Void> call = builder.buildApiClient(Collections.emptyMap()).notifyBuild(notification);
@@ -36,7 +37,8 @@ public class NotificationService {
             logger.println("Notification sent");
 
         } catch (Exception e) {
-            logger.printf("Failed to send notification: %s\n", e);
+            logger.printf("Failed to send notification: %s%n", e.getMessage());
+            e.printStackTrace(logger);
         }
     }
 
@@ -57,13 +59,16 @@ public class NotificationService {
         );
     }
 
+    @Nonnull
     private String getJenkinsUrl() {
+        final String configUrl = jenkinsConfig.getUrl();
+
         final String jenkinsUrl;
-        if (StringUtils.isNotBlank(jenkinsConfig.getUrl())) {
-            if (jenkinsConfig.getUrl().endsWith("/")) {
-                jenkinsUrl = jenkinsConfig.getUrl();
+        if (StringUtils.isNotBlank(configUrl)) {
+            if (configUrl.endsWith("/")) {
+                jenkinsUrl = configUrl;
             } else {
-                jenkinsUrl = jenkinsConfig.getUrl() + "/";
+                jenkinsUrl = configUrl + "/";
             }
         } else {
             jenkinsUrl = "";

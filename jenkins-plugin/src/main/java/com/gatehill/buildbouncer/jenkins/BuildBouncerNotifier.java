@@ -1,7 +1,6 @@
 package com.gatehill.buildbouncer.jenkins;
 
 import com.gatehill.buildbouncer.jenkins.service.NotificationService;
-import com.gatehill.buildbouncer.jenkins.util.Constants;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -11,10 +10,8 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
@@ -56,7 +53,7 @@ public class BuildBouncerNotifier extends Notifier {
     }
 
     @Extension
-    public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+    public static class DescriptorImpl extends BuildStepDescriptor<Publisher> implements BuildBouncerDescriptor {
         /**
          * Global configuration information variables. If you don't want fields
          * to be persisted, use <tt>transient</tt>.
@@ -75,47 +72,21 @@ public class BuildBouncerNotifier extends Notifier {
             load();
         }
 
-        /**
-         * Performs on-the-fly validation of the form field 'serverUrl'.
-         *
-         * @param value This parameter receives the value that the user has typed.
-         * @return Indicates the outcome of the validation. This is sent to the browser.
-         * <p/>
-         * Note that returning {@link FormValidation#error(String)} does not
-         * prevent the form from being saved. It just means that a message
-         * will be displayed to the user.
-         */
-        public FormValidation doCheckServerUrl(@QueryParameter String value) {
-            if (value.length() == 0) {
-                return FormValidation.error("Please set a Server URL");
-            } else if (!value.startsWith("http://") || !value.startsWith("https://")) {
-                return FormValidation.warning("Server URL should start with http:// or https://");
-            }
-            return FormValidation.ok();
-        }
-
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData)
                 throws FormException {
 
-            // To persist global configuration information, set that to
-            // properties and call save().
+            // To persist global configuration information, set properties and call save().
             serverUrl = formData.getString("serverUrl");
             save();
             return super.configure(req, formData);
         }
 
         @Override
-        public boolean isApplicable(
-                @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
+        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             // Indicates that this builder can be used with all kinds of project
             // types.
             return true;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return Constants.DISPLAY_NAME;
         }
     }
 

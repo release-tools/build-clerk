@@ -1,14 +1,17 @@
 package com.gatehill.buildbouncer.jenkins;
 
 import com.gatehill.buildbouncer.jenkins.service.NotificationService;
-import com.gatehill.buildbouncer.jenkins.util.Constants;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.plugins.workflow.steps.*;
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
+import org.jenkinsci.plugins.workflow.steps.SynchronousStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -40,7 +43,7 @@ public class BuildBouncerStep extends Step {
 
     @Symbol("buildBouncer")
     @Extension
-    public static final class DescriptorImpl extends StepDescriptor {
+    public static final class DescriptorImpl extends StepDescriptor implements BuildBouncerDescriptor {
         /**
          * Global configuration information variables. If you don't want fields
          * to be persisted, use <tt>transient</tt>.
@@ -54,11 +57,6 @@ public class BuildBouncerStep extends Step {
         @Override
         public String getFunctionName() {
             return "buildBouncer";
-        }
-
-        @Override
-        public String getDisplayName() {
-            return Constants.DISPLAY_NAME;
         }
 
         @Override
