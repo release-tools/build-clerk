@@ -1,16 +1,19 @@
 package com.gatehill.buildbouncer.service
 
+import com.gatehill.buildbouncer.api.model.MessageAttachment
+import com.gatehill.buildbouncer.api.model.UpdatedNotificationMessage
 import com.gatehill.buildbouncer.api.model.action.LockBranchAction
 import com.gatehill.buildbouncer.api.model.action.PendingAction
 import com.gatehill.buildbouncer.api.model.action.PendingActionSet
 import com.gatehill.buildbouncer.api.model.action.RebuildBranchAction
 import com.gatehill.buildbouncer.api.model.action.RevertAction
 import com.gatehill.buildbouncer.api.service.BuildRunnerService
+import com.gatehill.buildbouncer.api.service.NotificationService
 import com.gatehill.buildbouncer.model.slack.ActionTriggeredEvent
 import com.gatehill.buildbouncer.model.slack.SlackAttachmentAction
-import com.gatehill.buildbouncer.model.slack.SlackMessage
 import com.gatehill.buildbouncer.model.slack.SlackMessageAttachment
 import com.gatehill.buildbouncer.service.scm.ScmService
+import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import javax.inject.Inject
@@ -22,7 +25,8 @@ import javax.inject.Inject
  */
 class PendingActionService @Inject constructor(
         private val scmService: ScmService,
-        private val buildRunnerService: BuildRunnerService
+        private val buildRunnerService: BuildRunnerService,
+        private val notificationService: NotificationService
 ) {
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
     private val pending = mutableMapOf<String, PendingActionSet>()
@@ -32,13 +36,21 @@ class PendingActionService @Inject constructor(
         pending[actionSet.id] = actionSet
     }
 
-    fun handle(event: ActionTriggeredEvent): SlackMessage {
+    fun handleAsync(event: ActionTriggeredEvent) {
+        @Suppress("DeferredResultUnused")
+        async {
+            try {
+                handle(event)
+            } catch (e: Exception) {
+                logger.error("Error handling action trigger with callback ID: ${event.callbackId}", e)
+            }
+        }
+    }
+
+    private fun handle(event: ActionTriggeredEvent) {
         logger.info("Handling action trigger with callback ID: ${event.callbackId}")
 
-        // remove action buttons from message
-        val attachments: MutableList<SlackMessageAttachment> = event.originalMessage.attachments
-                ?.map { attachment -> attachment.copy(actions = emptyList()) }
-                ?.toMutableList() ?: mutableListOf()
+        val attachments: MutableList<MessageAttachment> = stripActions(event.originalMessage.attachments)
 
         event.actions?.let { actions ->
             val actionSetId = event.callbackId
@@ -49,7 +61,7 @@ class PendingActionService @Inject constructor(
                     val emoji = if (resolve(action, actionSet)) "white_check_mark" else "negative_squared_cross_mark"
 
                     // indicate outcome
-                    attachments += SlackMessageAttachment(
+                    attachments += MessageAttachment(
                             text = ":$emoji: <@${event.user.id}> selected '${action.value}'"
                     )
                 }
@@ -58,7 +70,41 @@ class PendingActionService @Inject constructor(
 
         } ?: logger.warn("No actions found in event: $event")
 
-        return event.originalMessage.copy(attachments = attachments)
+        // update the original message
+        updateOriginalMessage(event, attachments)
+    }
+
+    /**
+     * Remove buttons from message attachments by creating new attachments without actions.
+     */
+    private fun stripActions(
+            attachments: List<SlackMessageAttachment>?
+    ): MutableList<MessageAttachment> = attachments
+            ?.map(this::convertSlackAttachmentToSimpleAttachment)
+            ?.toMutableList() ?: mutableListOf()
+
+    private fun convertSlackAttachmentToSimpleAttachment(
+            slackAttachment: SlackMessageAttachment
+    ) = MessageAttachment(
+            text = slackAttachment.text,
+            color = slackAttachment.color,
+            title = slackAttachment.title
+    )
+
+    private fun updateOriginalMessage(
+            event: ActionTriggeredEvent,
+            attachments: MutableList<MessageAttachment>
+    ) {
+        event.originalMessage.ts?.let {
+            val updatedMessage = UpdatedNotificationMessage(
+                    messageId = event.originalMessage.ts,
+                    channel = event.channel.id,
+                    text = event.originalMessage.text,
+                    attachments = attachments
+            )
+            notificationService.updateMessage(updatedMessage)
+
+        } ?: logger.warn("Cannot update original message will callback ID: ${event.callbackId}, as there was no message timestamp")
     }
 
     private fun resolve(action: SlackAttachmentAction, actionSet: PendingActionSet): Boolean {

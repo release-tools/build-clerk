@@ -2,7 +2,6 @@ package com.gatehill.buildbouncer.service.runner.jenkins
 
 import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.api.service.BuildRunnerService
-import com.gatehill.buildbouncer.config.Settings
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import retrofit2.Call
@@ -31,11 +30,8 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
             obtainCsrfToken()?.let { headers.plusAssign(it) }
 
             apiClient = apiClientBuilder.buildApiClient(headers)
+            call = apiClient.enqueueBuild(jobPath = outcome.url)
 
-            call = apiClient.enqueueBuild(
-                    token = Settings.Jenkins.apiToken,
-                    jobPath = outcome.url
-            )
         } catch (e: Exception) {
             throw RuntimeException("Error building API client or obtaining CSRF token", e)
         }

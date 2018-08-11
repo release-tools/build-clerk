@@ -19,11 +19,6 @@ object Settings {
     }
 
     object Jenkins {
-        val apiToken: String by lazy {
-            System.getenv("JENKINS_API_KEY")
-                    ?: throw IllegalStateException("Missing Jenkins API key")
-        }
-
         val baseUrl: String by lazy {
             System.getenv("JENKINS_BASE_URL")
                     ?: throw IllegalStateException("Missing Jenkins base URL")

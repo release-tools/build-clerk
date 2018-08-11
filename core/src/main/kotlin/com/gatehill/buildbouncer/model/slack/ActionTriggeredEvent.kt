@@ -19,11 +19,5 @@ data class ActionTriggeredEvent(
         val user: SlackIdAndName,
 
         @JsonProperty("callback_id")
-        val callbackId: String,
-
-        /**
-         * Can be used to reply to the message that triggered the action.
-         */
-        @JsonProperty("response_url")
-        val responseUrl: String?
+        val callbackId: String
 )

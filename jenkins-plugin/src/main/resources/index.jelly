@@ -3,5 +3,5 @@
   This view is used to render the installed plugins page.
 -->
 <div>
-    This plugin posts build notifications to Build Bouncer.
+    This plugin reports the status of builds to a Build Bouncer server.
 </div>

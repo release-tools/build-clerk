@@ -19,9 +19,8 @@ config {
             revertCommit()
         }
 
-        notifyChannel(
+        postAnalysisToChannel(
             channelName = "general",
-            analysis = analysis,
             color = "#ff0000"
         )
     }
@@ -35,13 +34,12 @@ config {
     }
 
     repository {
-        if (consecutiveFailuresOnBranch >= 5) {
+        if (consecutiveFailuresOnBranch >= 2) {
             log("Branch $branchName has failed $consecutiveFailuresOnBranch times")
             lockBranch()
 
-            notifyChannel(
+            postAnalysisToChannel(
                 channelName = "general",
-                analysis = analysis,
                 color = "#ff0000"
             )
         }

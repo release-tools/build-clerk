@@ -1,6 +1,8 @@
 package com.gatehill.buildbouncer.service.notify.slack
 
 import com.gatehill.buildbouncer.api.model.Analysis
+import com.gatehill.buildbouncer.api.model.NotificationMessage
+import com.gatehill.buildbouncer.api.model.UpdatedNotificationMessage
 import com.gatehill.buildbouncer.api.model.action.PendingAction
 import com.gatehill.buildbouncer.model.slack.SlackAttachmentAction
 import com.gatehill.buildbouncer.model.slack.SlackMessage
@@ -51,9 +53,15 @@ class SlackNotificationServiceImpl @Inject constructor(
         slackOperationsService.sendMessage(content)
     }
 
+    override fun updateMessage(updatedMessage: UpdatedNotificationMessage) {
+        val slackMessage = convertToSlackMessage(updatedMessage)
+        slackOperationsService.updateMessage(slackMessage)
+    }
+
     private fun buildMessageAttachment(
             actionSetId: String,
-            action: PendingAction, color: String
+            action: PendingAction,
+            color: String
     ) = SlackMessageAttachment(
             fallback = "Do you want to ${action.describe()}?",
             title = "Do you want to ${action.describe()}?",
@@ -75,5 +83,22 @@ class SlackNotificationServiceImpl @Inject constructor(
                             value = "no"
                     )
             )
+    )
+
+    private fun convertToSlackMessage(updatedMessage: NotificationMessage) = SlackMessage(
+            channel = updatedMessage.channel,
+            text = updatedMessage.text,
+            attachments = updatedMessage.attachments?.map { attachment ->
+                SlackMessageAttachment(
+                        text = attachment.text,
+                        color = attachment.color,
+                        title = attachment.title,
+                        fallback = attachment.fallback
+                )
+            },
+            ts = when (updatedMessage) {
+                is UpdatedNotificationMessage -> updatedMessage.messageId
+                else -> null
+            }
     )
 }

@@ -26,30 +26,54 @@ public class NotificationService {
 
     public void sendNotification(PrintStream logger, Run run, String serverUrl) {
         try {
-            // logger prints to job 'Console Output'
-            final BuildOutcome notification = createBuildOutcome(run);
-            logger.printf("Sending notification to %s: %s%n", serverUrl, notification);
+            final BuildOutcome notification = createBuildOutcome(logger, run);
+            logger.printf("Sending build report to %s:%n%s%n", serverUrl, notification);
 
             final BackendApiClientBuilder builder = new BackendApiClientBuilder(serverUrl);
             final Call<Void> call = builder.buildApiClient(Collections.emptyMap()).notifyBuild(notification);
             call.execute();
 
-            logger.println("Notification sent");
+            logger.println("Build report sent");
 
         } catch (Exception e) {
-            logger.printf("Failed to send notification: %s%n", e.getMessage());
+            logger.printf("Failed to send build report: %s%n", e.getMessage());
             e.printStackTrace(logger);
         }
     }
 
-    private BuildOutcome createBuildOutcome(Run run) {
+    /**
+     * Workaround for null result bug - see https://issues.jenkins-ci.org/browse/JENKINS-46325
+     *
+     * @param logger the logger
+     * @param run the current run
+     * @return the build status
+     */
+    private BuildStatus determineBuildStatus(PrintStream logger, Run run) {
+        final BuildStatus buildStatus;
+        if (null == run.getResult()) {
+            if (run.isBuilding()) {
+                logger.println("Run result was null, but run is building - interpreting as success");
+                buildStatus = BuildStatus.SUCCESS;
+            } else {
+                logger.println("Run result was null, but run is not building - interpreting as failure");
+                buildStatus = BuildStatus.FAILED;
+            }
+        } else {
+            buildStatus = convertResult(run.getResult());
+        }
+        return buildStatus;
+    }
+
+    private BuildOutcome createBuildOutcome(PrintStream logger, Run run) {
+        final BuildStatus buildStatus = determineBuildStatus(logger, run);
+
         // TODO complete this
         return new BuildOutcome(
-                run.getDisplayName(),
-                run.getUrl(),
+                run.getParent().getName(),
+                run.getParent().getShortUrl(),
                 new BuildDetails(
                         run.getNumber(),
-                        convertResult(run.getResult()),
+                        buildStatus,
                         new Scm(
                                 "TODO",
                                 "TODO"

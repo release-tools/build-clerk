@@ -75,7 +75,7 @@ abstract class AbstractBlock @Inject constructor(
         notificationService.notify(channelName, message, color)
     }
 
-    fun notifyChannel(channelName: String, analysis: Analysis, color: String = "#000000") {
+    fun postAnalysisToChannel(channelName: String, color: String = "#000000") {
         notificationService.notify(channelName, analysis, color)
     }
 }

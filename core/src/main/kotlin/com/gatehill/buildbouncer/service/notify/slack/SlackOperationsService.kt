@@ -17,10 +17,10 @@ class SlackOperationsService @Inject constructor(
     private val logger: Logger = LogManager.getLogger(SlackOperationsService::class.java)
 
     internal fun sendMessage(message: SlackMessage) {
-        @Suppress("UNCHECKED_CAST")
-        val params = jsonMapper.convertValue(message, Map::class.java) as Map<String, *>
+        checkChannel(message)
 
-        logger.info("Forwarding message to channel '${message.channel}': $params")
+        val params = convertMessageToMap(message)
+        logger.info("Sending message to channel '${message.channel}': $params")
 
         slackApiService.invokeSlackCommand<Map<String, Any>>(
                 commandName = "chat.postMessage",
@@ -28,4 +28,25 @@ class SlackOperationsService @Inject constructor(
                 bodyMode = SlackApiService.BodyMode.JSON
         )
     }
+
+    fun updateMessage(message: SlackMessage) {
+        checkChannel(message)
+
+        val params = convertMessageToMap(message)
+        logger.info("Updating message in channel '${message.channel}': $params")
+
+        slackApiService.invokeSlackCommand<Map<String, Any>>(
+                commandName = "chat.update",
+                params = params,
+                bodyMode = SlackApiService.BodyMode.JSON
+        )
+    }
+
+    private fun checkChannel(message: SlackMessage) {
+        checkNotNull(message.channel) { "Missing channel on message" }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun convertMessageToMap(message: SlackMessage): Map<String, *> =
+            jsonMapper.convertValue(message, Map::class.java) as Map<String, *>
 }

@@ -15,18 +15,14 @@ Respond to events in your build pipeline and keep your main branch stable.
 Bouncer has a powerful DSL that lets you customise your rules:
 
 ```
-if (failuresForCommitOnBranch <= 1) {
+if (failuresForCommitOnBranch <= 2) {
     rebuildBranch()
 } else {
     revertCommit()
     lockBranch()
 }
 
-notifyChannel(
-    channelName = "general",
-    analysis = analysis,
-    color = "#ff0000"
-)
+postAnalysisToChannel("general")
 ```
 
 > This is just a taste of what you can do. See the examples in the `parser` module for more.
@@ -54,7 +50,6 @@ Jenkins configuration:
 
 * JENKINS_BASE_URL
 * JENKINS_USERNAME
-* JENKINS_API_KEY
 * JENKINS_PASSWORD
 
 Slack configuration:
