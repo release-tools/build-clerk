@@ -16,6 +16,7 @@ import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
+import kotlin.system.exitProcess
 
 /**
  * Listens for connections and routes requests.
@@ -38,8 +39,14 @@ class Server @Inject constructor(
         val server = vertx.createHttpServer()
         val router = buildRouter(vertx)
 
-        server.requestHandler(router::accept).listen(Settings.Server.port)
-        logger.info("Listening on http://localhost:${Settings.Server.port}")
+        server.requestHandler(router::accept).listen(Settings.Server.port) { event ->
+            if (event.succeeded()) {
+                logger.info("Listening on http://localhost:${Settings.Server.port}")
+            } else {
+                logger.error("Error listening on port ${Settings.Server.port}", event.cause())
+                vertx.close { exitProcess(1) }
+            }
+        }
     }
 
     private fun buildRouter(vertx: Vertx): Router {
@@ -101,8 +108,8 @@ class Server @Inject constructor(
             }
 
             try {
-                val response = pendingActionService.handle(event)
-                rc.response().setStatusCode(200).sendJsonResponse(response)
+                pendingActionService.handleAsync(event)
+                rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
                 logger.error(e)
                 rc.response().setStatusCode(500).end(e.localizedMessage)
