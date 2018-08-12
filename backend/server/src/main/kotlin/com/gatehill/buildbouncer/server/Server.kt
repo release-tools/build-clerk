@@ -3,7 +3,7 @@ package com.gatehill.buildbouncer.server
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.config.Settings
-import com.gatehill.buildbouncer.model.bitbucket.PullRequestMergedEvent
+import com.gatehill.buildbouncer.api.model.PullRequestMergedEvent
 import com.gatehill.buildbouncer.model.slack.ActionTriggeredEvent
 import com.gatehill.buildbouncer.service.PendingActionService
 import com.gatehill.buildbouncer.service.builder.BuildEventService

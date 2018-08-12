@@ -7,6 +7,7 @@ import com.gatehill.buildbouncer.api.service.BuildOutcomeService
 import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.dsl.AbstractBlock
 import com.gatehill.buildbouncer.dsl.AbstractBuildBlock
+import com.gatehill.buildbouncer.api.model.PullRequestMergedEvent
 import com.gatehill.buildbouncer.parser.Parser
 import com.gatehill.buildbouncer.parser.inject.InstanceFactoryLocator
 import org.apache.logging.log4j.LogManager
@@ -28,50 +29,100 @@ class AnalysisService @Inject constructor(
                 buildNumber = outcome.build.number - 1
         )
 
+        val blockConfigurer = { block: AbstractBuildBlock ->
+            block.outcome = outcome
+        }
+
         when (outcome.build.status) {
             BuildStatus.SUCCESS -> {
                 logger.info("Build passed: $outcome")
-                invoke(outcome, analysis, config.bodyHolder.buildPassed)
+                invoke(
+                        analysis = analysis,
+                        branchName = outcome.build.scm.branch,
+                        blockConfigurer = blockConfigurer,
+                        body = config.bodyHolder.buildPassed
+                )
 
                 if (previousBuildStatus == BuildStatus.FAILED) {
                     logger.info("Build started passing: $outcome")
-                    invoke(outcome, analysis, config.bodyHolder.branchStartsPassing)
+                    invoke(
+                            analysis = analysis,
+                            branchName = outcome.build.scm.branch,
+                            blockConfigurer = blockConfigurer,
+                            body = config.bodyHolder.branchStartsPassing
+                    )
                 }
             }
             BuildStatus.FAILED -> {
                 logger.info("Build failed: $outcome")
-                invoke(outcome, analysis, config.bodyHolder.buildFailed)
+                invoke(
+                        analysis = analysis,
+                        branchName = outcome.build.scm.branch,
+                        blockConfigurer = blockConfigurer,
+                        body = config.bodyHolder.buildFailed
+                )
 
                 if (previousBuildStatus == BuildStatus.SUCCESS) {
                     logger.info("Build started failing: $outcome")
-                    invoke(outcome, analysis, config.bodyHolder.branchStartsFailing)
+                    invoke(
+                            analysis = analysis,
+                            branchName = outcome.build.scm.branch,
+                            blockConfigurer = blockConfigurer,
+                            body = config.bodyHolder.branchStartsFailing
+                    )
                 }
             }
         }
 
         // runs every time
-        invoke(outcome, analysis, config.bodyHolder.repository)
+        invoke(
+                analysis = analysis,
+                branchName = outcome.build.scm.branch,
+                body = config.bodyHolder.repository
+        )
+
+        analysis.log("Analysis complete")
+        return analysis
+    }
+
+    fun analysePullRequest(
+            mergeEvent: PullRequestMergedEvent,
+            currentBranchStatus: BuildStatus
+    ): Analysis {
+
+        val analysis = Analysis("Pull request ${mergeEvent.pullRequest.id} merged into ${mergeEvent.pullRequest.destination.branch.name}", logger)
+
+        val config = parser.parse(Settings.Rules.configFile)
+
+        invoke(
+                analysis = analysis,
+                branchName = mergeEvent.pullRequest.destination.branch.name,
+                body = config.bodyHolder.pullRequestMerged,
+                blockConfigurer = { block ->
+                    block.mergeEvent = mergeEvent
+                    block.currentBranchStatus = currentBranchStatus
+                }
+        )
 
         analysis.log("Analysis complete")
         return analysis
     }
 
     /**
-     * Instantiate the block of type `B` and invoke the `body` on it.
+     * Instantiate the block of type `B`, configure it, then invoke the `body` on it.
      */
     private inline fun <reified B : AbstractBlock> invoke(
-            outcome: BuildOutcome,
             analysis: Analysis,
+            branchName: String,
+            noinline blockConfigurer: ((B) -> Unit)? = null,
             noinline body: (B.() -> Unit)?
     ) {
         body?.let {
             val block = InstanceFactoryLocator.instance<B>()
 
             block.analysis = analysis
-            block.branchName = outcome.build.scm.branch
-            when (block) {
-                is AbstractBuildBlock -> block.outcome = outcome
-            }
+            block.branchName = branchName
+            blockConfigurer?.let { configurer -> configurer(block) }
 
             block.body()
         }

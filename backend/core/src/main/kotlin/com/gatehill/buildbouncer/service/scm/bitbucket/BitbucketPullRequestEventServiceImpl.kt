@@ -1,11 +1,10 @@
 package com.gatehill.buildbouncer.service.scm.bitbucket
 
-import com.gatehill.buildbouncer.api.model.BuildStatus
+import com.gatehill.buildbouncer.api.model.PullRequestMergedEvent
 import com.gatehill.buildbouncer.api.service.BuildOutcomeService
 import com.gatehill.buildbouncer.config.Settings
-import com.gatehill.buildbouncer.model.bitbucket.PullRequestMergedEvent
+import com.gatehill.buildbouncer.service.AnalysisService
 import com.gatehill.buildbouncer.service.scm.PullRequestEventService
-import com.gatehill.buildbouncer.service.scm.ScmService
 import kotlinx.coroutines.experimental.async
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
@@ -15,7 +14,7 @@ import javax.inject.Inject
  */
 class BitbucketPullRequestEventServiceImpl @Inject constructor(
         private val buildOutcomeService: BuildOutcomeService,
-        private val scmService: ScmService
+        private val analysisService: AnalysisService
 ) : PullRequestEventService {
 
     private val logger = LogManager.getLogger(PullRequestEventService::class.java)
@@ -42,22 +41,15 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
         @Suppress("DeferredResultUnused")
         async {
             buildOutcomeService.fetchStatus(branchName)?.let { buildOutcome ->
-                val branchStatusInfo =
-                        "branch name: $branchName status is currently: ${buildOutcome.build.status}"
+                logger.info("Performing validation checks on $prInfo with current branch name: $branchName status currently: ${buildOutcome.build.status}")
 
-                when (buildOutcome.build.status) {
-                    BuildStatus.SUCCESS -> logger.info("Verification checks passed for $prInfo because $branchStatusInfo")
-                    BuildStatus.FAILED -> {
-                        logger.warn("Verification checks failed for $prInfo because $branchStatusInfo - reverting merge")
-                        scmService.revertCommit(
-                                commit = event.pullRequest.mergeCommit.hash,
-                                branchName = branchName
-                        )
-                    }
-                }
+                analysisService.analysePullRequest(
+                        mergeEvent = event,
+                        currentBranchStatus = buildOutcome.build.status
+                )
 
             } ?: run {
-                logger.warn("Skipped validation of $prInfo because status of branch: $branchName is unknown")
+                logger.warn("Skipped validation checks for $prInfo because status of branch: $branchName is unknown")
             }
         }
     }

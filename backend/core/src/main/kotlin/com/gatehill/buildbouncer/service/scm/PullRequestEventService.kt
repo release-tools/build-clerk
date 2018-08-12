@@ -1,6 +1,6 @@
 package com.gatehill.buildbouncer.service.scm
 
-import com.gatehill.buildbouncer.model.bitbucket.PullRequestMergedEvent
+import com.gatehill.buildbouncer.api.model.PullRequestMergedEvent
 
 /**
  * Processes pull request events.
