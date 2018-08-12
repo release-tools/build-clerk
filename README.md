@@ -1,5 +1,5 @@
-Build Bouncer
-=============
+Build Clerk
+===========
 
 Respond to events in your build pipeline and keep your main branch stable.
 
@@ -8,11 +8,11 @@ Respond to events in your build pipeline and keep your main branch stable.
 * Auto-revert a commit after a failed build on your main branch, subject to certain thresholds and rules. 
 * Notify the team when a PR was merged whilst your main branch is failing on CI.
 
-<img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-bouncer/raw/master/docs/img/build_analysis_revert.png" width="467">
+<img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/build_analysis_revert.png" width="467">
 
 ## Configure your build
 
-Bouncer has a powerful DSL that lets you customise your rules:
+Clerk has a powerful DSL that lets you customise your rules:
 
 ```
 if (failuresForCommitOnBranch <= 2) {
@@ -31,7 +31,7 @@ postAnalysisToChannel("general")
 
 Run using Docker:
 
-	 docker run --rm -it -p9090:9090 outofcoffee/build-bouncer
+	 docker run --rm -it -p9090:9090 outofcoffee/build-clerk
 
 See http://localhost:9090 to check it's running.
 

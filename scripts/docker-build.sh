@@ -61,4 +61,4 @@ function buildPushImage()
 }
 
 login
-buildPushImage build-bouncer backend/server
+buildPushImage build-clerk backend/server

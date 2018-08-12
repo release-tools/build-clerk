@@ -7,9 +7,9 @@ apply plugin: 'java'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-group = 'com.gatehill.buildbouncer.jenkins'
+group = 'com.gatehill.buildclerk.jenkins'
 version = '0.1.0-SNAPSHOT'
-description = 'Jenkins plugin for Build Bouncer'
+description = 'Jenkins plugin for Build Clerk'
 
 repositories {
     jcenter()
@@ -36,16 +36,16 @@ jenkinsPlugin {
     coreVersion = '2.89.4'
 
     // ID of the plugin, defaults to the project name without trailing '-plugin'
-    shortName = 'build-bouncer'
+    shortName = 'build-clerk'
 
     // human-readable name of plugin
-    displayName = 'Build Bouncer'
+    displayName = 'Build Clerk'
 
     // URL for plugin on Jenkins wiki or elsewhere
-    url = 'https://github.com/outofcoffee/build-bouncer'
+    url = 'https://github.com/outofcoffee/build-clerk'
 
     // plugin URL on GitHub, optional
-    gitHubUrl = 'https://github.com/outofcoffee/build-bouncer'
+    gitHubUrl = 'https://github.com/outofcoffee/build-clerk'
 
     // use the plugin class loader before the core class loader, defaults to false
     pluginFirstClassLoader = true

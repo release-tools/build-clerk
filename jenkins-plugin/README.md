@@ -1,19 +1,19 @@
-Build Bouncer Jenkins plugin
+Build Clerk Jenkins plugin
 ============================
 
-Reports build status to a Build Bouncer server.
+Reports build status to a Build Clerk server.
 
 This plugin supports use as both a classic Jenkins post-build step, as well as Jenkins pipeline step.
 
 ## Installation
 
-Build the plugin file `build-bouncer.hpi` by running this command from the root of the repository:
+Build the plugin file `build-clerk.hpi` by running this command from the root of the repository:
 
     ./gradlew jpi
 
 The HPI file built to:
 
-    jenkins-plugin/build/libs/build-bouncer.hpi
+    jenkins-plugin/build/libs/build-clerk.hpi
 
 Upload this in the 'Advanced' tab of the Jenkins 'Manage Plugins' page.
 
@@ -25,7 +25,7 @@ If you are using a classic Jenkins 'freestyle' or similar job, add a post-build 
 
 Example declarative pipeline with post-build step:
 
-    buildBouncer 'https://jenkins.example.com/'
+    buildClerk 'https://jenkins.example.com/'
 
 > For a full pipeline example, see `examples/jenkins-declarative-pipeline.groovy`
 
@@ -33,7 +33,7 @@ Example declarative pipeline with post-build step:
 
 This plugin supports the following configuration options:
 
-* `serverUrl` (required) - the base URL of the Build Bouncer server
+* `serverUrl` (required) - the base URL of the Build Clerk server
 
 ## Testing
 

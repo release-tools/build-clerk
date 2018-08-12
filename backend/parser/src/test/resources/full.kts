@@ -1,6 +1,6 @@
-import com.gatehill.buildbouncer.api.model.BuildStatus
-import com.gatehill.buildbouncer.dsl.Colour
-import com.gatehill.buildbouncer.dsl.config
+import com.gatehill.buildclerk.api.model.BuildStatus
+import com.gatehill.buildclerk.dsl.Colour
+import com.gatehill.buildclerk.dsl.config
 
 config {
     buildFailed {

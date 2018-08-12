@@ -2,12 +2,12 @@ FROM openjdk:8-jre-alpine
 
 LABEL MAINTAINER="Pete Cornish <outofcoffee@gmail.com>"
 
-RUN mkdir -p /opt/bouncer
+RUN mkdir -p /opt/clerk
 
-ADD build/libs/bouncer.jar /opt/bouncer/bouncer.jar
+ADD build/libs/clerk.jar /opt/clerk/clerk.jar
 
 EXPOSE 9090
 
-WORKDIR /opt/bouncer
+WORKDIR /opt/clerk
 
-ENTRYPOINT [ "java", "-jar", "bouncer.jar" ]
+ENTRYPOINT [ "java", "-jar", "clerk.jar" ]

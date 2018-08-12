@@ -9,7 +9,7 @@ pipeline {
     }
     post {
         always {
-            buildBouncer 'https://jenkins.example.com/'
+            buildClerk 'https://jenkins.example.com/'
         }
     }
 }

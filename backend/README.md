@@ -1,9 +1,9 @@
-Backend server for Build Bouncer
-================================
+Backend server for Build Clerk
+==============================
 
 Run using Docker:
 
-	 docker run --rm -it -p9090:9090 outofcoffee/build-bouncer
+	 docker run --rm -it -p9090:9090 outofcoffee/build-clerk
 
 ## Build and run JAR
 
@@ -13,7 +13,7 @@ If you want to build the JAR yourself, run this command from the root of the rep
 
 Run it:
 
-	java -jar backend/server/build/libs/bouncer.jar
+	java -jar backend/server/build/libs/clerk.jar
 
 ## Testing
 

@@ -35,10 +35,10 @@ kotlin {
     }
 }
 
-mainClassName = 'com.gatehill.buildbouncer.BouncerKt'
+mainClassName = 'com.gatehill.buildclerk.ClerkKt'
 
 shadowJar {
-    baseName 'bouncer'
+    baseName 'clerk'
     classifier = null
     version = null
 }

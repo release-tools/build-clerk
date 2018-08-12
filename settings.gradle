@@ -1,4 +1,4 @@
-rootProject.name = 'build-bouncer'
+rootProject.name = 'build-clerk'
 
 include ':api'
 include ':backend:core'
