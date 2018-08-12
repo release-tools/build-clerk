@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.service
+package com.gatehill.buildbouncer.service.builder
 
 import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.api.model.BuildStatus

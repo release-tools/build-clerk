@@ -5,9 +5,9 @@ import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.model.bitbucket.PullRequestMergedEvent
 import com.gatehill.buildbouncer.model.slack.ActionTriggeredEvent
-import com.gatehill.buildbouncer.service.BuildEventService
 import com.gatehill.buildbouncer.service.PendingActionService
-import com.gatehill.buildbouncer.service.PullRequestEventService
+import com.gatehill.buildbouncer.service.builder.BuildEventService
+import com.gatehill.buildbouncer.service.scm.PullRequestEventService
 import com.gatehill.buildbouncer.util.jsonMapper
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerResponse
@@ -70,7 +70,7 @@ class Server @Inject constructor(
             }
 
             try {
-                buildEventService.handle(buildOutcome)
+                buildEventService.checkBuildOutcome(buildOutcome)
                 rc.response().setStatusCode(200).end()
 
             } catch (e: Exception) {
@@ -89,7 +89,7 @@ class Server @Inject constructor(
             }
 
             try {
-                pullRequestEventService.verify(event)
+                pullRequestEventService.checkPullRequest(event)
                 rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
                 logger.error(e)

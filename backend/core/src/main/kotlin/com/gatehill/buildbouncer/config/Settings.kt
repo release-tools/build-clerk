@@ -6,9 +6,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 object Settings {
-    val repoName: String by lazy { System.getenv("REPO_NAME") }
+    object EventFilter {
+        val repoName: String? by lazy { System.getenv("REPO_NAME") }
 
-    val branchName: String by lazy { System.getenv("BRANCH_NAME") }
+        val branchName: String? by lazy { System.getenv("BRANCH_NAME") }
+    }
 
     object Repository {
         val localDir: File by lazy {

@@ -12,11 +12,11 @@ import com.gatehill.buildbouncer.parser.inject.InstanceFactoryLocator
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
-class BuildAnalysisService @Inject constructor(
+class AnalysisService @Inject constructor(
         private val parser: Parser,
         private val buildOutcomeService: BuildOutcomeService
 ) {
-    private val logger = LogManager.getLogger(BuildAnalysisService::class.java)
+    private val logger = LogManager.getLogger(AnalysisService::class.java)
 
     fun analyseBuild(outcome: BuildOutcome): Analysis {
         val analysis = Analysis("Build ${outcome.build.number} on ${outcome.build.scm.branch}", logger)

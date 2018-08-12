@@ -7,20 +7,21 @@ import com.gatehill.buildbouncer.parser.Parser
 import com.gatehill.buildbouncer.parser.inject.InstanceFactory
 import com.gatehill.buildbouncer.parser.inject.InstanceFactoryLocator
 import com.gatehill.buildbouncer.server.Server
-import com.gatehill.buildbouncer.service.BuildAnalysisService
-import com.gatehill.buildbouncer.service.BuildEventService
-import com.gatehill.buildbouncer.service.BuildOutcomeServiceImpl
+import com.gatehill.buildbouncer.service.AnalysisService
 import com.gatehill.buildbouncer.service.CommandExecutorService
 import com.gatehill.buildbouncer.service.PendingActionService
-import com.gatehill.buildbouncer.service.PullRequestEventService
+import com.gatehill.buildbouncer.service.builder.BuildEventService
+import com.gatehill.buildbouncer.service.builder.BuildOutcomeServiceImpl
+import com.gatehill.buildbouncer.service.builder.jenkins.JenkinsApiClientBuilder
+import com.gatehill.buildbouncer.service.builder.jenkins.JenkinsBuildRunnerServiceImpl
 import com.gatehill.buildbouncer.service.notify.slack.SlackApiService
 import com.gatehill.buildbouncer.service.notify.slack.SlackNotificationServiceImpl
 import com.gatehill.buildbouncer.service.notify.slack.SlackOperationsService
-import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsApiClientBuilder
-import com.gatehill.buildbouncer.service.runner.jenkins.JenkinsBuildRunnerServiceImpl
+import com.gatehill.buildbouncer.service.scm.PullRequestEventService
 import com.gatehill.buildbouncer.service.scm.ScmService
 import com.gatehill.buildbouncer.service.scm.bitbucket.BitbucketApiClientBuilder
 import com.gatehill.buildbouncer.service.scm.bitbucket.BitbucketOperationsService
+import com.gatehill.buildbouncer.service.scm.bitbucket.BitbucketPullRequestEventServiceImpl
 import com.gatehill.buildbouncer.service.scm.bitbucket.BitbucketScmServiceImpl
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
@@ -43,8 +44,7 @@ fun main(args: Array<String>) {
 
             // event processors
             bind(BuildOutcomeService::class.java).to(BuildOutcomeServiceImpl::class.java).asSingleton()
-            bind(PullRequestEventService::class.java).asSingleton()
-            bind(BuildAnalysisService::class.java).asSingleton()
+            bind(AnalysisService::class.java).asSingleton()
             bind(BuildEventService::class.java).asSingleton()
 
             // slack
@@ -56,6 +56,7 @@ fun main(args: Array<String>) {
             bind(ScmService::class.java).to(BitbucketScmServiceImpl::class.java).asSingleton()
             bind(BitbucketOperationsService::class.java).asSingleton()
             bind(BitbucketApiClientBuilder::class.java).asSingleton()
+            bind(PullRequestEventService::class.java).to(BitbucketPullRequestEventServiceImpl::class.java).asSingleton()
 
             // jenkins
             bind(BuildRunnerService::class.java).to(JenkinsBuildRunnerServiceImpl::class.java).asSingleton()

@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.service.runner.jenkins
+package com.gatehill.buildbouncer.service.builder.jenkins
 
 import com.gatehill.buildbouncer.config.Settings
 import com.gatehill.buildbouncer.service.rest.ApiClientBuilder

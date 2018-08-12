@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.service.runner.jenkins
+package com.gatehill.buildbouncer.service.builder.jenkins
 
 import okhttp3.ResponseBody
 import retrofit2.Call

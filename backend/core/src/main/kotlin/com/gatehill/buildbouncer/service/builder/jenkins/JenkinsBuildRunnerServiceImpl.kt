@@ -1,4 +1,4 @@
-package com.gatehill.buildbouncer.service.runner.jenkins
+package com.gatehill.buildbouncer.service.builder.jenkins
 
 import com.gatehill.buildbouncer.api.model.BuildOutcome
 import com.gatehill.buildbouncer.api.service.BuildRunnerService
