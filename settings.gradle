@@ -1,9 +1,9 @@
 rootProject.name = 'build-bouncer'
 
 include ':api'
-include ':core'
-include ':dsl'
-include ':parser'
+include ':backend:core'
+include ':backend:dsl'
+include ':backend:parser'
 include ':rest'
-include ':server'
+include ':backend:server'
 include ':jenkins-plugin'

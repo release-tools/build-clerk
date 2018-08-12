@@ -27,15 +27,13 @@ postAnalysisToChannel("general")
 
 > This is just a taste of what you can do. See the examples in the `parser` module for more.
 
-## Build and run
+## Run it
 
-Build it:
+Run using Docker:
 
-	./gradlew clean shadowjar
+	 docker run --rm -it -p9090:9090 outofcoffee/build-bouncer
 
-Run it:
-
-	java -jar server/build/libs/bouncer.jar
+See http://localhost:9090 to check it's running.
 
 ## Configuration options
 
@@ -71,17 +69,3 @@ Configuration for pull request events:
 Advanced configuration:
 
 * SERVER_PORT
-
-## Testing
-
-Build notification:
-
-    curl -v -d '{ "name": "example", "url": "job/example", "build": { "number": 1, "status": "FAILED", "full_url": "http://example.com/job/example/1", "scm": { "branch": "master", "commit": "c0ff33" } } }' -H 'Content-Type: application/json' http://localhost:9090/builds
-
-Slack action trigger:
-
-    curl -v -d @./examples/action-triggered.json -H 'Content-Type: application/json' http://localhost:9090/actions
-
-PR merged event:
-
-    curl -v -d @./examples/pr-merged.json -H 'Content-Type: application/json' http://localhost:9090/pull-requests/merged

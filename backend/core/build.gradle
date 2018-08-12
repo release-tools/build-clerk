@@ -4,8 +4,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0"
 
-    compile project(':dsl')
-    compile project(':parser')
+    compile project(':backend:dsl')
+    compile project(':backend:parser')
     compile project(':rest')
 
     // git

@@ -27,8 +27,8 @@ jobs:
       - save_cache:
           key: artifacts-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - server/build/libs
-            - server/Dockerfile
+            - backend/server/build/libs
+            - backend/server/Dockerfile
             - scripts
 
   deploy:

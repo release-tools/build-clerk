@@ -6,7 +6,7 @@ apply plugin: 'application'
 apply plugin: 'kotlin'
 
 dependencies {
-    compile project(':core')
+    compile project(':backend:core')
 
     // DI
     compile "com.google.inject:guice:$version_guice"
