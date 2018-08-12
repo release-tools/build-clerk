@@ -37,35 +37,35 @@ See http://localhost:9090 to check it's running.
 
 ## Configuration options
 
-* RULES_FILE - Path to rules file to respond to build lifecycle events
-
-Git repository configuration:
-
-* GIT_REPO_LOCAL_DIR - Path to a local repository clone
-* GIT_REPO_PUSH_CHANGES - Whether to push changes to the remote
-
-Jenkins configuration:
-
-* JENKINS_BASE_URL
-* JENKINS_USERNAME
-* JENKINS_PASSWORD
+* `RULES_FILE` (required) - path to rules file to respond to build lifecycle events
 
 Slack configuration:
 
-* SLACK_USER_TOKEN - A token with the `chat.write` permission
+* `SLACK_USER_TOKEN` - a token with the `chat.write` permission
+
+Jenkins configuration:
+
+* `JENKINS_BASE_URL` - base URL for Jenkins server
+* `JENKINS_USERNAME` - username for Jenkins
+* `JENKINS_PASSWORD` - API key or password for Jenkins
 
 Bitbucket configuration:
 
-* BITBUCKET_REPO_USERNAME
-* BITBUCKET_REPO_SLUG
-* BITBUCKET_AUTH_USERNAME
-* BITBUCKET_PASSWORD
+* `BITBUCKET_REPO_USERNAME`
+* `BITBUCKET_REPO_SLUG`
+* `BITBUCKET_AUTH_USERNAME`
+* `BITBUCKET_PASSWORD`
 
-Configuration for pull request events:
+Git repository configuration:
 
-* REPO_NAME
-* BRANCH_NAME
+* `GIT_REPO_LOCAL_DIR` - path to a local repository clone
+* `GIT_REPO_PUSH_CHANGES` - whether to push changes to the remote
+
+Global filters:
+
+* `BRANCH_NAME` - only process events for this SCM branch
+* `REPO_NAME` - only process events from this repository (applies to PRs only)
 
 Advanced configuration:
 
-* SERVER_PORT
+* `SERVER_PORT` - the HTTP port on which to listen
