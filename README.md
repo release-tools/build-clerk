@@ -25,7 +25,7 @@ if (failuresForCommitOnBranch <= 2) {
 postAnalysisToChannel("general")
 ```
 
-> This is just a taste of what you can do. See the examples in the `parser` module for more.
+> This is just a taste of what you can do. See the examples in the `parser` module's tests for more.
 
 ## Run it
 
