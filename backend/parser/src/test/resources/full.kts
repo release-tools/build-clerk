@@ -1,5 +1,5 @@
 import com.gatehill.buildclerk.api.model.BuildStatus
-import com.gatehill.buildclerk.dsl.Colour
+import com.gatehill.buildclerk.dsl.Color
 import com.gatehill.buildclerk.dsl.config
 
 config {
@@ -23,7 +23,7 @@ config {
 
         postAnalysisToChannel(
                 channelName = "general",
-                color = Colour.RED
+                color = Color.RED
         )
     }
 
@@ -31,7 +31,7 @@ config {
         notifyChannel(
                 channelName = "general",
                 message = "${outcome.name} branch: $branchName is healthy again! ${outcome.build.fullUrl}",
-                color = Colour.GREEN
+                color = Color.GREEN
         )
     }
 
@@ -42,7 +42,7 @@ config {
 
             postAnalysisToChannel(
                     channelName = "general",
-                    color = Colour.RED
+                    color = Color.RED
             )
         }
     }
@@ -54,14 +54,14 @@ config {
 
             postAnalysisToChannel(
                     channelName = "general",
-                    color = Colour.RED
+                    color = Color.RED
             )
 
         } else {
             log("PR $prSummary was merged into branch $branchName by ${mergeEvent.actor.username}")
             postAnalysisToChannel(
                     channelName = "general",
-                    color = Colour.GREEN
+                    color = Color.GREEN
             )
         }
     }
@@ -70,7 +70,7 @@ config {
         notifyChannel(
                 channelName = "general",
                 message = "${outcome.name} build passed on branch: $branchName: ${outcome.build.fullUrl}",
-                color = Colour.GREEN
+                color = Color.GREEN
         )
     }
 
@@ -78,7 +78,7 @@ config {
         notifyChannel(
                 channelName = "general",
                 message = "${outcome.name} branch: $branchName is now failing: ${outcome.build.fullUrl}",
-                color = Colour.RED
+                color = Color.RED
         )
     }
 }

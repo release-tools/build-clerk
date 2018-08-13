@@ -78,17 +78,12 @@ abstract class AbstractBlock @Inject constructor(
         )
     }
 
-    fun notifyChannel(channelName: String, message: String, color: Colour = Colour.BLACK) =
-            notifyChannel(channelName, message, color.hexCode)
+    fun notifyChannel(channelName: String, message: String, color: Color = Color.BLACK) =
+            notificationService.notify(channelName, message, color.hexCode)
 
-    fun notifyChannel(channelName: String, message: String, color: String = "#000000") =
-            notificationService.notify(channelName, message, color)
+    fun postAnalysisToChannel(channelName: String, color: Color = Color.BLACK) =
+            notificationService.notify(channelName, analysis, color.hexCode)
 
-    fun postAnalysisToChannel(channelName: String, color: Colour = Colour.BLACK) =
-            postAnalysisToChannel(channelName, color.hexCode)
-
-    fun postAnalysisToChannel(channelName: String, color: String = "#000000") =
-            notificationService.notify(channelName, analysis, color)
 }
 
 abstract class AbstractBuildBlock @Inject constructor(
@@ -188,9 +183,9 @@ class PullRequestMergedBlock @Inject constructor(
     }
 }
 
-class Colour(val hexCode: String) {
+class Color(val hexCode: String) {
     companion object {
-        fun of(hexCode: String) = Colour(hexCode)
+        fun of(hexCode: String) = Color(hexCode)
         val BLACK = of("#000000")
         val RED = of("#ff0000")
         val GREEN = of("#00ff00")
