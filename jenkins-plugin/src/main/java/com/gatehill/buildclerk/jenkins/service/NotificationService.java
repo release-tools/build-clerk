@@ -17,6 +17,8 @@ import java.io.PrintStream;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Sends notifications to the backend API.
  *
@@ -42,6 +44,22 @@ public class NotificationService {
         }
     }
 
+    private BuildOutcome createBuildOutcome(PrintStream logger, Run run, Map<String, String> scmVars) {
+        final BuildStatus buildStatus = determineBuildStatus(logger, run);
+        final Scm scm = fetchScmDetails(scmVars);
+
+        return new BuildOutcome(
+                run.getParent().getName(),
+                run.getParent().getShortUrl(),
+                new BuildDetails(
+                        run.getNumber(),
+                        buildStatus,
+                        scm,
+                        getJenkinsUrl() + run.getUrl()
+                )
+        );
+    }
+
     /**
      * Workaround for null result bug - see https://issues.jenkins-ci.org/browse/JENKINS-46325
      *
@@ -65,26 +83,26 @@ public class NotificationService {
         return buildStatus;
     }
 
-    private BuildOutcome createBuildOutcome(PrintStream logger, Run run, Map<String, String> scmVars) {
-        final BuildStatus buildStatus = determineBuildStatus(logger, run);
-        final Scm scm = fetchScmDetails(scmVars);
-
-        return new BuildOutcome(
-                run.getParent().getName(),
-                run.getParent().getShortUrl(),
-                new BuildDetails(
-                        run.getNumber(),
-                        buildStatus,
-                        scm,
-                        getJenkinsUrl() + run.getUrl()
-                )
-        );
+    /**
+     * Conservatively converts a Job Result to a BuildStatus.
+     *
+     * @param result the result of the Job
+     * @return the corresponding build status
+     */
+    private BuildStatus convertResult(@CheckForNull Result result) {
+        if (Result.FAILURE.equals(result) || Result.UNSTABLE.equals(result)) {
+            return BuildStatus.FAILED;
+        } else {
+            // By design we presume a positive outcome unless an explicit failure result is returned.
+            // Consider whether we should fail 'safe' the other way in future.
+            return BuildStatus.SUCCESS;
+        }
     }
 
     private Scm fetchScmDetails(Map<String, String> scmVars) {
         return new Scm(
-                scmVars.get("GIT_LOCAL_BRANCH"),
-                scmVars.get("GIT_COMMIT")
+                checkNotNull(scmVars.get("GIT_LOCAL_BRANCH"), "GIT_LOCAL_BRANCH variable was null"),
+                checkNotNull(scmVars.get("GIT_COMMIT"), "GIT_COMMIT variable was null")
         );
     }
 
@@ -103,21 +121,5 @@ public class NotificationService {
             jenkinsUrl = "";
         }
         return jenkinsUrl;
-    }
-
-    /**
-     * Conservatively converts a Job Result to a BuildStatus.
-     *
-     * @param result the result of the Job
-     * @return the corresponding build status
-     */
-    private BuildStatus convertResult(@CheckForNull Result result) {
-        if (Result.FAILURE.equals(result) || Result.UNSTABLE.equals(result)) {
-            return BuildStatus.FAILED;
-        } else {
-            // By design we presume a positive outcome unless an explicit failure result is returned.
-            // Consider whether we should fail 'safe' the other way in future.
-            return BuildStatus.SUCCESS;
-        }
     }
 }

@@ -18,7 +18,7 @@ public interface ClerkDescriptor extends ModelObject {
     default FormValidation doCheckServerUrl(@QueryParameter String value) {
         if (value.length() == 0) {
             return FormValidation.error("Please set a Server URL");
-        } else if (!value.startsWith("http") || !value.startsWith("https")) {
+        } else if (!(value.startsWith("http://") || value.startsWith("https://"))) {
             return FormValidation.warning("Server URL should start with http:// or https://");
         }
         return FormValidation.ok();
