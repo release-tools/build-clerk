@@ -1,6 +1,6 @@
 package com.gatehill.buildclerk.api.service
 
-import com.gatehill.buildclerk.api.model.BuildOutcome
+import com.gatehill.buildclerk.api.model.BuildReport
 
 /**
  * Executes builds.
@@ -8,5 +8,5 @@ import com.gatehill.buildclerk.api.model.BuildOutcome
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 interface BuildRunnerService {
-    fun rebuild(outcome: BuildOutcome)
+    fun rebuild(report: BuildReport)
 }

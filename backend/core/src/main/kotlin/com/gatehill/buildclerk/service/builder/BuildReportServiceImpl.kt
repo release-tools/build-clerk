@@ -1,25 +1,31 @@
 package com.gatehill.buildclerk.service.builder
 
-import com.gatehill.buildclerk.api.model.BuildOutcome
+import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
-import com.gatehill.buildclerk.api.service.BuildOutcomeService
+import com.gatehill.buildclerk.api.service.BuildReportService
+import com.gatehill.buildclerk.api.dao.BuildReportDao
 import org.apache.logging.log4j.LogManager
 
 /**
- * Stores build outcomes and provides access to build metadata.
+ * Stores build reports and provides access to build metadata.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class BuildOutcomeServiceImpl : BuildOutcomeService {
-    private val logger = LogManager.getLogger(BuildOutcomeServiceImpl::class.java)
-    private val store = mutableListOf<BuildOutcome>()
+class BuildReportServiceImpl(
+        private val buildReportDao: BuildReportDao
+) : BuildReportService {
 
-    override fun updateStatus(buildOutcome: BuildOutcome) {
-        logger.info("Updating status for branch: ${buildOutcome.build.scm.branch} to: ${buildOutcome.build.status}")
-        store += buildOutcome
+    private val logger = LogManager.getLogger(BuildReportServiceImpl::class.java)
+
+    private val store : MutableList<BuildReport>
+        get() = buildReportDao.readStore()
+
+    override fun updateStatus(buildReport: BuildReport) {
+        logger.info("Updating status for branch: ${buildReport.build.scm.branch} to: ${buildReport.build.status}")
+        store += buildReport
     }
 
-    override fun fetchStatus(branchName: String): BuildOutcome? = store.asReversed().firstOrNull { outcome ->
+    override fun fetchStatus(branchName: String): BuildReport? = store.asReversed().firstOrNull { outcome ->
         outcome.build.scm.branch == branchName
     }
 
@@ -27,7 +33,7 @@ class BuildOutcomeServiceImpl : BuildOutcomeService {
         outcome.build.scm.commit == commit && outcome.build.status == BuildStatus.SUCCESS
     }
 
-    override fun lastPassingCommitForBranch(branchName: String): BuildOutcome? = store.asReversed().find { outcome ->
+    override fun lastPassingCommitForBranch(branchName: String): BuildReport? = store.asReversed().find { outcome ->
         outcome.build.scm.branch == branchName && outcome.build.status == BuildStatus.SUCCESS
     }
 

@@ -1,13 +1,13 @@
 package com.gatehill.buildclerk.dsl
 
 import com.gatehill.buildclerk.api.model.Analysis
-import com.gatehill.buildclerk.api.model.BuildOutcome
+import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.model.action.LockBranchAction
 import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
 import com.gatehill.buildclerk.api.model.action.RevertAction
-import com.gatehill.buildclerk.api.service.BuildOutcomeService
+import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.NotificationService
 import javax.inject.Inject
 
@@ -57,7 +57,7 @@ class BodyHolder {
 
 abstract class AbstractBlock @Inject constructor(
         private val notificationService: NotificationService,
-        private val buildOutcomeService: BuildOutcomeService
+        private val buildReportService: BuildReportService
 ) {
     lateinit var analysis: Analysis
     lateinit var branchName: String
@@ -65,11 +65,11 @@ abstract class AbstractBlock @Inject constructor(
     fun log(message: String) = analysis.log(message)
 
     val consecutiveFailuresOnBranch: Int by lazy {
-        buildOutcomeService.countConsecutiveFailuresOnBranch(branchName)
+        buildReportService.countConsecutiveFailuresOnBranch(branchName)
     }
 
-    val lastPassingCommitForBranch: BuildOutcome? by lazy {
-        buildOutcomeService.lastPassingCommitForBranch(branchName)
+    val lastPassingCommitForBranch: BuildReport? by lazy {
+        buildReportService.lastPassingCommitForBranch(branchName)
     }
 
     fun lockBranch() {
@@ -88,32 +88,32 @@ abstract class AbstractBlock @Inject constructor(
 
 abstract class AbstractBuildBlock @Inject constructor(
         notificationService: NotificationService,
-        private val buildOutcomeService: BuildOutcomeService
+        private val buildReportService: BuildReportService
 ) : AbstractBlock(
         notificationService,
-        buildOutcomeService
+        buildReportService
 ) {
 
-    lateinit var outcome: BuildOutcome
+    lateinit var report: BuildReport
 
     val commitHasEverSucceeded: Boolean by lazy {
-        buildOutcomeService.hasEverSucceeded(outcome.build.scm.commit)
+        buildReportService.hasEverSucceeded(report.build.scm.commit)
     }
 
     val failuresForCommitOnBranch: Int by lazy {
-        buildOutcomeService.countFailuresForCommitOnBranch(outcome.build.scm.commit, branchName)
+        buildReportService.countFailuresForCommitOnBranch(report.build.scm.commit, branchName)
     }
 
     fun rebuildBranch() {
         analysis.recommend(
-                RebuildBranchAction(outcome)
+                RebuildBranchAction(report)
         )
     }
 
     fun revertCommit() {
         analysis.recommend(
                 RevertAction(
-                        commit = outcome.build.scm.commit,
+                        commit = report.build.scm.commit,
                         branch = branchName
                 )
         )
@@ -122,50 +122,50 @@ abstract class AbstractBuildBlock @Inject constructor(
 
 class BuildPassedBlock @Inject constructor(
         notificationService: NotificationService,
-        buildOutcomeService: BuildOutcomeService
+        buildReportService: BuildReportService
 ) : AbstractBuildBlock(
         notificationService,
-        buildOutcomeService
+        buildReportService
 )
 
 class BuildFailedBlock @Inject constructor(
         notificationService: NotificationService,
-        buildOutcomeService: BuildOutcomeService
+        buildReportService: BuildReportService
 ) : AbstractBuildBlock(
         notificationService,
-        buildOutcomeService
+        buildReportService
 )
 
 class BuildHealthyBlock @Inject constructor(
         notificationService: NotificationService,
-        buildOutcomeService: BuildOutcomeService
+        buildReportService: BuildReportService
 ) : AbstractBuildBlock(
         notificationService,
-        buildOutcomeService
+        buildReportService
 )
 
 class BuildFailingBlock @Inject constructor(
         notificationService: NotificationService,
-        buildOutcomeService: BuildOutcomeService
+        buildReportService: BuildReportService
 ) : AbstractBuildBlock(
         notificationService,
-        buildOutcomeService
+        buildReportService
 )
 
 class RepositoryBlock @Inject constructor(
         notificationService: NotificationService,
-        buildOutcomeService: BuildOutcomeService
+        buildReportService: BuildReportService
 ) : AbstractBlock(
         notificationService,
-        buildOutcomeService
+        buildReportService
 )
 
 class PullRequestMergedBlock @Inject constructor(
         notificationService: NotificationService,
-        buildOutcomeService: BuildOutcomeService
+        buildReportService: BuildReportService
 ) : AbstractBlock(
         notificationService,
-        buildOutcomeService
+        buildReportService
 ) {
     lateinit var mergeEvent: PullRequestMergedEvent
     lateinit var currentBranchStatus: BuildStatus

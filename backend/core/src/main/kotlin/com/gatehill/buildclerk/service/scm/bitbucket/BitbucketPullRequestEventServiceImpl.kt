@@ -1,7 +1,7 @@
 package com.gatehill.buildclerk.service.scm.bitbucket
 
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
-import com.gatehill.buildclerk.api.service.BuildOutcomeService
+import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.service.AnalysisService
 import com.gatehill.buildclerk.service.scm.PullRequestEventService
@@ -13,7 +13,7 @@ import javax.inject.Inject
  * Processes Bitbucket format pull requests.
  */
 class BitbucketPullRequestEventServiceImpl @Inject constructor(
-        private val buildOutcomeService: BuildOutcomeService,
+        private val buildReportService: BuildReportService,
         private val analysisService: AnalysisService
 ) : PullRequestEventService {
 
@@ -40,12 +40,12 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
 
         @Suppress("DeferredResultUnused")
         async {
-            buildOutcomeService.fetchStatus(branchName)?.let { buildOutcome ->
-                logger.info("Performing validation checks on $prInfo with current branch name: $branchName status currently: ${buildOutcome.build.status}")
+            buildReportService.fetchStatus(branchName)?.let { buildReport ->
+                logger.info("Performing validation checks on $prInfo with current branch name: $branchName status currently: ${buildReport.build.status}")
 
                 analysisService.analysePullRequest(
                         mergeEvent = event,
-                        currentBranchStatus = buildOutcome.build.status
+                        currentBranchStatus = buildReport.build.status
                 )
 
             } ?: run {

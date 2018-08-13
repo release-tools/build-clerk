@@ -1,7 +1,7 @@
 package com.gatehill.buildclerk.server
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.gatehill.buildclerk.api.model.BuildOutcome
+import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
@@ -61,16 +61,16 @@ class Server @Inject constructor(
         }
 
         router.post("/builds").consumes(JSON_CONTENT_TYPE).handler { rc ->
-            val buildOutcome = try {
-                rc.readBodyJson<BuildOutcome>()
+            val buildReport = try {
+                rc.readBodyJson<BuildReport>()
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(400).end("Cannot parse build outcome")
+                rc.response().setStatusCode(400).end("Cannot parse build report")
                 return@handler
             }
 
             try {
-                buildEventService.checkBuildOutcome(buildOutcome)
+                buildEventService.checkBuildReport(buildReport)
                 rc.response().setStatusCode(200).end()
 
             } catch (e: Exception) {

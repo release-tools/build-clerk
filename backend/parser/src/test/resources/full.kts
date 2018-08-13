@@ -4,10 +4,10 @@ import com.gatehill.buildclerk.dsl.config
 
 config {
     buildFailed {
-        log("${outcome.name} build failed on branch: $branchName: ${outcome.build.fullUrl}")
+        log("${report.name} build failed on branch: $branchName: ${report.build.fullUrl}")
 
         if (commitHasEverSucceeded) {
-            log("Commit ${outcome.build.scm.commit} has previously succeeded (on at least 1 branch)")
+            log("Commit ${report.build.scm.commit} has previously succeeded (on at least 1 branch)")
             log("Commit has failed $failuresForCommitOnBranch time(s) on $branchName")
 
             if (failuresForCommitOnBranch < 3) {
@@ -17,7 +17,7 @@ config {
             }
 
         } else {
-            log("Commit ${outcome.build.scm.commit} has never succeeded on any branch")
+            log("Commit ${report.build.scm.commit} has never succeeded on any branch")
             revertCommit()
         }
 
@@ -30,7 +30,7 @@ config {
     branchStartsPassing {
         notifyChannel(
                 channelName = "general",
-                message = "${outcome.name} branch: $branchName is healthy again! ${outcome.build.fullUrl}",
+                message = "${report.name} branch: $branchName is healthy again! ${report.build.fullUrl}",
                 color = Color.GREEN
         )
     }
@@ -69,7 +69,7 @@ config {
     buildPassed {
         notifyChannel(
                 channelName = "general",
-                message = "${outcome.name} build passed on branch: $branchName: ${outcome.build.fullUrl}",
+                message = "${report.name} build passed on branch: $branchName: ${report.build.fullUrl}",
                 color = Color.GREEN
         )
     }
@@ -77,7 +77,7 @@ config {
     branchStartsFailing {
         notifyChannel(
                 channelName = "general",
-                message = "${outcome.name} branch: $branchName is now failing: ${outcome.build.fullUrl}",
+                message = "${report.name} branch: $branchName is now failing: ${report.build.fullUrl}",
                 color = Color.RED
         )
     }

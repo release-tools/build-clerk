@@ -128,7 +128,7 @@ class PendingActionService @Inject constructor(
         logger.info("Executing pending action: $pendingAction")
         when (pendingAction) {
             is RevertAction -> scmService.revertCommit(pendingAction.commit, pendingAction.branch)
-            is RebuildBranchAction -> buildRunnerService.rebuild(pendingAction.outcome)
+            is RebuildBranchAction -> buildRunnerService.rebuild(pendingAction.report)
             is LockBranchAction -> scmService.lockBranch(pendingAction.branch)
             else -> throw NotImplementedError("Unsupported pending action: $pendingAction")
         }

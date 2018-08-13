@@ -17,7 +17,7 @@ jobs:
 
       - run:
           name: Run gradle build
-          command: ./gradlew clean shadowJar --stacktrace
+          command: ./gradlew clean shadowJar jpi --stacktrace
 
       - save_cache:
           key: gradle-cache

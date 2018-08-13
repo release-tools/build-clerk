@@ -1,8 +1,10 @@
 package com.gatehill.buildclerk
 
-import com.gatehill.buildclerk.api.service.BuildOutcomeService
+import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
+import com.gatehill.buildclerk.api.dao.BuildReportDao
+import com.gatehill.buildclerk.dao.inmem.InMemoryBuildReportDaoImpl
 import com.gatehill.buildclerk.parser.Parser
 import com.gatehill.buildclerk.parser.inject.InstanceFactory
 import com.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
@@ -11,7 +13,7 @@ import com.gatehill.buildclerk.service.AnalysisService
 import com.gatehill.buildclerk.service.CommandExecutorService
 import com.gatehill.buildclerk.service.PendingActionService
 import com.gatehill.buildclerk.service.builder.BuildEventService
-import com.gatehill.buildclerk.service.builder.BuildOutcomeServiceImpl
+import com.gatehill.buildclerk.service.builder.BuildReportServiceImpl
 import com.gatehill.buildclerk.service.builder.jenkins.JenkinsApiClientBuilder
 import com.gatehill.buildclerk.service.builder.jenkins.JenkinsBuildRunnerServiceImpl
 import com.gatehill.buildclerk.service.notify.slack.SlackApiService
@@ -43,9 +45,12 @@ fun main(args: Array<String>) {
             bind(Server::class.java).asSingleton()
 
             // event processors
-            bind(BuildOutcomeService::class.java).to(BuildOutcomeServiceImpl::class.java).asSingleton()
+            bind(BuildReportService::class.java).to(BuildReportServiceImpl::class.java).asSingleton()
             bind(AnalysisService::class.java).asSingleton()
             bind(BuildEventService::class.java).asSingleton()
+
+            // daos
+            bind(BuildReportDao::class.java).to(InMemoryBuildReportDaoImpl::class.java).asSingleton()
 
             // slack
             bind(NotificationService::class.java).to(SlackNotificationServiceImpl::class.java).asSingleton()

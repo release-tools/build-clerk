@@ -1,6 +1,6 @@
 package com.gatehill.buildclerk.service.builder.jenkins
 
-import com.gatehill.buildclerk.api.model.BuildOutcome
+import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -20,8 +20,8 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
 
     private val logger: Logger = LogManager.getLogger(JenkinsBuildRunnerServiceImpl::class.java)
 
-    override fun rebuild(outcome: BuildOutcome) {
-        val jobName = outcome.name
+    override fun rebuild(report: BuildReport) {
+        val jobName = report.name
 
         val apiClient: JenkinsApi
         val call: Call<Void>
@@ -30,7 +30,7 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
             obtainCsrfToken()?.let { headers.plusAssign(it) }
 
             apiClient = apiClientBuilder.buildApiClient(headers)
-            call = apiClient.enqueueBuild(jobPath = outcome.url)
+            call = apiClient.enqueueBuild(jobPath = report.url)
 
         } catch (e: Exception) {
             throw RuntimeException("Error building API client or obtaining CSRF token", e)

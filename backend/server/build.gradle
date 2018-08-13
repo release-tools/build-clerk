@@ -7,6 +7,7 @@ apply plugin: 'kotlin'
 
 dependencies {
     compile project(':backend:core')
+    compile project(':backend:stores:inmem')
 
     // DI
     compile "com.google.inject:guice:$version_guice"

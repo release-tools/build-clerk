@@ -1,7 +1,7 @@
 package com.gatehill.buildclerk.jenkins.service;
 
 import com.gatehill.buildclerk.api.model.BuildDetails;
-import com.gatehill.buildclerk.api.model.BuildOutcome;
+import com.gatehill.buildclerk.api.model.BuildReport;
 import com.gatehill.buildclerk.api.model.BuildStatus;
 import com.gatehill.buildclerk.api.model.Scm;
 import com.gatehill.buildclerk.jenkins.api.BackendApiClientBuilder;
@@ -29,7 +29,7 @@ public class NotificationService {
 
     public void sendNotification(PrintStream logger, Run run, String serverUrl, Map<String, String> scmVars) {
         try {
-            final BuildOutcome notification = createBuildOutcome(logger, run, scmVars);
+            final BuildReport notification = createBuildReport(logger, run, scmVars);
             logger.printf("Sending build report to %s:%n%s%n", serverUrl, notification);
 
             final BackendApiClientBuilder builder = new BackendApiClientBuilder(serverUrl);
@@ -44,11 +44,11 @@ public class NotificationService {
         }
     }
 
-    private BuildOutcome createBuildOutcome(PrintStream logger, Run run, Map<String, String> scmVars) {
+    private BuildReport createBuildReport(PrintStream logger, Run run, Map<String, String> scmVars) {
         final BuildStatus buildStatus = determineBuildStatus(logger, run);
         final Scm scm = fetchScmDetails(scmVars);
 
-        return new BuildOutcome(
+        return new BuildReport(
                 run.getParent().getName(),
                 run.getParent().getShortUrl(),
                 new BuildDetails(
