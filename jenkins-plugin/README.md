@@ -15,7 +15,13 @@ The HPI file built to:
 
     jenkins-plugin/build/libs/build-clerk.hpi
 
-Upload this in the 'Advanced' tab of the Jenkins 'Manage Plugins' page.
+### Uploading the plugin
+
+You an upload this in the 'Advanced' tab of the Jenkins 'Manage Plugins' page.
+
+If you want to upload via the command line, use:
+
+    curl -i -u 'admin:secretpassword' -F file=@./jenkins-plugin/build/libs/build-clerk.hpi https://jenkins.example.com/pluginManager/uploadPlugin
 
 ## Jenkins job post-build step
 
