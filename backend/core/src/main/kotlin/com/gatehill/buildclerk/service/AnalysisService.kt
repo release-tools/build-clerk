@@ -3,13 +3,11 @@ package com.gatehill.buildclerk.service
 import com.gatehill.buildclerk.api.model.Analysis
 import com.gatehill.buildclerk.api.model.BuildOutcome
 import com.gatehill.buildclerk.api.model.BuildStatus
+import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.service.BuildOutcomeService
 import com.gatehill.buildclerk.config.Settings
-import com.gatehill.buildclerk.dsl.AbstractBlock
 import com.gatehill.buildclerk.dsl.AbstractBuildBlock
-import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.parser.Parser
-import com.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -36,7 +34,7 @@ class AnalysisService @Inject constructor(
         when (outcome.build.status) {
             BuildStatus.SUCCESS -> {
                 logger.info("Build passed: $outcome")
-                invoke(
+                parser.invoke(
                         analysis = analysis,
                         branchName = outcome.build.scm.branch,
                         blockConfigurer = blockConfigurer,
@@ -44,8 +42,8 @@ class AnalysisService @Inject constructor(
                 )
 
                 if (previousBuildStatus == BuildStatus.FAILED) {
-                    logger.info("Build started passing: $outcome")
-                    invoke(
+                    logger.info("Branch started passing: $outcome")
+                    parser.invoke(
                             analysis = analysis,
                             branchName = outcome.build.scm.branch,
                             blockConfigurer = blockConfigurer,
@@ -55,7 +53,7 @@ class AnalysisService @Inject constructor(
             }
             BuildStatus.FAILED -> {
                 logger.info("Build failed: $outcome")
-                invoke(
+                parser.invoke(
                         analysis = analysis,
                         branchName = outcome.build.scm.branch,
                         blockConfigurer = blockConfigurer,
@@ -63,8 +61,8 @@ class AnalysisService @Inject constructor(
                 )
 
                 if (previousBuildStatus == BuildStatus.SUCCESS) {
-                    logger.info("Build started failing: $outcome")
-                    invoke(
+                    logger.info("Branch started failing: $outcome")
+                    parser.invoke(
                             analysis = analysis,
                             branchName = outcome.build.scm.branch,
                             blockConfigurer = blockConfigurer,
@@ -75,7 +73,7 @@ class AnalysisService @Inject constructor(
         }
 
         // runs every time
-        invoke(
+        parser.invoke(
                 analysis = analysis,
                 branchName = outcome.build.scm.branch,
                 body = config.bodyHolder.repository
@@ -94,7 +92,7 @@ class AnalysisService @Inject constructor(
 
         val config = parser.parse(Settings.Rules.configFile)
 
-        invoke(
+        parser.invoke(
                 analysis = analysis,
                 branchName = mergeEvent.pullRequest.destination.branch.name,
                 body = config.bodyHolder.pullRequestMerged,
@@ -106,25 +104,5 @@ class AnalysisService @Inject constructor(
 
         analysis.log("Analysis complete")
         return analysis
-    }
-
-    /**
-     * Instantiate the block of type `B`, configure it, then invoke the `body` on it.
-     */
-    private inline fun <reified B : AbstractBlock> invoke(
-            analysis: Analysis,
-            branchName: String,
-            noinline blockConfigurer: ((B) -> Unit)? = null,
-            noinline body: (B.() -> Unit)?
-    ) {
-        body?.let {
-            val block = InstanceFactoryLocator.instance<B>()
-
-            block.analysis = analysis
-            block.branchName = branchName
-            blockConfigurer?.let { configurer -> configurer(block) }
-
-            block.body()
-        }
     }
 }
