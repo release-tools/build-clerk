@@ -1,6 +1,8 @@
 package com.gatehill.buildclerk.jenkins;
 
 import com.gatehill.buildclerk.jenkins.service.NotificationService;
+import com.gatehill.buildclerk.jenkins.util.Constants;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -15,6 +17,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Classic post build notifier.
@@ -43,7 +47,16 @@ public class ClerkNotifier extends Notifier {
                            final Launcher launcher,
                            final BuildListener listener) {
 
-        notificationService.sendNotification(listener.getLogger(), build, serverUrl);
+        final Map<String, String> scmVars = new HashMap<>();
+        try {
+            final EnvVars environment = build.getEnvironment(listener);
+            scmVars.put("GIT_LOCAL_BRANCH", environment.get("GIT_LOCAL_BRANCH"));
+            scmVars.put("GIT_COMMIT", environment.get("GIT_COMMIT"));
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to read GIT_BRANCH and GIT_COMMIT environment variables", e);
+        }
+
+        notificationService.sendNotification(listener.getLogger(), build, serverUrl, scmVars);
         return true;
     }
 
@@ -60,16 +73,21 @@ public class ClerkNotifier extends Notifier {
          */
         private String serverUrl;
 
-        public String getServerUrl() {
-            return serverUrl;
-        }
-
         /**
          * In order to load the persisted global configuration, you have to call
          * load() in the constructor.
          */
         public DescriptorImpl() {
             load();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return Constants.DISPLAY_NAME;
+        }
+
+        public String getServerUrl() {
+            return serverUrl;
         }
 
         @Override

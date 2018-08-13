@@ -1,0 +1,41 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <!--
+      This jelly script is used for per-project configuration.
+      See global.jelly for a general discussion about jelly script.
+    -->
+
+    <!--
+      Creates a text field that shows the value of the "serverUrl" property.
+      When submitted, it will be passed to the corresponding constructor parameter.
+    -->
+    <f:entry title="Server URL" field="serverUrl">
+        <f:textbox/>
+    </f:entry>
+
+    <!--
+      Creates a text field that shows the value of the "branch" property.
+      When submitted, it will be passed to the corresponding constructor parameter.
+    -->
+    <f:entry title="Branch name" field="branch">
+        <f:textbox/>
+    </f:entry>
+
+    <!--
+      Creates a text field that shows the value of the "commit" property.
+      When submitted, it will be passed to the corresponding constructor parameter.
+    -->
+    <f:entry title="Commit ID" field="commit">
+        <f:textbox/>
+    </f:entry>
+
+    <!--
+      Creates a text field that shows the value of the "serverUrl" property.
+      When submitted, it will be passed to the corresponding constructor parameter.
+    -->
+    <f:entry title="SCM Variables" field="scmVars">
+        <div>
+            Capture the return value of the 'scm checkout' step and pass them as the 'scmVars' parameter.
+        </div>
+    </f:entry>
+</j:jelly>

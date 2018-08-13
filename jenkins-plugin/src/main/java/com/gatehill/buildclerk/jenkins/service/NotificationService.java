@@ -15,6 +15,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.PrintStream;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Sends notifications to the backend API.
@@ -24,9 +25,9 @@ import java.util.Collections;
 public class NotificationService {
     private final JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
 
-    public void sendNotification(PrintStream logger, Run run, String serverUrl) {
+    public void sendNotification(PrintStream logger, Run run, String serverUrl, Map<String, String> scmVars) {
         try {
-            final BuildOutcome notification = createBuildOutcome(logger, run);
+            final BuildOutcome notification = createBuildOutcome(logger, run, scmVars);
             logger.printf("Sending build report to %s:%n%s%n", serverUrl, notification);
 
             final BackendApiClientBuilder builder = new BackendApiClientBuilder(serverUrl);
@@ -45,7 +46,7 @@ public class NotificationService {
      * Workaround for null result bug - see https://issues.jenkins-ci.org/browse/JENKINS-46325
      *
      * @param logger the logger
-     * @param run the current run
+     * @param run    the current run
      * @return the build status
      */
     private BuildStatus determineBuildStatus(PrintStream logger, Run run) {
@@ -64,22 +65,26 @@ public class NotificationService {
         return buildStatus;
     }
 
-    private BuildOutcome createBuildOutcome(PrintStream logger, Run run) {
+    private BuildOutcome createBuildOutcome(PrintStream logger, Run run, Map<String, String> scmVars) {
         final BuildStatus buildStatus = determineBuildStatus(logger, run);
+        final Scm scm = fetchScmDetails(scmVars);
 
-        // TODO complete this
         return new BuildOutcome(
                 run.getParent().getName(),
                 run.getParent().getShortUrl(),
                 new BuildDetails(
                         run.getNumber(),
                         buildStatus,
-                        new Scm(
-                                "TODO",
-                                "TODO"
-                        ),
+                        scm,
                         getJenkinsUrl() + run.getUrl()
                 )
+        );
+    }
+
+    private Scm fetchScmDetails(Map<String, String> scmVars) {
+        return new Scm(
+                scmVars.get("GIT_LOCAL_BRANCH"),
+                scmVars.get("GIT_COMMIT")
         );
     }
 

@@ -1,16 +1,10 @@
 package com.gatehill.buildclerk.jenkins;
 
-import com.gatehill.buildclerk.jenkins.util.Constants;
 import hudson.model.ModelObject;
 import hudson.util.FormValidation;
 import org.kohsuke.stapler.QueryParameter;
 
 public interface ClerkDescriptor extends ModelObject {
-    @Override
-    default String getDisplayName() {
-        return Constants.DISPLAY_NAME;
-    }
-
     /**
      * Performs on-the-fly validation of the form field 'serverUrl'.
      *
@@ -24,7 +18,7 @@ public interface ClerkDescriptor extends ModelObject {
     default FormValidation doCheckServerUrl(@QueryParameter String value) {
         if (value.length() == 0) {
             return FormValidation.error("Please set a Server URL");
-        } else if (!value.startsWith("http://") || !value.startsWith("https://")) {
+        } else if (!value.startsWith("http") || !value.startsWith("https")) {
             return FormValidation.warning("Server URL should start with http:// or https://");
         }
         return FormValidation.ok();
