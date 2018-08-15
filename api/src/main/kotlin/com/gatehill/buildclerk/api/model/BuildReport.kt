@@ -25,7 +25,13 @@ data class BuildDetails(
         val scm: Scm,
 
         @JsonProperty("full_url")
-        val fullUrl: String
+        val fullUrl: String,
+
+        /**
+         * User or other cause.
+         * Only provided by Clerk plugin.
+         */
+        val triggeredBy: String?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

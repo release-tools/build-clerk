@@ -5,6 +5,7 @@ import com.gatehill.buildclerk.api.model.NotificationMessage
 import com.gatehill.buildclerk.api.model.UpdatedNotificationMessage
 import com.gatehill.buildclerk.api.model.action.PendingAction
 import com.gatehill.buildclerk.model.slack.SlackAttachmentAction
+import com.gatehill.buildclerk.model.slack.SlackAttachmentField
 import com.gatehill.buildclerk.model.slack.SlackMessage
 import com.gatehill.buildclerk.model.slack.SlackMessageAttachment
 import com.gatehill.buildclerk.service.notify.StdoutNotificationServiceImpl
@@ -43,10 +44,12 @@ class SlackNotificationServiceImpl @Inject constructor(
         }
 
         val content = SlackMessage(
-                text = analysis.describeEvents(),
                 channel = channelName,
-                attachments = analysis.actionSet.actions.map { action ->
-                    buildMessageAttachment(analysis.actionSet.id, action, color)
+                attachments = mutableListOf<SlackMessageAttachment>().apply {
+                    this += buildAnalysisAttachment(analysis, color)
+                    this += analysis.actionSet.actions.map { action ->
+                        buildMessageAttachment(analysis.actionSet.id, action, color)
+                    }
                 }
         )
 
@@ -56,6 +59,37 @@ class SlackNotificationServiceImpl @Inject constructor(
     override fun updateMessage(updatedMessage: UpdatedNotificationMessage) {
         val slackMessage = convertToSlackMessage(updatedMessage)
         slackOperationsService.updateMessage(slackMessage)
+    }
+
+    private fun buildAnalysisAttachment(
+            analysis: Analysis,
+            color: String
+    ): SlackMessageAttachment {
+        val fields = mutableListOf(
+                SlackAttachmentField(
+                        title = "Branch",
+                        value = analysis.branch,
+                        short = true
+                )
+        )
+
+        analysis.user?.let {
+            fields += SlackAttachmentField(
+                    title = "User",
+                    value = analysis.user,
+                    short = true
+            )
+        }
+
+        return SlackMessageAttachment(
+                fallback = analysis.describeEvents(),
+                title = analysis.name,
+                titleLink = analysis.url,
+                text = analysis.describeEvents(),
+                color = color,
+                attachmentType = "default",
+                fields = fields
+        )
     }
 
     private fun buildMessageAttachment(

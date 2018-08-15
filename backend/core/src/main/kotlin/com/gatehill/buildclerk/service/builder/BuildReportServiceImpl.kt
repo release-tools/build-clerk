@@ -5,13 +5,14 @@ import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.dao.BuildReportDao
 import org.apache.logging.log4j.LogManager
+import javax.inject.Inject
 
 /**
  * Stores build reports and provides access to build metadata.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class BuildReportServiceImpl(
+class BuildReportServiceImpl @Inject constructor(
         private val buildReportDao: BuildReportDao
 ) : BuildReportService {
 

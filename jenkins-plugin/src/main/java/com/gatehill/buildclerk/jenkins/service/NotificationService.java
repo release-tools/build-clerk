@@ -5,16 +5,21 @@ import com.gatehill.buildclerk.api.model.BuildReport;
 import com.gatehill.buildclerk.api.model.BuildStatus;
 import com.gatehill.buildclerk.api.model.Scm;
 import com.gatehill.buildclerk.jenkins.api.BackendApiClientBuilder;
+import hudson.model.Cause;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.triggers.SCMTrigger;
+import hudson.triggers.TimerTrigger;
 import jenkins.model.JenkinsLocationConfiguration;
 import org.apache.commons.lang.StringUtils;
 import retrofit2.Call;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,6 +52,7 @@ public class NotificationService {
     private BuildReport createBuildReport(PrintStream logger, Run run, Map<String, String> scmVars) {
         final BuildStatus buildStatus = determineBuildStatus(logger, run);
         final Scm scm = fetchScmDetails(scmVars);
+        final String triggeredBy = determineTriggeredBy(run);
 
         return new BuildReport(
                 run.getParent().getName(),
@@ -55,9 +61,26 @@ public class NotificationService {
                         run.getNumber(),
                         buildStatus,
                         scm,
-                        getJenkinsUrl() + run.getUrl()
+                        getJenkinsUrl() + run.getUrl(),
+                        triggeredBy
                 )
         );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    private String determineTriggeredBy(Run run) {
+        for (Cause cause : (List<Cause>) run.getCauses()) {
+            if (cause instanceof Cause.UserIdCause) {
+                return ((Cause.UserIdCause) cause).getUserName();
+            } else if (cause instanceof SCMTrigger.SCMTriggerCause) {
+                return "SCM trigger";
+            } else if (cause instanceof TimerTrigger.TimerTriggerCause) {
+                return "Timer";
+            }
+        }
+
+        return "Unknown";
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.gatehill.buildclerk.api.model.action
 
+import com.gatehill.buildclerk.toShortCommit
+
 data class RevertAction(
     val commit: String,
     val branch: String
@@ -8,5 +10,5 @@ data class RevertAction(
     override val name = "revert"
     override val title = "Revert"
 
-    override fun describe() = "revert commit $commit from branch $branch"
+    override fun describe() = "revert commit ${toShortCommit(commit)} from branch $branch"
 }

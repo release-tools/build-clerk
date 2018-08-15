@@ -6,8 +6,11 @@ import org.apache.logging.log4j.Logger
 import java.time.ZonedDateTime
 
 class Analysis(
-        private val name: String,
-        private val logger: Logger
+        private val logger: Logger,
+        val name: String,
+        val branch: String,
+        val user: String? = null,
+        val url: String? = null
 ) {
     val actionSet = PendingActionSet()
     private val events = mutableListOf<AnalysisEvent>()
@@ -22,7 +25,7 @@ class Analysis(
     }
 
     fun recommend(pendingAction: PendingAction) {
-        log("Recommending action: ${pendingAction.describe()}")
+        logger.debug("Recommending action: ${pendingAction.describe()}")
         actionSet.actions += pendingAction
     }
 
@@ -30,7 +33,6 @@ class Analysis(
 
     fun describeEvents(): String {
         return """
-Analysis of $name:
 ${events.joinToString("\n") { it.message }}
 """.trimMargin()
     }
@@ -39,7 +41,7 @@ ${events.joinToString("\n") { it.message }}
         return """
 ----- Analysis of $name -----
 ${events.joinToString("\n")}
-Pending actions:
+Recommended actions:
 ${actionSet.actions.joinToString("\n")}
 """.trimMargin()
     }

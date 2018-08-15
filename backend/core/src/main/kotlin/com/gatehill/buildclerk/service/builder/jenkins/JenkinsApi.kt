@@ -17,6 +17,5 @@ interface JenkinsApi {
     fun fetchCrumb(): Call<ResponseBody>
 
     @POST("{jobPath}/build")
-    @FormUrlEncoded
     fun enqueueBuild(@Path("jobPath", encoded = true) jobPath: String): Call<Void>
 }

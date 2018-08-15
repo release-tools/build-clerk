@@ -11,10 +11,14 @@ data class SlackMessageAttachment(
         val id: Int? = null,
         val fallback: String? = null,
         val actions: List<SlackAttachmentAction>? = null,
+        val fields: List<SlackAttachmentField>? = null,
 
         @JsonProperty("callback_id")
         val callbackId: String? = null,
 
         @JsonProperty("attachment_type")
-        val attachmentType: String? = null
+        val attachmentType: String? = null,
+
+        @JsonProperty("title_link")
+        val titleLink: String? = null
 )

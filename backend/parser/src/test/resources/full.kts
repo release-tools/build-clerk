@@ -4,11 +4,8 @@ import com.gatehill.buildclerk.dsl.config
 
 config {
     buildFailed {
-        log("${report.name} build failed on branch: $branchName: ${report.build.fullUrl}")
-
         if (commitHasEverSucceeded) {
-            log("Commit ${report.build.scm.commit} has previously succeeded (on at least 1 branch)")
-            log("Commit has failed $failuresForCommitOnBranch time(s) on $branchName")
+            // commit has previously succeeded (on at least 1 branch)
 
             if (failuresForCommitOnBranch < 3) {
                 rebuildBranch()
@@ -17,7 +14,7 @@ config {
             }
 
         } else {
-            log("Commit ${report.build.scm.commit} has never succeeded on any branch")
+            // commit has never succeeded on any branch
             revertCommit()
         }
 
@@ -30,14 +27,14 @@ config {
     branchStartsPassing {
         notifyChannel(
                 channelName = "general",
-                message = "${report.name} branch: $branchName is healthy again! ${report.build.fullUrl}",
+                message = "${report.name} branch `$branchName` is healthy again! ${report.build.fullUrl}",
                 color = Color.GREEN
         )
     }
 
     repository {
         if (consecutiveFailuresOnBranch >= 2) {
-            log("Branch $branchName has failed $consecutiveFailuresOnBranch times")
+            log("Branch `$branchName` has failed $consecutiveFailuresOnBranch times")
             lockBranch()
 
             postAnalysisToChannel(
@@ -49,7 +46,7 @@ config {
 
     pullRequestMerged {
         if (currentBranchStatus == BuildStatus.FAILED) {
-            log("PR $prSummary was merged into failing branch $branchName by ${mergeEvent.actor.username}")
+            log("PR $prSummary was merged into failing branch `$branchName` by ${mergeEvent.actor.username}")
             revertCommit()
 
             postAnalysisToChannel(
@@ -58,7 +55,7 @@ config {
             )
 
         } else {
-            log("PR $prSummary was merged into branch $branchName by ${mergeEvent.actor.username}")
+            log("PR $prSummary was merged into branch `$branchName` by ${mergeEvent.actor.username}")
             postAnalysisToChannel(
                     channelName = "general",
                     color = Color.GREEN
@@ -69,7 +66,7 @@ config {
     buildPassed {
         notifyChannel(
                 channelName = "general",
-                message = "${report.name} build passed on branch: $branchName: ${report.build.fullUrl}",
+                message = "${report.name} build passed on branch `$branchName`: ${report.build.fullUrl}",
                 color = Color.GREEN
         )
     }
@@ -77,7 +74,7 @@ config {
     branchStartsFailing {
         notifyChannel(
                 channelName = "general",
-                message = "${report.name} branch: $branchName is now failing: ${report.build.fullUrl}",
+                message = "${report.name} branch `$branchName` is now failing: ${report.build.fullUrl}",
                 color = Color.RED
         )
     }

@@ -8,6 +8,7 @@ import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.dsl.AbstractBuildBlock
 import com.gatehill.buildclerk.parser.Parser
+import com.gatehill.buildclerk.toShortCommit
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -18,25 +19,26 @@ class AnalysisService @Inject constructor(
     private val logger = LogManager.getLogger(AnalysisService::class.java)
 
     fun analyseBuild(report: BuildReport): Analysis {
-        val analysis = Analysis("Build ${report.build.number} on ${report.build.scm.branch}", logger)
+        logger.info("Analysing build report: $report")
 
-        val config = parser.parse(Settings.Rules.configFile)
+        val analysis = initBuildAnalysis(report)
+        val branchName = report.build.scm.branch
 
         val previousBuildStatus = buildReportService.fetchBuildStatus(
-                branchName = report.build.scm.branch,
+                branchName = branchName,
                 buildNumber = report.build.number - 1
         )
 
+        val config = parser.parse(Settings.Rules.configFile)
         val blockConfigurer = { block: AbstractBuildBlock ->
             block.report = report
         }
 
         when (report.build.status) {
             BuildStatus.SUCCESS -> {
-                logger.info("Build passed: $report")
                 parser.invoke(
                         analysis = analysis,
-                        branchName = report.build.scm.branch,
+                        branchName = branchName,
                         blockConfigurer = blockConfigurer,
                         body = config.bodyHolder.buildPassed
                 )
@@ -45,17 +47,16 @@ class AnalysisService @Inject constructor(
                     logger.info("Branch started passing: $report")
                     parser.invoke(
                             analysis = analysis,
-                            branchName = report.build.scm.branch,
+                            branchName = branchName,
                             blockConfigurer = blockConfigurer,
                             body = config.bodyHolder.branchStartsPassing
                     )
                 }
             }
             BuildStatus.FAILED -> {
-                logger.info("Build failed: $report")
                 parser.invoke(
                         analysis = analysis,
-                        branchName = report.build.scm.branch,
+                        branchName = branchName,
                         blockConfigurer = blockConfigurer,
                         body = config.bodyHolder.buildFailed
                 )
@@ -64,7 +65,7 @@ class AnalysisService @Inject constructor(
                     logger.info("Branch started failing: $report")
                     parser.invoke(
                             analysis = analysis,
-                            branchName = report.build.scm.branch,
+                            branchName = branchName,
                             blockConfigurer = blockConfigurer,
                             body = config.bodyHolder.branchStartsFailing
                     )
@@ -75,11 +76,42 @@ class AnalysisService @Inject constructor(
         // runs every time
         parser.invoke(
                 analysis = analysis,
-                branchName = report.build.scm.branch,
+                branchName = branchName,
                 body = config.bodyHolder.repository
         )
 
-        analysis.log("Analysis complete")
+        return analysis
+    }
+
+    private fun initBuildAnalysis(report: BuildReport): Analysis {
+        val branchName = report.build.scm.branch
+        val commit = report.build.scm.commit
+
+        val name = when (report.build.status) {
+            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on $branchName"
+            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on $branchName"
+        }
+
+        val analysis = Analysis(
+                logger = logger,
+                name = name,
+                branch = branchName,
+                user = report.build.triggeredBy,
+                url = report.build.fullUrl
+        )
+
+        if (buildReportService.hasEverSucceeded(commit)) {
+            analysis.log("Commit `${toShortCommit(commit)}` has previously succeeded (on at least 1 branch)")
+
+            val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(
+                    commit, branchName)
+
+            analysis.log("Commit has failed $failuresForCommitOnBranch time(s) on this branch")
+
+        } else {
+            analysis.log("Commit `${toShortCommit(commit)}` has never succeeded on any branch")
+        }
+
         return analysis
     }
 
@@ -88,7 +120,12 @@ class AnalysisService @Inject constructor(
             currentBranchStatus: BuildStatus
     ): Analysis {
 
-        val analysis = Analysis("Pull request ${mergeEvent.pullRequest.id} merged into ${mergeEvent.pullRequest.destination.branch.name}", logger)
+        val analysis = Analysis(
+                logger = logger,
+                name = "Pull request #${mergeEvent.pullRequest.id} merged into ${mergeEvent.pullRequest.destination.branch.name}",
+                branch = mergeEvent.pullRequest.destination.branch.name,
+                user = mergeEvent.actor.displayName
+        )
 
         val config = parser.parse(Settings.Rules.configFile)
 
@@ -102,7 +139,6 @@ class AnalysisService @Inject constructor(
                 }
         )
 
-        analysis.log("Analysis complete")
         return analysis
     }
 }
