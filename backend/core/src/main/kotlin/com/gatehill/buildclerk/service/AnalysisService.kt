@@ -103,16 +103,13 @@ class AnalysisService @Inject constructor(
         )
 
         if (buildReportService.hasEverSucceeded(commit)) {
-            analysis.log("Commit `${toShortCommit(commit)}` has previously succeeded (on at least 1 branch)")
-
-            val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(
-                    commit, branchName)
-
-            analysis.log("Commit has failed $failuresForCommitOnBranch time(s) on this branch")
-
+            analysis.log("Commit `${toShortCommit(commit)}` has previously succeeded (on at least 1 branch).")
         } else {
-            analysis.log("Commit `${toShortCommit(commit)}` has never succeeded on any branch")
+            analysis.log("Commit `${toShortCommit(commit)}` has never succeeded on any branch.")
         }
+
+        val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(commit, branchName)
+        analysis.log("This commit has failed $failuresForCommitOnBranch time${if (failuresForCommitOnBranch == 1) "" else "s"} on this branch.")
 
         return analysis
     }
