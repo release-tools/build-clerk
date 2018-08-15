@@ -21,12 +21,12 @@ class BuildReportServiceImpl @Inject constructor(
     private val store : MutableList<BuildReport>
         get() = buildReportDao.readStore()
 
-    override fun updateStatus(buildReport: BuildReport) {
+    override fun record(buildReport: BuildReport) {
         logger.info("Updating status for branch: ${buildReport.build.scm.branch} to: ${buildReport.build.status}")
         store += buildReport
     }
 
-    override fun fetchStatus(branchName: String): BuildReport? = store.asReversed().firstOrNull { outcome ->
+    override fun fetchLastBuildForBranch(branchName: String): BuildReport? = store.asReversed().firstOrNull { outcome ->
         outcome.build.scm.branch == branchName
     }
 
@@ -43,9 +43,9 @@ class BuildReportServiceImpl @Inject constructor(
                 outcome.build.scm.commit == commit && outcome.build.scm.branch == branch && outcome.build.status == BuildStatus.FAILED
             }
 
-    override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus? = store.lastOrNull { outcome ->
+    override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus = store.lastOrNull { outcome ->
         outcome.build.scm.branch == branchName && outcome.build.number == buildNumber
-    }?.build?.status
+    }?.build?.status ?: BuildStatus.UNKNOWN
 
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int = store.takeLastWhile { outcome ->
         outcome.build.scm.branch == branchName && outcome.build.status == BuildStatus.FAILED

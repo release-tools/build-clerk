@@ -71,6 +71,7 @@ class AnalysisService @Inject constructor(
                     )
                 }
             }
+            else -> logger.warn("Unexpected build status: ${report.build.status} - skipped invoking build report events")
         }
 
         // runs every time
@@ -90,6 +91,7 @@ class AnalysisService @Inject constructor(
         val name = when (report.build.status) {
             BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on $branchName"
             BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on $branchName"
+            else -> "${report.name} build #${report.build.number} on $branchName"
         }
 
         val analysis = Analysis(

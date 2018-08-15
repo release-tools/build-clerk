@@ -42,5 +42,10 @@ data class Scm(
 
 enum class BuildStatus {
     SUCCESS,
-    FAILED
+    FAILED,
+
+    /**
+     * Insufficient data.
+     */
+    UNKNOWN
 }

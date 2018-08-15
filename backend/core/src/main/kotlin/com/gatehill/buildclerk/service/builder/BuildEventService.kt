@@ -34,7 +34,7 @@ class BuildEventService @Inject constructor(
         @Suppress("DeferredResultUnused")
         async {
             try {
-                buildReportService.updateStatus(buildReport)
+                buildReportService.record(buildReport)
                 val analysis = analysisService.analyseBuild(buildReport)
                 if (analysis.isNotEmpty()) {
                     pendingActionService.enqueue(analysis.actionSet)

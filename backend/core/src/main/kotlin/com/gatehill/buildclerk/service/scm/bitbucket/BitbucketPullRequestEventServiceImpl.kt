@@ -1,5 +1,6 @@
 package com.gatehill.buildclerk.service.scm.bitbucket
 
+import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
@@ -40,16 +41,22 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
 
         @Suppress("DeferredResultUnused")
         async {
-            buildReportService.fetchStatus(branchName)?.let { buildReport ->
-                logger.info("Performing validation checks on $prInfo with current branch name: $branchName status currently: ${buildReport.build.status}")
+            buildReportService.fetchLastBuildForBranch(branchName)?.let { buildReport ->
+                val currentBranchStatus = buildReport.build.status
+                logger.info("Status of branch: $branchName is $currentBranchStatus - triggering PR: $prInfo")
 
                 analysisService.analysePullRequest(
                         mergeEvent = event,
-                        currentBranchStatus = buildReport.build.status
+                        currentBranchStatus = currentBranchStatus
                 )
 
             } ?: run {
-                logger.warn("Skipped validation checks for $prInfo because status of branch: $branchName is unknown")
+                logger.warn("Status of branch: $branchName is unknown - triggering PR: $prInfo")
+
+                analysisService.analysePullRequest(
+                        mergeEvent = event,
+                        currentBranchStatus = BuildStatus.UNKNOWN
+                )
             }
         }
     }
