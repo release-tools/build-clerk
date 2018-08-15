@@ -5,6 +5,7 @@ import com.gatehill.buildclerk.api.model.BuildReport;
 import com.gatehill.buildclerk.api.model.BuildStatus;
 import com.gatehill.buildclerk.api.model.Scm;
 import com.gatehill.buildclerk.jenkins.api.BackendApiClientBuilder;
+import com.gatehill.buildclerk.jenkins.util.Constants;
 import hudson.model.Cause;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -35,9 +36,10 @@ public class NotificationService {
     public void sendNotification(PrintStream logger, Run run, String serverUrl, Map<String, String> scmVars) {
         try {
             final BuildReport notification = createBuildReport(logger, run, scmVars);
-            logger.printf("Sending build report to %s:%n%s%n", serverUrl, notification);
+            final String finalServerUrl = buildFinalServerUrl(serverUrl);
+            logger.printf("Sending build report to %s:%n%s%n", finalServerUrl, notification);
 
-            final BackendApiClientBuilder builder = new BackendApiClientBuilder(serverUrl);
+            final BackendApiClientBuilder builder = new BackendApiClientBuilder(finalServerUrl);
             final Call<Void> call = builder.buildApiClient(Collections.emptyMap()).notifyBuild(notification);
             call.execute();
 
@@ -131,18 +133,32 @@ public class NotificationService {
 
     @Nonnull
     private String getJenkinsUrl() {
-        final String configUrl = jenkinsConfig.getUrl();
+        final String rawJenkinsUrl = jenkinsConfig.getUrl();
 
         final String jenkinsUrl;
-        if (StringUtils.isNotBlank(configUrl)) {
-            if (configUrl.endsWith("/")) {
-                jenkinsUrl = configUrl;
+        if (StringUtils.isNotBlank(rawJenkinsUrl)) {
+            if (rawJenkinsUrl.endsWith("/")) {
+                jenkinsUrl = rawJenkinsUrl;
             } else {
-                jenkinsUrl = configUrl + "/";
+                jenkinsUrl = rawJenkinsUrl + "/";
             }
         } else {
             jenkinsUrl = "";
         }
         return jenkinsUrl;
+    }
+
+    /**
+     * Strips the builds API suffix from the server URL.
+     *
+     * @param serverUrl the raw server URL from config
+     * @return the Server URL to use
+     */
+    private String buildFinalServerUrl(String serverUrl) {
+        if (serverUrl.endsWith(Constants.SERVER_URL_BUILDS_SUFFIX)) {
+            return serverUrl.substring(0, serverUrl.length() - Constants.SERVER_URL_BUILDS_SUFFIX.length());
+        } else {
+            return serverUrl;
+        }
     }
 }

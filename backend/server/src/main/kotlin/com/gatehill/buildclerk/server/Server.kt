@@ -2,8 +2,8 @@ package com.gatehill.buildclerk.server
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.gatehill.buildclerk.api.model.BuildReport
-import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
 import com.gatehill.buildclerk.service.PendingActionService
 import com.gatehill.buildclerk.service.builder.BuildEventService
@@ -11,9 +11,15 @@ import com.gatehill.buildclerk.service.scm.PullRequestEventService
 import com.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerResponse
+import io.vertx.ext.auth.shiro.PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD
+import io.vertx.ext.auth.shiro.ShiroAuth
+import io.vertx.ext.auth.shiro.ShiroAuthOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.BasicAuthHandler
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.kotlin.core.json.json
+import io.vertx.kotlin.core.json.obj
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 import kotlin.system.exitProcess
@@ -49,23 +55,23 @@ class Server @Inject constructor(
         }
     }
 
-    private fun buildRouter(vertx: Vertx): Router {
-        val router = Router.router(vertx)
-        router.route().handler(BodyHandler.create())
+    private fun buildRouter(vertx: Vertx) = Router.router(vertx).apply {
+        route().handler(BodyHandler.create())
+        configureAuth(vertx, this)
 
-        router.get("/").handler { rc ->
+        get("/").handler { rc ->
             rc.response().end(homePage)
         }
-        router.get("/health").handler { rc ->
+        get("/health").handler { rc ->
             rc.response().end("ok")
         }
 
-        router.post("/builds").consumes(JSON_CONTENT_TYPE).handler { rc ->
+        post("/builds").consumes(JSON_CONTENT_TYPE).handler { rc ->
             val buildReport = try {
                 rc.readBodyJson<BuildReport>()
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(400).end("Cannot parse build report")
+                rc.response().setStatusCode(400).end("Cannot parse build report. ${e.message}")
                 return@handler
             }
 
@@ -75,16 +81,16 @@ class Server @Inject constructor(
 
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(500).end(e.localizedMessage)
+                rc.response().setStatusCode(500).end(e.message)
             }
         }
 
-        router.post("/pull-requests/merged").consumes(JSON_CONTENT_TYPE).handler { rc ->
+        post("/pull-requests/merged").consumes(JSON_CONTENT_TYPE).handler { rc ->
             val event = try {
                 rc.readBodyJson<PullRequestMergedEvent>()
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(400).end("Cannot parse webhook")
+                rc.response().setStatusCode(400).end("Cannot parse webhook. ${e.message}")
                 return@handler
             }
 
@@ -93,17 +99,17 @@ class Server @Inject constructor(
                 rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(500).end(e.localizedMessage)
+                rc.response().setStatusCode(500).end(e.message)
             }
         }
 
         // note: no 'consumes' call, as Slack sends JSON as an encoded parameter, not a raw body
-        router.post("/actions").handler { rc ->
+        post("/actions").handler { rc ->
             val event = try {
                 jsonMapper.readValue<ActionTriggeredEvent>(rc.request().getParam("payload"))
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(400).end("Cannot parse action")
+                rc.response().setStatusCode(400).end("Cannot parse action. ${e.message}")
                 return@handler
             }
 
@@ -112,11 +118,34 @@ class Server @Inject constructor(
                 rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
                 logger.error(e)
-                rc.response().setStatusCode(500).end(e.localizedMessage)
+                rc.response().setStatusCode(500).end(e.message)
             }
         }
-        return router
     }
+
+    /**
+     * Add an auth handler if security properties are configured.
+     */
+    private fun configureAuth(vertx: Vertx, router: Router) {
+        Settings.Auth.configFile?.let { authConfigFile ->
+            logger.info("Configuring security from $authConfigFile")
+            val authProvider = ShiroAuth.create(vertx, ShiroAuthOptions().apply {
+                config = json {
+                    obj(PROPERTIES_PROPS_PATH_FIELD to authConfigFile)
+                }
+            })
+
+            val authHandler = BasicAuthHandler.create(authProvider)
+            router.route().handler { rc ->
+                when (rc.request().uri()) {
+                    in "/", "/health" -> rc.next()
+                    else -> authHandler.handle(rc)
+                }
+            }
+
+        } ?: logger.warn("No security is configured! All endpoints are exposed without authentication. Set AUTH_CONFIG_FILE to a valid Shiro properties file.")
+    }
+
 
     private inline fun <reified T : Any> RoutingContext.readBodyJson(): T = jsonMapper.readValue(bodyAsString)
 

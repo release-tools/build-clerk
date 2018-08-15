@@ -3,17 +3,17 @@ Backend server for Build Clerk
 
 Run using Docker:
 
-	 docker run --rm -it -p9090:9090 outofcoffee/build-clerk
+    docker run --rm -it -p9090:9090 outofcoffee/build-clerk
 
 ## Build and run JAR
 
 If you want to build the JAR yourself, run this command from the root of the repository:
 
-	./gradlew clean shadowjar
+    ./gradlew clean shadowjar
 
 Run it:
 
-	java -jar backend/server/build/libs/clerk.jar
+    java -jar backend/server/build/libs/clerk.jar
 
 ## Testing
 

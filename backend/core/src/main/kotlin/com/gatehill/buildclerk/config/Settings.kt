@@ -71,4 +71,13 @@ object Settings {
                     ?: throw IllegalStateException("Missing Bitbucket password")
         }
     }
+
+    object Auth {
+        /**
+         * See https://vertx.io/docs/vertx-auth-shiro/kotlin/
+         */
+        val configFile: String? by lazy {
+            System.getenv("AUTH_CONFIG_FILE")?.takeUnless(String::isEmpty)?.let { "file:$it" }
+        }
+    }
 }
