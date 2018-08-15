@@ -31,7 +31,7 @@ data class BuildDetails(
          * User or other cause.
          * Only provided by Clerk plugin.
          */
-        val triggeredBy: String?
+        val triggeredBy: String? = null
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

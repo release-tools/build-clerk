@@ -9,7 +9,7 @@ dependencies {
     compile("org.jetbrains.kotlin:kotlin-script-util")
 
     // testing
-    testCompile 'junit:junit:4.11'
+    testCompile "junit:junit:$version_junit"
 }
 
 compileKotlin {

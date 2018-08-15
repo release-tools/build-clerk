@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.net.URI
 import javax.inject.Inject
 
 /**
@@ -27,10 +28,10 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
         val call: Call<Void>
         try {
             val headers = mutableMapOf<String, String>()
-            obtainCsrfToken()?.let { headers.plusAssign(it) }
+            obtainCsrfToken()?.let { headers += it }
 
             apiClient = apiClientBuilder.buildApiClient(headers)
-            call = apiClient.enqueueBuild(jobPath = report.url)
+            call = apiClient.enqueueBuild(jobPath = calculateJobPath(report))
 
         } catch (e: Exception) {
             throw RuntimeException("Error building API client or obtaining CSRF token", e)
@@ -49,6 +50,23 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
                 }
             }
         })
+    }
+
+    /**
+     * We can't rely on `report.url` as this isn't correctly populated for
+     * multibranch pipelines. Instead, we derive it from the `report.build.fullUrl`.
+     *
+     * Examples:
+     * https://jenkins.example.com/job/example/5/
+     * https://jenkins.example.com/job/example/job/some-branch/11/
+     */
+    internal fun calculateJobPath(report: BuildReport): String = report.build.fullUrl.let { fullUrl ->
+        // strip any trailing slash from the URI
+        URI.create(if (fullUrl.endsWith("/")) fullUrl.substring(0, fullUrl.length - 1) else fullUrl)
+
+    }.let { uri ->
+        // strip the first slash and the last path element (the build number)
+        uri.path.substring(1, uri.path.lastIndexOf("/"))
     }
 
     /**

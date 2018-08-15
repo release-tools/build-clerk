@@ -12,8 +12,9 @@ dependencies {
     compile 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'
 
     // testing
-    testCompile 'junit:junit:4.11'
+    testCompile "junit:junit:$version_junit"
     testCompile "org.apache.logging.log4j:log4j-core:$version_log4j"
+    testCompile "com.nhaarman.mockitokotlin2:mockito-kotlin:$version_mockitokotlin"
 }
 
 compileKotlin {
