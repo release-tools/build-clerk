@@ -28,7 +28,29 @@ if (failuresForCommitOnBranch <= 2) {
 postAnalysisToChannel("general")
 ```
 
-> This is just a taste of what you can do. See the examples in the `parser` module's tests for more.
+> This is just a taste of what you can do. See the examples in the `parser` module's tests for more, or read on to learn about the events supported.
+
+### Build events
+
+Currently, you can react to the following events:
+
+* `buildFailed` - a build just failed
+* `branchStartsFailing` - a formerly passing branch just failed 
+* `buildPassed` - a build just passed
+* `branchStartsPassing` - a formerly failing branch just passed
+* `repository` - repository wide rules - good for setting maximum thresholds for things like failures on a branch
+* `pullRequestMerged` - a pull request was merged
+
+### Actions
+
+With Clerk's DSL, you can perform arbitrary logic in response to build events. Once you've figured out how you want to react, you do things like:
+
+* revert the offending commit
+* lock down the branch against further changes
+* trigger a rebuild of the branch - useful to help determine if you have a flaky test
+* send the above actions to a Slack channel for a human to make a decision
+
+In addition, you can post an arbitrary message to a Slack channel of your choice, in case you need to notify people of something or cajole someone into action.
 
 ## Run it
 
