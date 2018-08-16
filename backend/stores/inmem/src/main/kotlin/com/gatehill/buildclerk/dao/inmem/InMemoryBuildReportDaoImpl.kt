@@ -23,9 +23,9 @@ class InMemoryBuildReportDaoImpl : BuildReportDao {
         report.build.scm.branch == branchName && report.build.status == BuildStatus.SUCCESS
     }
 
-    override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int =
-            store.asReversed().count { report ->
-                report.build.scm.commit == commit && report.build.scm.branch == branch && report.build.status == BuildStatus.FAILED
+    override fun countFailuresForCommitOnBranch(commit: String, branchName: String): Int =
+            store.count { report ->
+                report.build.scm.commit == commit && report.build.scm.branch == branchName && report.build.status == BuildStatus.FAILED
             }
 
     override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus = store.lastOrNull { report ->

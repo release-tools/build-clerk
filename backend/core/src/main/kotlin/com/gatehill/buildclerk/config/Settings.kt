@@ -1,5 +1,6 @@
 package com.gatehill.buildclerk.config
 
+import com.gatehill.buildclerk.api.dao.BuildReportDao
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -78,6 +79,12 @@ object Settings {
          */
         val configFile: String? by lazy {
             System.getenv("AUTH_CONFIG_FILE")?.takeUnless(String::isEmpty)?.let { "file:$it" }
+        }
+    }
+
+    object Store {
+        val implementation: Class<BuildReportDao>? by lazy {
+            System.getenv("REPORT_STORE_IMPL")?.let { Class.forName(it) }
         }
     }
 }

@@ -13,7 +13,7 @@ interface BuildReportDao {
     fun fetchLastBuildForBranch(branchName: String): BuildReport?
     fun hasEverSucceeded(commit: String): Boolean
     fun lastPassingCommitForBranch(branchName: String): BuildReport?
-    fun countFailuresForCommitOnBranch(commit: String, branch: String): Int
+    fun countFailuresForCommitOnBranch(commit: String, branchName: String): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
 }

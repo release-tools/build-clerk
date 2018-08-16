@@ -39,16 +39,25 @@ class MongoBuildReportDaoImpl : BuildReportDao {
             .sort(descending(MongoBuildReport::createdDate))
             .limit(1).first()?.toBuildReport()
 
-    override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun countFailuresForCommitOnBranch(commit: String, branchName: String): Int = collection
+            .find("{ \$and: [ { 'build.scm.branch': '$branchName' }, { 'build.scm.commit': '$commit' }, { 'build.status': '${BuildStatus.FAILED}' } ] }")
+            .sort(descending(MongoBuildReport::createdDate))
+            .count()
 
     override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus = collection
             .find("{ \$and: [ { 'build.scm.branch': '$branchName' }, { 'build.number': $buildNumber } ] }")
             .sort(descending(MongoBuildReport::createdDate))
             .limit(1).first()?.build?.status ?: BuildStatus.UNKNOWN
 
+    /**
+     * This is not very efficient as the filtering happens in memory, after
+     * retrieving all reports for a branch.
+     */
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val branchFailures = collection
+                .find("{ 'build.scm.branch': '$branchName' }")
+                .sort(descending(MongoBuildReport::createdDate))
+
+        return branchFailures.takeWhile { it.build.status == BuildStatus.FAILED }.count()
     }
 }
