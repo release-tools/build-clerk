@@ -1,9 +1,9 @@
 package com.gatehill.buildclerk.service.builder
 
+import com.gatehill.buildclerk.api.dao.BuildReportDao
 import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.service.BuildReportService
-import com.gatehill.buildclerk.api.dao.BuildReportDao
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -18,36 +18,26 @@ class BuildReportServiceImpl @Inject constructor(
 
     private val logger = LogManager.getLogger(BuildReportServiceImpl::class.java)
 
-    private val store : MutableList<BuildReport>
-        get() = buildReportDao.readStore()
-
     override fun record(buildReport: BuildReport) {
-        logger.info("Updating status for branch: ${buildReport.build.scm.branch} to: ${buildReport.build.status}")
-        store += buildReport
+        logger.info("Saving report for branch: ${buildReport.build.scm.branch} with status: ${buildReport.build.status}")
+        buildReportDao.save(buildReport)
     }
 
-    override fun fetchLastBuildForBranch(branchName: String): BuildReport? = store.asReversed().firstOrNull { outcome ->
-        outcome.build.scm.branch == branchName
-    }
+    override fun fetchLastBuildForBranch(branchName: String): BuildReport? =
+            buildReportDao.fetchLastBuildForBranch(branchName)
 
-    override fun hasEverSucceeded(commit: String): Boolean = store.asReversed().any { outcome ->
-        outcome.build.scm.commit == commit && outcome.build.status == BuildStatus.SUCCESS
-    }
+    override fun hasEverSucceeded(commit: String): Boolean =
+            buildReportDao.hasEverSucceeded(commit)
 
-    override fun lastPassingCommitForBranch(branchName: String): BuildReport? = store.asReversed().find { outcome ->
-        outcome.build.scm.branch == branchName && outcome.build.status == BuildStatus.SUCCESS
-    }
+    override fun lastPassingCommitForBranch(branchName: String): BuildReport? =
+            buildReportDao.lastPassingCommitForBranch(branchName)
 
     override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int =
-            store.asReversed().count { outcome ->
-                outcome.build.scm.commit == commit && outcome.build.scm.branch == branch && outcome.build.status == BuildStatus.FAILED
-            }
+            buildReportDao.countFailuresForCommitOnBranch(commit, branch)
 
-    override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus = store.lastOrNull { outcome ->
-        outcome.build.scm.branch == branchName && outcome.build.number == buildNumber
-    }?.build?.status ?: BuildStatus.UNKNOWN
+    override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus =
+            buildReportDao.fetchBuildStatus(branchName, buildNumber)
 
-    override fun countConsecutiveFailuresOnBranch(branchName: String): Int = store.takeLastWhile { outcome ->
-        outcome.build.scm.branch == branchName && outcome.build.status == BuildStatus.FAILED
-    }.size
+    override fun countConsecutiveFailuresOnBranch(branchName: String): Int =
+            buildReportDao.countConsecutiveFailuresOnBranch(branchName)
 }

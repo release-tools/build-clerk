@@ -5,7 +5,7 @@ import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.service.AnalysisService
 import com.gatehill.buildclerk.service.PendingActionService
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -31,8 +31,7 @@ class BuildEventService @Inject constructor(
             }
         }
 
-        @Suppress("DeferredResultUnused")
-        async {
+        launch {
             try {
                 buildReportService.record(buildReport)
                 val analysis = analysisService.analyseBuild(buildReport)

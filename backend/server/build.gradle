@@ -7,7 +7,10 @@ apply plugin: 'kotlin'
 
 dependencies {
     compile project(':backend:core')
-    compile project(':backend:stores:inmem')
+
+    // backing store
+//    compile project(':backend:stores:inmem')
+    compile project(':backend:stores:mongodb')
 
     // DI
     compile "com.google.inject:guice:$version_guice"
