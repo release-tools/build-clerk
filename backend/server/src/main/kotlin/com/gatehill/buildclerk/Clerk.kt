@@ -5,7 +5,7 @@ import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.config.Settings
-import com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl
+import com.gatehill.buildclerk.dao.inmem.InMemoryBuildReportDaoImpl
 import com.gatehill.buildclerk.parser.Parser
 import com.gatehill.buildclerk.parser.inject.InstanceFactory
 import com.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
@@ -51,7 +51,7 @@ fun main(args: Array<String>) {
             bind(BuildEventService::class.java).asSingleton()
 
             // daos
-            bind(BuildReportDao::class.java).to(Settings.Store.implementation ?: MongoBuildReportDaoImpl::class.java).asSingleton()
+            bind(BuildReportDao::class.java).to(storeImplementation).asSingleton()
 
             // slack
             bind(NotificationService::class.java).to(SlackNotificationServiceImpl::class.java).asSingleton()
@@ -73,6 +73,7 @@ fun main(args: Array<String>) {
         }
     })
 
+
     InstanceFactoryLocator.instanceFactory = object : InstanceFactory {
         override fun <T : Any> instance(clazz: Class<T>) = injector.getInstance(clazz)
     }
@@ -80,6 +81,13 @@ fun main(args: Array<String>) {
     val server = injector.getInstance(Server::class.java)
     server.startServer()
 }
+
+private val storeImplementation: Class<out BuildReportDao>
+    get() {
+        val impl = Settings.Store.implementation ?: InMemoryBuildReportDaoImpl::class.java
+        logger.debug("Using ${impl.simpleName} store implementation")
+        return impl
+    }
 
 /**
  * Syntactic sugar for binding Guice singletons.

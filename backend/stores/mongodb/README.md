@@ -1,9 +1,11 @@
 MongoDB store
 =============
 
-Set environment variable:
+Set environment variables:
 
     REPORT_STORE_IMPL="com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl"
+    MONGO_HOST="localhost"
+    MONGO_PORT="27017"
 
 Testing with a local MongoDB:
 

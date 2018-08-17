@@ -84,7 +84,8 @@ object Settings {
 
     object Store {
         val implementation: Class<BuildReportDao>? by lazy {
-            System.getenv("REPORT_STORE_IMPL")?.let { Class.forName(it) }
+            @Suppress("UNCHECKED_CAST")
+            System.getenv("REPORT_STORE_IMPL")?.let { Class.forName(it) as Class<BuildReportDao> }
         }
     }
 }

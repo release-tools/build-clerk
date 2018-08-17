@@ -9,7 +9,7 @@ dependencies {
     compile project(':backend:core')
 
     // backing store
-//    compile project(':backend:stores:inmem')
+    compile project(':backend:stores:inmem')
     compile project(':backend:stores:mongodb')
 
     // DI
