@@ -25,8 +25,10 @@ class Analysis(
     }
 
     fun recommend(pendingAction: PendingAction) {
-        logger.debug("Recommending action: ${pendingAction.describe()}")
-        actionSet.actions += pendingAction
+        if (!actionSet.actions.contains(pendingAction)) {
+            logger.debug("Recommending action: ${pendingAction.describe()}")
+            actionSet.actions += pendingAction
+        }
     }
 
     fun isNotEmpty(): Boolean = events.isNotEmpty() || actionSet.actions.isNotEmpty()
