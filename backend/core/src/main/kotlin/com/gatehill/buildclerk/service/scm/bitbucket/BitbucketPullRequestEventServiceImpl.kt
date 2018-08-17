@@ -6,7 +6,7 @@ import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.service.AnalysisService
 import com.gatehill.buildclerk.service.scm.PullRequestEventService
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -39,8 +39,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
             }
         }
 
-        @Suppress("DeferredResultUnused")
-        async {
+        launch {
             buildReportService.fetchLastBuildForBranch(branchName)?.let { buildReport ->
                 val currentBranchStatus = buildReport.build.status
                 logger.info("Status of branch: $branchName is $currentBranchStatus - triggering PR: $prInfo")

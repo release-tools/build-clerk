@@ -1,6 +1,7 @@
 package com.gatehill.buildclerk.api.dao
 
 import com.gatehill.buildclerk.api.model.BuildReport
+import com.gatehill.buildclerk.api.model.BuildStatus
 
 /**
  * Stores build reports and provides access to build metadata.
@@ -8,5 +9,11 @@ import com.gatehill.buildclerk.api.model.BuildReport
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 interface BuildReportDao {
-    fun readStore(): MutableList<BuildReport>
+    fun save(report: BuildReport)
+    fun fetchLastBuildForBranch(branchName: String): BuildReport?
+    fun hasEverSucceeded(commit: String): Boolean
+    fun lastPassingCommitForBranch(branchName: String): BuildReport?
+    fun countFailuresForCommitOnBranch(commit: String, branchName: String): Int
+    fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
+    fun countConsecutiveFailuresOnBranch(branchName: String): Int
 }

@@ -13,7 +13,7 @@ import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
 import com.gatehill.buildclerk.model.slack.SlackAttachmentAction
 import com.gatehill.buildclerk.model.slack.SlackMessageAttachment
 import com.gatehill.buildclerk.service.scm.ScmService
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import javax.inject.Inject
@@ -37,8 +37,7 @@ class PendingActionService @Inject constructor(
     }
 
     fun handleAsync(event: ActionTriggeredEvent) {
-        @Suppress("DeferredResultUnused")
-        async {
+        launch {
             try {
                 handle(event)
             } catch (e: Exception) {
