@@ -16,7 +16,11 @@ dependencies {
     compile "com.google.inject:guice:$version_guice"
 
     // server
-    compile 'io.vertx:vertx-lang-kotlin:3.5.3'
+    compile ('io.vertx:vertx-lang-kotlin:3.5.3') {
+        // these are deprecated and superseded by their -jdk* equivalents
+        exclude module: 'kotlin-stdlib-jre7'
+        exclude module: 'kotlin-stdlib-jre8'
+    }
     compile 'io.vertx:vertx-web:3.5.3'
     compile 'io.vertx:vertx-auth-shiro:3.5.3'
 
