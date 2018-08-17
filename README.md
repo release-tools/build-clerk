@@ -91,6 +91,18 @@ Global filters:
 * `BRANCH_NAME` - only process events for this SCM branch
 * `REPO_NAME` - only process events from this repository (applies to PRs only)
 
+Data store:
+
+By default, Clerk uses an in-memory data store for build reports. This will not persist between application restarts, but is good for testing/evaluation purposes.
+
+To switch to a persistent, MongoDB based store, set the following environment variables:
+
+    REPORT_STORE_IMPL="com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl"
+    MONGO_HOST="localhost"
+    MONGO_PORT="27017"
+
+> Set the host and port variables to those of your MongoDB instance.
+
 Security configuration:
 
 * `AUTH_CONFIG_FILE` - path to [Shiro](https://shiro.apache.org) properties file for HTTP Basic authentication
