@@ -1,0 +1,62 @@
+version: '3.2'
+
+# Before you bring up this stack, ensure you've built the application first, using
+# ./gradlew clean shadowjar jpi
+
+services:
+  clerk:
+    build:
+      context: ./backend/server
+    image: outofcoffee/clerk
+    container_name: clerk
+    ports:
+    - "9090:9090"
+    volumes:
+    - "./backend/parser/src/test/resources:/opt/clerk/rules"
+    environment:
+      RULES_FILE: "/opt/clerk/rules/full.kts"
+      JENKINS_BASE_URL: "http://jenkins:8080"
+
+      # Use the MongoDB store
+      REPORT_STORE_IMPL: "com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl"
+      MONGO_HOST: "mongo"
+      MONGO_PORT: "27017"
+
+      # Slack token with 'chat.post' permission
+      # SLACK_USER_TOKEN: "CHANGEME"
+
+      # Bitbucket
+      # BITBUCKET_REPO_USERNAME: "CHANGEME"
+      # BITBUCKET_PASSWORD: "CHANGEME"
+      # BITBUCKET_REPO_SLUG: "CHANGEME"
+
+      # If it differs from the repo username:
+      # BITBUCKET_AUTH_USERNAME="another username"
+
+      # Jenkins credentials
+      # JENKINS_USERNAME: "CHANGEME"
+      # JENKINS_PASSWORD: "CHANGEME"
+
+  mongo:
+    image: mongo:3.6
+    container_name: mongo
+    ports:
+    - "27017:27017"
+    volumes:
+    - "./mongodata:/data/db"
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+    - "8080:8080"
+    volumes:
+    - "/tmp/jenkins:/var/jenkins_home"
+    - "./jenkins-plugin/build/libs/clerk.hpi:/var/jenkins_home/plugins/clerk.hpi"
+
+#  If you'd like a local web UI for MongoDB
+#  mongo-express:
+#    image: mongo-express
+#    restart: always
+#    ports:
+#    - 8081:8081
