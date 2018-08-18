@@ -65,8 +65,11 @@ class JenkinsBuildRunnerServiceImpl @Inject constructor(
         URI.create(if (fullUrl.endsWith("/")) fullUrl.substring(0, fullUrl.length - 1) else fullUrl)
 
     }.let { uri ->
-        // strip the first slash and the last path element (the build number)
-        uri.path.substring(1, uri.path.lastIndexOf("/"))
+        // strip the last path element (the build number)
+        val modifiedUri = uri.path.substring(0, uri.path.lastIndexOf("/"))
+
+        // strip the first slash (if present)
+        if (modifiedUri.startsWith("/")) modifiedUri.substring(1) else modifiedUri
     }
 
     /**

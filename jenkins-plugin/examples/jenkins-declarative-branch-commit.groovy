@@ -19,9 +19,7 @@ pipeline {
     }
     post {
         always {
-            buildClerk serverUrl: 'http://b2c409e2.ngrok.io',
-                    branch: scmVars.GIT_LOCAL_BRANCH,
-                    commit: scmVars.GIT_COMMIT
+            buildClerk serverUrl: 'http://b2c409e2.ngrok.io', branch: scmVars.GIT_LOCAL_BRANCH, commit: scmVars.GIT_COMMIT
         }
     }
 }

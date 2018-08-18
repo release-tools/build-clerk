@@ -23,6 +23,20 @@ class JenkinsBuildRunnerServiceImplTest {
         service = JenkinsBuildRunnerServiceImpl(apiClientBuilder)
     }
 
+    /**
+     * This can occur if the Jenkins URL is not set in Jenkins' configuration.
+     */
+    @Test
+    fun `calculate job path for relative job URL`() {
+        val report = buildReport(
+                shortUrl = "job/example/",
+                fullUrl = "job/example/11/"
+        )
+
+        val jobPath = service.calculateJobPath(report)
+        assertEquals("job/example", jobPath)
+    }
+
     @Test
     fun `calculate job path for simple job URL`() {
         val report = buildReport(

@@ -102,14 +102,14 @@ class AnalysisService @Inject constructor(
                 url = report.build.fullUrl
         )
 
+        val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(commit, branchName)
+        analysis.log("This commit has failed $failuresForCommitOnBranch time${if (failuresForCommitOnBranch == 1) "" else "s"} on this branch.")
+
         if (buildReportService.hasEverSucceeded(commit)) {
             analysis.log("Commit `${toShortCommit(commit)}` has previously succeeded (on at least 1 branch).")
         } else {
             analysis.log("Commit `${toShortCommit(commit)}` has never succeeded on any branch.")
         }
-
-        val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(commit, branchName)
-        analysis.log("This commit has failed $failuresForCommitOnBranch time${if (failuresForCommitOnBranch == 1) "" else "s"} on this branch.")
 
         return analysis
     }
