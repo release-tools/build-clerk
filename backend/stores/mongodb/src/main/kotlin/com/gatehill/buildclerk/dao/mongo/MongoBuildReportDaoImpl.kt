@@ -49,9 +49,8 @@ class MongoBuildReportDaoImpl : BuildReportDao {
     }
 
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int = withCollection {
-        // This is not efficient as the filtering happens in memory,
-        // after retrieving all reports for a branch.
-        // Replace with cursor/iterable resultset.
+        // find() returns a cursor, so only the required results are fetched, until takeWhile {} terminates.
+        // see: `KMongoIterable.takeWhile`
 
         find("{ 'build.scm.branch': '$branchName' }")
                 .sort(descending(MongoBuildReport::createdDate))
