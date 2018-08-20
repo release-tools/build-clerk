@@ -2,7 +2,7 @@ package com.gatehill.buildclerk.api.model.action
 
 import com.gatehill.buildclerk.toShortCommit
 
-data class RevertAction(
+data class RevertCommitAction(
     val commit: String,
     val branch: String
 ) : PendingAction {

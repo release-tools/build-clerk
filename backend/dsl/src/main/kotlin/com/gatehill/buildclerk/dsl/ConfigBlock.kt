@@ -6,7 +6,8 @@ import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.model.action.LockBranchAction
 import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
-import com.gatehill.buildclerk.api.model.action.RevertAction
+import com.gatehill.buildclerk.api.model.action.RevertCommitAction
+import com.gatehill.buildclerk.api.model.action.ShowTextAction
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.NotificationService
 import javax.inject.Inject
@@ -72,10 +73,18 @@ abstract class AbstractBlock @Inject constructor(
         buildReportService.lastPassingCommitForBranch(branchName)
     }
 
-    fun lockBranch() {
+    fun showText(text: String, color: Color = Color.BLACK, channelName: String? = null) {
         analysis.recommend(
-                LockBranchAction(branchName)
+            ShowTextAction(
+                text = text,
+                color = color,
+                channelName = channelName
+            )
         )
+    }
+
+    fun lockBranch() {
+        analysis.recommend(LockBranchAction(branchName))
     }
 
     fun notifyChannel(channelName: String, message: String, color: Color = Color.BLACK) =
@@ -105,14 +114,12 @@ abstract class AbstractBuildBlock @Inject constructor(
     }
 
     fun rebuildBranch() {
-        analysis.recommend(
-                RebuildBranchAction(report)
-        )
+        analysis.recommend(RebuildBranchAction(report))
     }
 
     fun revertCommit() {
         analysis.recommend(
-                RevertAction(
+                RevertCommitAction(
                         commit = report.build.scm.commit,
                         branch = branchName
                 )
@@ -175,7 +182,7 @@ class PullRequestMergedBlock @Inject constructor(
 
     fun revertCommit() {
         analysis.recommend(
-                RevertAction(
+                RevertCommitAction(
                         commit = mergeEvent.pullRequest.mergeCommit.hash,
                         branch = branchName
                 )

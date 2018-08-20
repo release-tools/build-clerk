@@ -6,7 +6,8 @@ import com.gatehill.buildclerk.api.model.action.LockBranchAction
 import com.gatehill.buildclerk.api.model.action.PendingAction
 import com.gatehill.buildclerk.api.model.action.PendingActionSet
 import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
-import com.gatehill.buildclerk.api.model.action.RevertAction
+import com.gatehill.buildclerk.api.model.action.RevertCommitAction
+import com.gatehill.buildclerk.api.model.action.ShowTextAction
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
@@ -57,7 +58,11 @@ class PendingActionService @Inject constructor(
             pending.remove(actionSetId)?.let { actionSet ->
                 logger.debug("Found pending action set with ID: $actionSetId [${actionSet.actions.size} actions]")
                 actions.forEach { action ->
-                    val emoji = if (resolve(action, actionSet)) "white_check_mark" else "negative_squared_cross_mark"
+                    val emoji = if (resolve(event.channel.name, action, actionSet)) {
+                        "white_check_mark"
+                    } else {
+                        "negative_squared_cross_mark"
+                    }
 
                     // indicate outcome
                     attachments += MessageAttachment(
@@ -106,13 +111,17 @@ class PendingActionService @Inject constructor(
         } ?: logger.warn("Cannot update original message will callback ID: ${event.callbackId}, as there was no message timestamp")
     }
 
-    private fun resolve(action: SlackAttachmentAction, actionSet: PendingActionSet): Boolean {
+    private fun resolve(
+        triggeringChannel: String,
+        action: SlackAttachmentAction,
+        actionSet: PendingActionSet
+    ): Boolean {
         logger.debug("Attempting to resolve pending action: $action")
 
         actionSet.actions.find { it.name == action.name }?.let { pendingAction ->
             when (action.value) {
                 pendingAction.name -> {
-                    executePendingAction(pendingAction)
+                    executePendingAction(triggeringChannel, pendingAction)
                     return true
                 }
                 else -> logger.info("Discarding pending action: $pendingAction [actionValue: ${action.value}]")
@@ -123,13 +132,21 @@ class PendingActionService @Inject constructor(
         return false
     }
 
-    private fun executePendingAction(pendingAction: PendingAction) {
+    private fun executePendingAction(triggeringChannel: String, pendingAction: PendingAction) {
         logger.info("Executing pending action: $pendingAction")
         when (pendingAction) {
-            is RevertAction -> scmService.revertCommit(pendingAction.commit, pendingAction.branch)
+            is RevertCommitAction -> scmService.revertCommit(pendingAction.commit, pendingAction.branch)
             is RebuildBranchAction -> buildRunnerService.rebuild(pendingAction.report)
             is LockBranchAction -> scmService.lockBranch(pendingAction.branch)
+            is ShowTextAction -> showText(triggeringChannel, pendingAction)
             else -> throw NotImplementedError("Unsupported pending action: $pendingAction")
         }
+    }
+
+    /**
+     * Show text on the specified channel, or the triggering channel if it is not specified.
+     */
+    private fun showText(triggeringChannel: String, action: ShowTextAction) {
+        notificationService.notify(action.channelName ?: triggeringChannel, action.text, action.color.hexCode)
     }
 }
