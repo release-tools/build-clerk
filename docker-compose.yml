@@ -17,13 +17,17 @@ services:
     - RULES_FILE=/opt/clerk/rules/full.kts
     - JENKINS_BASE_URL=http://jenkins:8080
 
+    # Jenkins credentials
+    - JENKINS_USERNAME=admin
+    - JENKINS_PASSWORD=admin
+
+    # Slack token with 'chat.post' permission
+    - SLACK_USER_TOKEN
+
     # Use the MongoDB store
     - REPORT_STORE_IMPL=com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl
     - MONGO_HOST=mongo
     - MONGO_PORT=27017
-
-    # Slack token with 'chat.post' permission
-    - SLACK_USER_TOKEN
 
     # Bitbucket
     - BITBUCKET_REPO_USERNAME
@@ -33,15 +37,9 @@ services:
     # If it differs from the repo username, override here
     - BITBUCKET_AUTH_USERNAME
 
-    # Jenkins credentials
-    - JENKINS_USERNAME
-    - JENKINS_PASSWORD
-
   mongo:
     image: mongo:3.6
     container_name: mongo
-    ports:
-    - "27017:27017"
     volumes:
     - "mongo_data:/data/db"
 
