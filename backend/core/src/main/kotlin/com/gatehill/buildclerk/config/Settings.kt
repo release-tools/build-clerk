@@ -8,9 +8,12 @@ import java.nio.file.Paths
 
 object Settings {
     object EventFilter {
-        val repoName: String? by lazy { System.getenv("REPO_NAME") }
-
-        val branchName: String? by lazy { System.getenv("BRANCH_NAME") }
+        val repoNames: List<String> by lazy {
+            System.getenv("FILTER_REPOS")?.split(",") ?: emptyList()
+        }
+        val branchNames: List<String> by lazy {
+            System.getenv("FILTER_BRANCHES")?.split(",") ?: emptyList()
+        }
     }
 
     object Repository {

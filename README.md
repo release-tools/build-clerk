@@ -88,8 +88,8 @@ Git repository configuration:
 
 Global filters:
 
-* `BRANCH_NAME` - only process events for this SCM branch
-* `REPO_NAME` - only process events from this repository (applies to PRs only)
+* `FILTER_BRANCHES` - only process events for this SCM branch
+* `FILTER_REPOS` - only process events from this repository (applies to PRs only)
 
 Data store:
 
