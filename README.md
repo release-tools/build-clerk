@@ -76,10 +76,10 @@ Jenkins configuration:
 
 Bitbucket configuration:
 
-* `BITBUCKET_REPO_USERNAME`
-* `BITBUCKET_REPO_SLUG`
-* `BITBUCKET_AUTH_USERNAME`
-* `BITBUCKET_PASSWORD`
+* `BITBUCKET_REPO_USERNAME` - the username for the Bitbucket repository's user (might be a organisation)
+* `BITBUCKET_REPO_SLUG` - the 'repo slug' name for the Bitbucker repository
+* `BITBUCKET_AUTH_USERNAME` - the username to authenticate with Bitbucket (if it differs from the repository username)
+* `BITBUCKET_PASSWORD` - the password (preferably an 'app password') to authenticate with Bitbucket
 
 Git repository configuration:
 
@@ -91,18 +91,6 @@ Global filters:
 * `FILTER_BRANCHES` - only process events for this SCM branch
 * `FILTER_REPOS` - only process events from this repository (applies to PRs only)
 
-Data store:
-
-By default, Clerk uses an in-memory data store for build reports. This will not persist between application restarts, but is good for testing/evaluation purposes.
-
-To switch to a persistent, MongoDB based store, set the following environment variables:
-
-    REPORT_STORE_IMPL="com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl"
-    MONGO_HOST="localhost"
-    MONGO_PORT="27017"
-
-> Set the host and port variables to those of your MongoDB instance.
-
 Security configuration:
 
 * `AUTH_CONFIG_FILE` - path to [Shiro](https://shiro.apache.org) properties file for HTTP Basic authentication
@@ -111,7 +99,21 @@ Advanced configuration:
 
 * `SERVER_PORT` - the HTTP port on which to listen
 
+### Data storage
+
+By default, Clerk uses an in-memory data store for build reports. This will not persist between application restarts, but is good for testing/evaluation purposes.
+
+To switch to a persistent, MongoDB based store, set the following environment variables:
+
+    REPORT_STORE_IMPL=com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl
+    MONGO_HOST=localhost
+    MONGO_PORT=27017
+
+> Set the host and port variables to those of your MongoDB instance.
+
 ## Endpoints
+
+Clerk exposes different endpoints on which it can receive different event types.
 
 ### Jenkins
 
