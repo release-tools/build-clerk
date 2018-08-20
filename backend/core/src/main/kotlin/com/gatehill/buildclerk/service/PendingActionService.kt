@@ -147,6 +147,6 @@ class PendingActionService @Inject constructor(
      * Show text on the specified channel, or the triggering channel if it is not specified.
      */
     private fun showText(triggeringChannel: String, action: ShowTextAction) {
-        notificationService.notify(action.channelName ?: triggeringChannel, action.text, action.color.hexCode)
+        notificationService.notify(action.channelName ?: triggeringChannel, action.body, action.color.hexCode)
     }
 }

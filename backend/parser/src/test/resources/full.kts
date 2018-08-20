@@ -33,7 +33,15 @@ config {
     }
 
     repository {
-        if (consecutiveFailuresOnBranch >= 2) {
+        if (consecutiveFailuresOnBranch >= 5) {
+            // things are looking bad - offer hard reset to last working commit
+            showText(
+                    title = "Show instructions",
+                    description = "hard reset branch `$branchName` to commit `$lastPassingCommitForBranch`",
+                    body = "Hard reset branch with command: `git checkout $branchName && git reset $lastPassingCommitForBranch --hard`"
+            )
+
+        } else if (consecutiveFailuresOnBranch >= 2) {
             log("Branch `$branchName` has failed $consecutiveFailuresOnBranch times")
             lockBranch()
 

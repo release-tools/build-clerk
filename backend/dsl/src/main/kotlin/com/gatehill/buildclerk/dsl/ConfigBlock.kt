@@ -73,10 +73,18 @@ abstract class AbstractBlock @Inject constructor(
         buildReportService.lastPassingCommitForBranch(branchName)
     }
 
-    fun showText(text: String, color: Color = Color.BLACK, channelName: String? = null) {
+    fun showText(
+            body: String,
+            title: String = "Show",
+            description: String? = null,
+            color: Color = Color.BLACK,
+            channelName: String? = null
+    ) {
         analysis.recommend(
             ShowTextAction(
-                text = text,
+                body = body,
+                title = title,
+                description = description,
                 color = color,
                 channelName = channelName
             )
