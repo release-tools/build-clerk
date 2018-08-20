@@ -26,11 +26,11 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
         val prInfo = "merge event for PR #${event.pullRequest.id} [author: ${event.pullRequest.author.username}]"
         val branchName = event.pullRequest.destination.branch.name
 
-        if (!Settings.EventFilter.repoNames.contains(event.repository.name)) {
+        if (Settings.EventFilter.repoNames.isNotEmpty() && !Settings.EventFilter.repoNames.contains(event.repository.name)) {
             logger.info("Ignoring $prInfo because repository name: ${event.repository.name} does not match filter")
             return
         }
-        if (!Settings.EventFilter.branchNames.contains(branchName)) {
+        if (Settings.EventFilter.branchNames.isNotEmpty() && !Settings.EventFilter.branchNames.contains(branchName)) {
             logger.info("Ignoring $prInfo because branch name: $branchName does not match filter")
             return
         }

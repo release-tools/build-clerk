@@ -24,7 +24,7 @@ class BuildEventService @Inject constructor(
     fun checkBuildReport(buildReport: BuildReport) {
         val branchName = buildReport.build.scm.branch
 
-        if (!Settings.EventFilter.branchNames.contains(branchName)) {
+        if (Settings.EventFilter.branchNames.isNotEmpty() && !Settings.EventFilter.branchNames.contains(branchName)) {
             logger.info("Ignoring build $buildReport because branch name: $branchName does not match filter")
             return
         }
