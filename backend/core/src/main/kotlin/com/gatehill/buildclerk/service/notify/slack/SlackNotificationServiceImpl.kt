@@ -39,10 +39,6 @@ class SlackNotificationServiceImpl @Inject constructor(
     override fun notify(channelName: String, analysis: Analysis, color: String) {
         super.notify(channelName, analysis.toString(), color)
 
-        if (analysis.actionSet.actions.isEmpty()) {
-            return
-        }
-
         val content = SlackMessage(
                 channel = channelName,
                 attachments = mutableListOf<SlackMessageAttachment>().apply {
