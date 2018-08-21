@@ -69,8 +69,12 @@ abstract class AbstractBlock @Inject constructor(
         buildReportService.countConsecutiveFailuresOnBranch(branchName)
     }
 
-    val lastPassingCommitForBranch: BuildReport? by lazy {
-        buildReportService.lastPassingCommitForBranch(branchName)
+    val lastPassingBuildForBranch: BuildReport? by lazy {
+        buildReportService.lastPassingBuildForBranch(branchName)
+    }
+
+    val lastPassingCommitForBranch: String? by lazy {
+        lastPassingBuildForBranch?.build?.scm?.commit
     }
 
     fun showText(

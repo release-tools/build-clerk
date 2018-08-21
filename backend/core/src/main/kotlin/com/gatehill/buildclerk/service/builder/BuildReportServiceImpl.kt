@@ -29,7 +29,7 @@ class BuildReportServiceImpl @Inject constructor(
     override fun hasEverSucceeded(commit: String): Boolean =
             buildReportDao.hasEverSucceeded(commit)
 
-    override fun lastPassingCommitForBranch(branchName: String): BuildReport? =
+    override fun lastPassingBuildForBranch(branchName: String): BuildReport? =
             buildReportDao.lastPassingCommitForBranch(branchName)
 
     override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int =

@@ -57,18 +57,7 @@ class PendingActionService @Inject constructor(
 
             pending.remove(actionSetId)?.let { actionSet ->
                 logger.debug("Found pending action set with ID: $actionSetId [${actionSet.actions.size} actions]")
-                actions.forEach { action ->
-                    val emoji = if (resolve(event.channel.name, action, actionSet)) {
-                        "white_check_mark"
-                    } else {
-                        "negative_squared_cross_mark"
-                    }
-
-                    // indicate outcome
-                    attachments += MessageAttachment(
-                            text = ":$emoji: <@${event.user.id}> selected '${action.value}'"
-                    )
-                }
+                resolveActions(event, actions, actionSet, attachments)
 
             } ?: logger.warn("No pending action set found with ID: $actionSetId")
 
@@ -78,12 +67,37 @@ class PendingActionService @Inject constructor(
         updateOriginalMessage(event, attachments)
     }
 
+    private fun resolveActions(
+            event: ActionTriggeredEvent,
+            actions: List<SlackAttachmentAction>,
+            pendingActionSet: PendingActionSet,
+            attachments: MutableList<MessageAttachment>
+    ) {
+        actions.forEach { action ->
+            pendingActionSet.actions.find { it.name == action.name }?.let { pendingAction ->
+                val executed = resolve(event.channel.name, action, pendingAction)
+                val suggestedActions = pendingActionSet.actions.joinToString(", ") { it.title }
+
+                // indicate outcome
+                attachments += MessageAttachment(
+                        text = if (executed) {
+                            ":white_check_mark: <@${event.user.id}> selected '${pendingAction.title}' from suggested actions ($suggestedActions)"
+                        } else {
+                            ":-1: <@${event.user.id}> dismissed suggested actions ($suggestedActions)"
+                        }
+                )
+
+            } ?: logger.warn("No such action '${action.name}' in pending action set: ${pendingActionSet.id}")
+        }
+    }
+
     /**
-     * Remove buttons from message attachments by creating new attachments without actions.
+     * Only copy attachments without actions.
      */
     private fun stripActions(
             attachments: List<SlackMessageAttachment>?
     ): MutableList<MessageAttachment> = attachments
+            ?.filter { attachment -> attachment.actions?.isEmpty() ?: true }
             ?.map(this::convertSlackAttachmentToSimpleAttachment)
             ?.toMutableList() ?: mutableListOf()
 
@@ -112,22 +126,19 @@ class PendingActionService @Inject constructor(
     }
 
     private fun resolve(
-        triggeringChannel: String,
-        action: SlackAttachmentAction,
-        actionSet: PendingActionSet
+            triggeringChannel: String,
+            action: SlackAttachmentAction,
+            pendingAction: PendingAction
     ): Boolean {
         logger.debug("Attempting to resolve pending action: $action")
 
-        actionSet.actions.find { it.name == action.name }?.let { pendingAction ->
-            when (action.value) {
-                pendingAction.name -> {
-                    executePendingAction(triggeringChannel, pendingAction)
-                    return true
-                }
-                else -> logger.info("Discarding pending action: $pendingAction [actionValue: ${action.value}]")
+        when (action.value) {
+            pendingAction.name -> {
+                executePendingAction(triggeringChannel, pendingAction)
+                return true
             }
-
-        } ?: logger.warn("No such action '${action.name}' in pending action set: ${actionSet.id}")
+            else -> logger.info("Discarding pending action: $pendingAction [actionValue: ${action.value}]")
+        }
 
         return false
     }
