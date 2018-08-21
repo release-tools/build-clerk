@@ -14,8 +14,8 @@ import javax.inject.Inject
  * Processes Bitbucket format pull requests.
  */
 class BitbucketPullRequestEventServiceImpl @Inject constructor(
-        private val buildReportService: BuildReportService,
-        private val analysisService: AnalysisService
+    private val buildReportService: BuildReportService,
+    private val analysisService: AnalysisService
 ) : PullRequestEventService {
 
     private val logger = LogManager.getLogger(PullRequestEventService::class.java)
@@ -26,11 +26,15 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
         val prInfo = "merge event for PR #${event.pullRequest.id} [author: ${event.pullRequest.author.username}]"
         val branchName = event.pullRequest.destination.branch.name
 
-        if (Settings.EventFilter.repoNames.isNotEmpty() && !Settings.EventFilter.repoNames.contains(event.repository.name)) {
+        if (Settings.EventFilter.repoNames.isNotEmpty() &&
+            Settings.EventFilter.repoNames.none { it.matches(event.repository.name) }
+        ) {
             logger.info("Ignoring $prInfo because repository name: ${event.repository.name} does not match filter")
             return
         }
-        if (Settings.EventFilter.branchNames.isNotEmpty() && !Settings.EventFilter.branchNames.contains(branchName)) {
+        if (Settings.EventFilter.branchNames.isNotEmpty() &&
+            Settings.EventFilter.branchNames.none { it.matches(branchName) }
+        ) {
             logger.info("Ignoring $prInfo because branch name: $branchName does not match filter")
             return
         }
@@ -49,8 +53,8 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
 
     private fun analyse(event: PullRequestMergedEvent, currentBranchStatus: BuildStatus) {
         analysisService.analysePullRequest(
-                mergeEvent = event,
-                currentBranchStatus = currentBranchStatus
+            mergeEvent = event,
+            currentBranchStatus = currentBranchStatus
         )
     }
 }
