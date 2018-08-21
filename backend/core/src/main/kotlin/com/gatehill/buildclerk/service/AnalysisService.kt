@@ -5,6 +5,7 @@ import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.service.BuildReportService
+import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.dsl.AbstractBuildBlock
 import com.gatehill.buildclerk.parser.Parser
@@ -14,7 +15,9 @@ import javax.inject.Inject
 
 class AnalysisService @Inject constructor(
         private val parser: Parser,
-        private val buildReportService: BuildReportService
+        private val buildReportService: BuildReportService,
+        private val pendingActionService: PendingActionService,
+        private val notificationService: NotificationService
 ) {
     private val logger = LogManager.getLogger(AnalysisService::class.java)
 
@@ -81,6 +84,7 @@ class AnalysisService @Inject constructor(
                 body = config.bodyHolder.repository
         )
 
+        finaliseAnalysis(analysis)
         return analysis
     }
 
@@ -103,12 +107,17 @@ class AnalysisService @Inject constructor(
         )
 
         val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(commit, branchName)
-        analysis.log("This commit has failed $failuresForCommitOnBranch time${if (failuresForCommitOnBranch == 1) "" else "s"} on this branch.")
+        val failureCountDescription = when (failuresForCommitOnBranch) {
+            0 -> "never failed"
+            1 -> "failed once"
+            else -> "failed $failuresForCommitOnBranch times"
+        }
+        analysis.log("Commit `${toShortCommit(commit)}` has $failureCountDescription on this branch.")
 
         if (buildReportService.hasEverSucceeded(commit)) {
-            analysis.log("Commit `${toShortCommit(commit)}` has previously succeeded (on at least 1 branch).")
+            analysis.log("This commit has previously succeeded (on at least 1 branch).")
         } else {
-            analysis.log("Commit `${toShortCommit(commit)}` has never succeeded on any branch.")
+            analysis.log("This commit has never succeeded on any branch.")
         }
 
         return analysis
@@ -138,6 +147,19 @@ class AnalysisService @Inject constructor(
                 }
         )
 
+        finaliseAnalysis(analysis)
         return analysis
+    }
+
+    /**
+     * Enqueue actions and send notifications.
+     */
+    private fun finaliseAnalysis(analysis: Analysis) {
+        if (analysis.isNotEmpty()) {
+            pendingActionService.enqueue(analysis.actionSet)
+        }
+        analysis.postConfig?.let { postConfig ->
+            notificationService.notify(postConfig.channelName, analysis, postConfig.color.hexCode)
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.gatehill.buildclerk.dsl
 import com.gatehill.buildclerk.api.model.Analysis
 import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
+import com.gatehill.buildclerk.api.model.PostConfig
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.model.action.LockBranchAction
 import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
@@ -85,13 +86,13 @@ abstract class AbstractBlock @Inject constructor(
             channelName: String? = null
     ) {
         analysis.recommend(
-            ShowTextAction(
-                body = body,
-                title = title,
-                description = description,
-                color = color,
-                channelName = channelName
-            )
+                ShowTextAction(
+                        body = body,
+                        title = title,
+                        description = description,
+                        color = color,
+                        channelName = channelName
+                )
         )
     }
 
@@ -102,9 +103,12 @@ abstract class AbstractBlock @Inject constructor(
     fun notifyChannel(channelName: String, message: String, color: Color = Color.BLACK) =
             notificationService.notify(channelName, message, color.hexCode)
 
-    fun postAnalysisToChannel(channelName: String, color: Color = Color.BLACK) =
-            notificationService.notify(channelName, analysis, color.hexCode)
-
+    fun postAnalysisToChannel(channelName: String, color: Color = Color.BLACK) {
+        analysis.postConfig = PostConfig(
+                channelName = channelName,
+                color = color
+        )
+    }
 }
 
 abstract class AbstractBuildBlock @Inject constructor(

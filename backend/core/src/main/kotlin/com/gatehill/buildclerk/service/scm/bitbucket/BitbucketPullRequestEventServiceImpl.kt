@@ -39,20 +39,18 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
             buildReportService.fetchLastBuildForBranch(branchName)?.let { buildReport ->
                 val currentBranchStatus = buildReport.build.status
                 logger.info("Status of branch: $branchName is $currentBranchStatus - triggering PR: $prInfo")
-
-                analysisService.analysePullRequest(
-                        mergeEvent = event,
-                        currentBranchStatus = currentBranchStatus
-                )
-
+                analyse(event, currentBranchStatus)
             } ?: run {
                 logger.warn("Status of branch: $branchName is unknown - triggering PR: $prInfo")
-
-                analysisService.analysePullRequest(
-                        mergeEvent = event,
-                        currentBranchStatus = BuildStatus.UNKNOWN
-                )
+                analyse(event, BuildStatus.UNKNOWN)
             }
         }
+    }
+
+    private fun analyse(event: PullRequestMergedEvent, currentBranchStatus: BuildStatus) {
+        analysisService.analysePullRequest(
+                mergeEvent = event,
+                currentBranchStatus = currentBranchStatus
+        )
     }
 }

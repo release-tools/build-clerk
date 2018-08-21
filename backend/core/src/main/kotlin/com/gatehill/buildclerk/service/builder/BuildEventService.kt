@@ -4,7 +4,6 @@ import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.service.AnalysisService
-import com.gatehill.buildclerk.service.PendingActionService
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
@@ -16,8 +15,7 @@ import javax.inject.Inject
  */
 class BuildEventService @Inject constructor(
         private val buildReportService: BuildReportService,
-        private val analysisService: AnalysisService,
-        private val pendingActionService: PendingActionService
+        private val analysisService: AnalysisService
 ) {
     private val logger = LogManager.getLogger(BuildEventService::class.java)
 
@@ -32,11 +30,7 @@ class BuildEventService @Inject constructor(
         launch {
             try {
                 buildReportService.record(buildReport)
-                val analysis = analysisService.analyseBuild(buildReport)
-                if (analysis.isNotEmpty()) {
-                    pendingActionService.enqueue(analysis.actionSet)
-                }
-
+                analysisService.analyseBuild(buildReport)
             } catch (e: Exception) {
                 logger.error("Error handling build report: $buildReport", e)
             }

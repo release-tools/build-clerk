@@ -2,6 +2,7 @@ package com.gatehill.buildclerk.api.model
 
 import com.gatehill.buildclerk.api.model.action.PendingAction
 import com.gatehill.buildclerk.api.model.action.PendingActionSet
+import com.gatehill.buildclerk.dsl.Color
 import org.apache.logging.log4j.Logger
 import java.time.ZonedDateTime
 
@@ -13,6 +14,7 @@ class Analysis(
         val url: String? = null
 ) {
     val actionSet = PendingActionSet()
+    var postConfig: PostConfig? = null
     private val events = mutableListOf<AnalysisEvent>()
 
     fun log(message: String) {
@@ -48,3 +50,8 @@ ${actionSet.actions.joinToString("\n")}
 """.trimMargin()
     }
 }
+
+data class PostConfig(
+        val channelName: String,
+        val color: Color
+)
