@@ -6,6 +6,7 @@ data class LockBranchAction(
 
     override val name = "lock"
     override val title = "Lock branch"
+    override val exclusive = false
 
     override fun describe() = "lock branch $branch against further changes"
 }

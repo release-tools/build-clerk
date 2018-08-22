@@ -9,6 +9,7 @@ data class RevertCommitAction(
 
     override val name = "revert"
     override val title = "Revert"
+    override val exclusive = true
 
     override fun describe() = "revert commit ${toShortCommit(commit)} from branch $branch"
 }

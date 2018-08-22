@@ -29,5 +29,14 @@ data class MessageAttachment(
         val text: String? = null,
         val color: String? = null,
         val title: String? = null,
-        val fallback: String? = null
+        val fallback: String? = null,
+        val actions: List<MessageAction>? = null
+)
+
+data class MessageAction(
+        val name: String? = null,
+        val value: String? = null,
+        val type: String? = null,
+        val text: String? = null,
+        val style: String? = null
 )

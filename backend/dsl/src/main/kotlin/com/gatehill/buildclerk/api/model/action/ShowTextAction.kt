@@ -14,6 +14,7 @@ data class ShowTextAction(
 ) : PendingAction {
 
     override val name = "show_text"
+    override val exclusive = false
 
     override fun describe() = description
             ?: "show text '$body'${channelName?.let { " in channel: $channelName" }}"
