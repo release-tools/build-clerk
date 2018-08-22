@@ -3,15 +3,17 @@ Build Clerk [![CircleCI](https://circleci.com/gh/outofcoffee/build-clerk.svg?sty
 
 Respond to events in your build pipeline and keep your main branch stable.
 
-Examples:
+*Examples:*
 
 * Auto-revert a commit after a failed build on your main branch, subject to certain thresholds and rules. 
 * Notify the team when a PR was merged whilst your main branch is failing on CI.
 * Lock a branch against further changes after successive build failures.
 
-<img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/build_analysis_revert.png" width="467">
+<img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/build_analysis_revert.png" width="336">
 
-<img alt="Analysis recommends lock" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/build_analysis_lock.png" width="467">
+<img alt="Analysis recommends lock" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/build_analysis_lock.png" width="342">
+
+<img alt="PR merged notification" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/pr_merged.png" width="338">
 
 ## Configure your build
 
