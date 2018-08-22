@@ -3,12 +3,7 @@ package com.gatehill.buildclerk.service
 import com.gatehill.buildclerk.api.model.MessageAction
 import com.gatehill.buildclerk.api.model.MessageAttachment
 import com.gatehill.buildclerk.api.model.UpdatedNotificationMessage
-import com.gatehill.buildclerk.api.model.action.LockBranchAction
-import com.gatehill.buildclerk.api.model.action.PendingAction
-import com.gatehill.buildclerk.api.model.action.PendingActionSet
-import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
-import com.gatehill.buildclerk.api.model.action.RevertCommitAction
-import com.gatehill.buildclerk.api.model.action.ShowTextAction
+import com.gatehill.buildclerk.api.model.action.*
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
@@ -69,6 +64,7 @@ class PendingActionService @Inject constructor(
         pendingActionSet: PendingActionSet
     ) {
         val selectedActions = mutableListOf<SelectedAction>()
+        var exclusiveActionExecuted = false
 
         actions.forEach { action ->
             pendingActionSet.actions.find { it.name == action.name }?.let { pendingAction ->
@@ -77,7 +73,7 @@ class PendingActionService @Inject constructor(
 
                 selectedActions += SelectedAction(
                     actionName = pendingAction.name,
-                    resolutionText = if (executed) {
+                    outcomeText = if (executed) {
                         ":white_check_mark: <@${event.user.id}> selected '${pendingAction.title}' from suggested actions ($suggestedActions)"
                     } else {
                         ":-1: <@${event.user.id}> dismissed suggested actions ($suggestedActions)"
@@ -87,6 +83,7 @@ class PendingActionService @Inject constructor(
                 if (executed && pendingAction.exclusive) {
                     logger.debug("Selected action: ${pendingAction.name} is exclusive - removing action set with ID: ${pendingActionSet.id}")
                     pending.remove(pendingActionSet.id)
+                    exclusiveActionExecuted = true
                 }
 
             } ?: logger.warn("No such action '${action.name}' in pending action set: ${pendingActionSet.id}")
@@ -94,28 +91,31 @@ class PendingActionService @Inject constructor(
 
         val attachments = composeAttachments(
             slackAttachments = event.originalMessage.attachments,
-            selectedActions = selectedActions
+            selectedActions = selectedActions,
+            exclusiveActionExecuted = exclusiveActionExecuted
         )
 
         // update the original message
         updateOriginalMessage(event, attachments)
     }
 
-    private fun composeAttachments(
+    internal fun composeAttachments(
         slackAttachments: List<SlackMessageAttachment>?,
-        selectedActions: List<SelectedAction>
+        selectedActions: List<SelectedAction>,
+        exclusiveActionExecuted: Boolean
     ): List<MessageAttachment> {
 
         val attachments = mutableListOf<MessageAttachment>()
 
         slackAttachments?.let {
             attachments += slackAttachments.map { slackAttachment ->
-                convertSlackAttachmentToSimpleAttachment(slackAttachment, selectedActions)
+                val actions = determineActions(slackAttachment, selectedActions, exclusiveActionExecuted)
+                convertSlackAttachmentToSimpleAttachment(slackAttachment, actions)
             }
 
             attachments += selectedActions.map { selectedAction ->
                 MessageAttachment(
-                    text = selectedAction.resolutionText
+                    text = selectedAction.outcomeText
                 )
             }
         }
@@ -123,36 +123,56 @@ class PendingActionService @Inject constructor(
         return attachments
     }
 
-    private fun convertSlackAttachmentToSimpleAttachment(
+    /**
+     * Determine the actions to include with the attachment.
+     */
+    private fun determineActions(
+        slackAttachment: SlackMessageAttachment,
+        selectedActions: List<SelectedAction>,
+        exclusiveActionExecuted: Boolean
+    ): List<MessageAction> = when {
+
+        // remove all actions if exclusive action executed
+        exclusiveActionExecuted -> emptyList()
+
+        // include all attachments without actions
+        hasNoActions(slackAttachment) -> emptyList()
+
+        // for attachments with actions, include only unselected actions
+        else -> includeUnselectedActions(slackAttachment, selectedActions)
+    }
+
+    private fun hasNoActions(slackAttachment: SlackMessageAttachment) =
+        null == slackAttachment.actions || slackAttachment.actions.isEmpty()
+
+    /**
+     * @return only actions have have not been selected
+     */
+    private fun includeUnselectedActions(
         slackAttachment: SlackMessageAttachment,
         selectedActions: List<SelectedAction>
-    ): MessageAttachment {
+    ): List<MessageAction> {
 
-        val actions: List<MessageAction> = if (slackAttachment.actions?.isEmpty() != false) {
-            // include all attachments without actions
-            emptyList()
-
-        } else {
-            // for attachments with actions, check if the actions have been resolved
-            slackAttachment.actions?.mapNotNull { slackAction ->
-                if (selectedActions.any { it.actionName == slackAction.name }) {
-                    // skip selected actions
-                    null
-                } else {
-                    // include unresolved actions
-                    convertSlackActionToSimpleAction(slackAction)
-                }
-
-            } ?: emptyList()
-        }
-
-        return MessageAttachment(
-            text = slackAttachment.text,
-            color = slackAttachment.color,
-            title = slackAttachment.title,
-            actions = actions
-        )
+        return slackAttachment.actions?.mapNotNull { slackAction ->
+            if (selectedActions.any { it.actionName == slackAction.name }) {
+                // skip selected actions
+                null
+            } else {
+                // include unresolved actions
+                convertSlackActionToSimpleAction(slackAction)
+            }
+        } ?: emptyList()
     }
+
+    private fun convertSlackAttachmentToSimpleAttachment(
+        slackAttachment: SlackMessageAttachment,
+        actions: List<MessageAction>
+    ) = MessageAttachment(
+        text = slackAttachment.text,
+        color = slackAttachment.color,
+        title = slackAttachment.title,
+        actions = actions
+    )
 
     private fun convertSlackActionToSimpleAction(slackAction: SlackAttachmentAction) = MessageAction(
         name = slackAction.name,
@@ -216,7 +236,7 @@ class PendingActionService @Inject constructor(
     }
 }
 
-private data class SelectedAction(
+internal data class SelectedAction(
     val actionName: String,
-    val resolutionText: String
+    val outcomeText: String
 )

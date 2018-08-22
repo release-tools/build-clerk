@@ -7,7 +7,7 @@ import java.nio.file.Paths
 
 class DslTest {
     @Test
-    fun testConfig() {
+    fun `parse configuration`() {
         val rules = Paths.get(DslTest::class.java.getResource("/full.kts").toURI())
         val config = Parser().parse(rules)
         config.body(config)

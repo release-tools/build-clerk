@@ -29,3 +29,15 @@ kotlin {
         coroutines 'enable'
     }
 }
+
+test {
+    useJUnit {
+        excludeCategories 'com.gatehill.buildclerk.service.support.IntegrationTest'
+    }
+}
+
+task integrationTest(type: Test) {
+    useJUnit {
+        includeCategories 'com.gatehill.buildclerk.service.support.IntegrationTest'
+    }
+}
