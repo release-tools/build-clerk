@@ -49,10 +49,10 @@ jobs:
             chmod +x *.sh
             case ${CIRCLE_BRANCH} in
                 master)
-                    ./docker-build.sh latest
+                    ./docker-build.sh -l latest
                     ;;
                 develop)
-                    ./docker-build.sh beta
+                    ./docker-build.sh -l beta
                     ;;
                 *)
                     echo "Unsupported branch name: ${CIRCLE_BRANCH}"

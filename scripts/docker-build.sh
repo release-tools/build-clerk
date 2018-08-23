@@ -5,10 +5,13 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$( cd ${SCRIPT_DIR}/../ && pwd )"
 IMAGE_REPOSITORY="outofcoffee/"
 DOCKER_LOGIN_ARGS=""
+LOGIN_TO_REGISTRY="false"
 
-while getopts "e" OPT; do
+while getopts "el" OPT; do
     case ${OPT} in
         e) DOCKER_LOGIN_ARGS="--email dummy@example.com"
+        ;;
+        l) LOGIN_TO_REGISTRY="true"
         ;;
     esac
 done
@@ -60,5 +63,8 @@ function buildPushImage()
     fi
 }
 
-login
+if [[ "${LOGIN_TO_REGISTRY}" == "true" ]]; then
+    login
+fi
+
 buildPushImage build-clerk backend/server

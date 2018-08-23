@@ -16,10 +16,10 @@ if [[ "y" != "${CONFIRMATION}" ]]; then
 	exit 1
 fi
 
-echo "\nBuilding distribution"
+echo -e "\nBuilding distribution"
 cd ${ROOT_DIR}
 ./gradlew clean shadowJar
 
-echo "\nPackaging and pushing"
+echo -e "\nPackaging and pushing"
 cd ${SCRIPT_DIR}
 ./docker-build.sh ${CURRENT_VERSION}
