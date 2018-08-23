@@ -20,9 +20,4 @@ COPY --chown=jenkins:jenkins docs/examples/jenkins/files/jenkins_home/init.groov
 COPY --chown=jenkins:jenkins docs/examples/jenkins/files/jenkins_home/jobs /var/jenkins_home/jobs
 COPY --chown=jenkins:jenkins docs/examples/jenkins/files/jenkins_home /var/jenkins_home
 
-COPY --chown=jenkins:jenkins docs/examples/jenkins/files/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-
-RUN chmod u+x /usr/local/bin/docker-entrypoint.sh
-
 USER jenkins
-ENTRYPOINT [ "docker-entrypoint.sh" ]
