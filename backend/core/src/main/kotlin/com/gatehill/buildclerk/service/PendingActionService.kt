@@ -7,8 +7,10 @@ import com.gatehill.buildclerk.api.model.action.*
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
-import com.gatehill.buildclerk.model.slack.SlackAttachmentAction
+import com.gatehill.buildclerk.model.slack.SlackMessageAction
 import com.gatehill.buildclerk.model.slack.SlackMessageAttachment
+import com.gatehill.buildclerk.service.notify.slack.toMessageAction
+import com.gatehill.buildclerk.service.notify.slack.toMessageAttachment
 import com.gatehill.buildclerk.service.scm.ScmService
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
@@ -60,127 +62,112 @@ class PendingActionService @Inject constructor(
 
     private fun resolveActions(
         event: ActionTriggeredEvent,
-        actions: List<SlackAttachmentAction>,
+        actions: List<SlackMessageAction>,
         pendingActionSet: PendingActionSet
     ) {
         val selectedActions = mutableListOf<SelectedAction>()
-        var exclusiveActionExecuted = false
 
         actions.forEach { action ->
             pendingActionSet.actions.find { it.name == action.name }?.let { pendingAction ->
                 val executed = resolve(event.channel.name, action, pendingAction)
-                val suggestedActions = pendingActionSet.actions.joinToString(", ") { it.title }
 
                 selectedActions += SelectedAction(
                     actionName = pendingAction.name,
+                    exclusive = pendingAction.exclusive,
                     outcomeText = if (executed) {
-                        ":white_check_mark: <@${event.user.id}> selected '${pendingAction.title}' from suggested actions ($suggestedActions)"
+                        ":white_check_mark: <@${event.user.id}> selected '${pendingAction.title}'"
                     } else {
-                        ":-1: <@${event.user.id}> dismissed suggested actions ($suggestedActions)"
+                        ":-1: <@${event.user.id}> dismissed suggested action: '${pendingAction.title}'"
                     }
                 )
 
                 if (executed && pendingAction.exclusive) {
                     logger.debug("Selected action: ${pendingAction.name} is exclusive - removing action set with ID: ${pendingActionSet.id}")
                     pending.remove(pendingActionSet.id)
-                    exclusiveActionExecuted = true
                 }
 
             } ?: logger.warn("No such action '${action.name}' in pending action set: ${pendingActionSet.id}")
         }
 
-        val attachments = composeAttachments(
-            slackAttachments = event.originalMessage.attachments,
-            selectedActions = selectedActions,
-            exclusiveActionExecuted = exclusiveActionExecuted
-        )
+        val attachments = event.originalMessage.attachments?.let { slackAttachments ->
+            composeAttachments(
+                slackAttachments = slackAttachments,
+                selectedActions = selectedActions
+            )
+        } ?: emptyList()
 
         // update the original message
         updateOriginalMessage(event, attachments)
     }
 
     internal fun composeAttachments(
-        slackAttachments: List<SlackMessageAttachment>?,
-        selectedActions: List<SelectedAction>,
-        exclusiveActionExecuted: Boolean
+        slackAttachments: List<SlackMessageAttachment>,
+        selectedActions: List<SelectedAction>
     ): List<MessageAttachment> {
 
         val attachments = mutableListOf<MessageAttachment>()
 
-        slackAttachments?.let {
-            attachments += slackAttachments.map { slackAttachment ->
-                val actions = determineActions(slackAttachment, selectedActions, exclusiveActionExecuted)
-                convertSlackAttachmentToSimpleAttachment(slackAttachment, actions)
-            }
+        attachments += slackAttachments.mapNotNull { slackAttachment ->
+            if (null == slackAttachment.actions || slackAttachment.actions.isEmpty()) {
+                // attachment has no actions - include it
+                slackAttachment.toMessageAttachment(emptyList())
 
-            attachments += selectedActions.map { selectedAction ->
-                MessageAttachment(
-                    text = selectedAction.outcomeText
-                )
+            } else if (selectedActions.any { it.exclusive }) {
+                // if exclusive action was executed skip all attachments with actions
+                null
+
+            } else {
+                if (isAttachmentActionSelected(slackAttachment.actions, selectedActions)) {
+                    // if attachment's action was selected skip it (outcome rendered later)
+                    null
+
+                } else {
+                    // for attachments with actions, include only unselected actions
+                    val actions = filterUnselectedActions(slackAttachment.actions, selectedActions)
+                    slackAttachment.toMessageAttachment(actions)
+                }
             }
+        }
+
+        // add outcomes for selected actions
+        attachments += selectedActions.map { selectedAction ->
+            MessageAttachment(
+                text = selectedAction.outcomeText
+            )
         }
 
         return attachments
     }
 
-    /**
-     * Determine the actions to include with the attachment.
-     */
-    private fun determineActions(
-        slackAttachment: SlackMessageAttachment,
-        selectedActions: List<SelectedAction>,
-        exclusiveActionExecuted: Boolean
-    ): List<MessageAction> = when {
-
-        // remove all actions if exclusive action executed
-        exclusiveActionExecuted -> emptyList()
-
-        // include all attachments without actions
-        hasNoActions(slackAttachment) -> emptyList()
-
-        // for attachments with actions, include only unselected actions
-        else -> includeUnselectedActions(slackAttachment, selectedActions)
+    private fun isAttachmentActionSelected(
+        slackActions: List<SlackMessageAction>,
+        selectedActions: List<SelectedAction>
+    ): Boolean {
+        return slackActions.any { slackAction ->
+            selectedActions.any { selectedAction ->
+                slackAction.name == selectedAction.actionName
+            }
+        }
     }
-
-    private fun hasNoActions(slackAttachment: SlackMessageAttachment) =
-        null == slackAttachment.actions || slackAttachment.actions.isEmpty()
 
     /**
      * @return only actions have have not been selected
      */
-    private fun includeUnselectedActions(
-        slackAttachment: SlackMessageAttachment,
+    private fun filterUnselectedActions(
+        slackActions: List<SlackMessageAction>?,
         selectedActions: List<SelectedAction>
     ): List<MessageAction> {
 
-        return slackAttachment.actions?.mapNotNull { slackAction ->
+        return slackActions?.mapNotNull { slackAction ->
             if (selectedActions.any { it.actionName == slackAction.name }) {
                 // skip selected actions
                 null
             } else {
                 // include unresolved actions
-                convertSlackActionToSimpleAction(slackAction)
+                slackAction.toMessageAction()
             }
         } ?: emptyList()
     }
-
-    private fun convertSlackAttachmentToSimpleAttachment(
-        slackAttachment: SlackMessageAttachment,
-        actions: List<MessageAction>
-    ) = MessageAttachment(
-        text = slackAttachment.text,
-        color = slackAttachment.color,
-        title = slackAttachment.title,
-        actions = actions
-    )
-
-    private fun convertSlackActionToSimpleAction(slackAction: SlackAttachmentAction) = MessageAction(
-        name = slackAction.name,
-        value = slackAction.value,
-        type = slackAction.type,
-        text = slackAction.text,
-        style = slackAction.style
-    )
 
     private fun updateOriginalMessage(
         event: ActionTriggeredEvent,
@@ -195,13 +182,14 @@ class PendingActionService @Inject constructor(
             )
             notificationService.updateMessage(updatedMessage)
 
-        }
-            ?: logger.warn("Cannot update original message will callback ID: ${event.callbackId}, as there was no message timestamp")
+        } ?: logger.warn(
+            "Cannot update original message will callback ID: ${event.callbackId}, as there was no message timestamp"
+        )
     }
 
     private fun resolve(
         triggeringChannel: String,
-        action: SlackAttachmentAction,
+        action: SlackMessageAction,
         pendingAction: PendingAction
     ): Boolean {
         logger.debug("Attempting to resolve pending action: $action")
@@ -238,5 +226,6 @@ class PendingActionService @Inject constructor(
 
 internal data class SelectedAction(
     val actionName: String,
+    val exclusive: Boolean,
     val outcomeText: String
 )

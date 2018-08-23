@@ -30,6 +30,7 @@ data class MessageAttachment(
         val color: String? = null,
         val title: String? = null,
         val fallback: String? = null,
+        val callbackId: String? = null,
         val actions: List<MessageAction>? = null
 )
 
