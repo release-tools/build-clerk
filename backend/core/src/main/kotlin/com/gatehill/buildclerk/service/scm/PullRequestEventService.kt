@@ -7,4 +7,6 @@ import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
  */
 interface PullRequestEventService {
     fun checkPullRequest(event: PullRequestMergedEvent)
+    fun describePullRequest(event: PullRequestMergedEvent): String
+    fun findPullRequestByMergeCommit(commit: String): PullRequestMergedEvent?
 }

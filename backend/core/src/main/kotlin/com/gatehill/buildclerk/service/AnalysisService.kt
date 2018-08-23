@@ -9,6 +9,7 @@ import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.dsl.AbstractBuildBlock
 import com.gatehill.buildclerk.parser.Parser
+import com.gatehill.buildclerk.service.scm.PullRequestEventService
 import com.gatehill.buildclerk.toShortCommit
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
@@ -17,7 +18,8 @@ class AnalysisService @Inject constructor(
         private val parser: Parser,
         private val buildReportService: BuildReportService,
         private val pendingActionService: PendingActionService,
-        private val notificationService: NotificationService
+        private val notificationService: NotificationService,
+        private val pullRequestEventService: PullRequestEventService
 ) {
     private val logger = LogManager.getLogger(AnalysisService::class.java)
 
@@ -106,6 +108,7 @@ class AnalysisService @Inject constructor(
                 url = report.build.fullUrl
         )
 
+        // perform some basic history checks on the commit
         val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(commit, branchName)
         val failureCountDescription = when (failuresForCommitOnBranch) {
             0 -> "never failed"
@@ -118,6 +121,11 @@ class AnalysisService @Inject constructor(
             analysis.log("This commit has previously succeeded (on at least 1 branch).")
         } else {
             analysis.log("This commit has never succeeded on any branch.")
+        }
+
+        // check if the commit originated from a PR
+        pullRequestEventService.findPullRequestByMergeCommit(report.build.scm.commit)?.let { pullRequest ->
+            analysis.log("This commit was introduced by PR: ${pullRequestEventService.describePullRequest(pullRequest)}")
         }
 
         return analysis

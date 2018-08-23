@@ -1,11 +1,13 @@
 package com.gatehill.buildclerk
 
 import com.gatehill.buildclerk.api.dao.BuildReportDao
+import com.gatehill.buildclerk.api.dao.PullRequestEventDao
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.dao.inmem.InMemoryBuildReportDaoImpl
+import com.gatehill.buildclerk.dao.inmem.InMemoryPullRequestEventDaoImpl
 import com.gatehill.buildclerk.parser.Parser
 import com.gatehill.buildclerk.parser.inject.InstanceFactory
 import com.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
@@ -52,6 +54,7 @@ fun main(args: Array<String>) {
 
             // daos
             bind(BuildReportDao::class.java).to(storeImplementation).asSingleton()
+            bind(PullRequestEventDao::class.java).to(InMemoryPullRequestEventDaoImpl::class.java).asSingleton()
 
             // slack
             bind(NotificationService::class.java).to(SlackNotificationServiceImpl::class.java).asSingleton()
