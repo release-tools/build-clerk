@@ -14,24 +14,30 @@ import com.gatehill.buildclerk.toShortCommit
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
-class AnalysisService @Inject constructor(
-        private val parser: Parser,
-        private val buildReportService: BuildReportService,
-        private val pendingActionService: PendingActionService,
-        private val notificationService: NotificationService,
-        private val pullRequestEventService: PullRequestEventService
-) {
+interface AnalysisService {
+    fun analyseBuild(report: BuildReport): Analysis
+    fun analysePullRequest(mergeEvent: PullRequestMergedEvent, currentBranchStatus: BuildStatus): Analysis
+}
+
+class AnalysisServiceImpl @Inject constructor(
+    private val parser: Parser,
+    private val buildReportService: BuildReportService,
+    private val pendingActionService: PendingActionService,
+    private val notificationService: NotificationService,
+    private val pullRequestEventService: PullRequestEventService
+) : AnalysisService {
+
     private val logger = LogManager.getLogger(AnalysisService::class.java)
 
-    fun analyseBuild(report: BuildReport): Analysis {
+    override fun analyseBuild(report: BuildReport): Analysis {
         logger.info("Analysing build report: $report")
 
         val analysis = initBuildAnalysis(report)
         val branchName = report.build.scm.branch
 
         val previousBuildStatus = buildReportService.fetchBuildStatus(
-                branchName = branchName,
-                buildNumber = report.build.number - 1
+            branchName = branchName,
+            buildNumber = report.build.number - 1
         )
 
         val config = parser.parse(Settings.Rules.configFile)
@@ -42,37 +48,37 @@ class AnalysisService @Inject constructor(
         when (report.build.status) {
             BuildStatus.SUCCESS -> {
                 parser.invoke(
-                        analysis = analysis,
-                        branchName = branchName,
-                        blockConfigurer = blockConfigurer,
-                        body = config.bodyHolder.buildPassed
+                    analysis = analysis,
+                    branchName = branchName,
+                    blockConfigurer = blockConfigurer,
+                    body = config.bodyHolder.buildPassed
                 )
 
                 if (previousBuildStatus == BuildStatus.FAILED) {
                     logger.info("Branch started passing: $report")
                     parser.invoke(
-                            analysis = analysis,
-                            branchName = branchName,
-                            blockConfigurer = blockConfigurer,
-                            body = config.bodyHolder.branchStartsPassing
+                        analysis = analysis,
+                        branchName = branchName,
+                        blockConfigurer = blockConfigurer,
+                        body = config.bodyHolder.branchStartsPassing
                     )
                 }
             }
             BuildStatus.FAILED -> {
                 parser.invoke(
-                        analysis = analysis,
-                        branchName = branchName,
-                        blockConfigurer = blockConfigurer,
-                        body = config.bodyHolder.buildFailed
+                    analysis = analysis,
+                    branchName = branchName,
+                    blockConfigurer = blockConfigurer,
+                    body = config.bodyHolder.buildFailed
                 )
 
                 if (previousBuildStatus == BuildStatus.SUCCESS) {
                     logger.info("Branch started failing: $report")
                     parser.invoke(
-                            analysis = analysis,
-                            branchName = branchName,
-                            blockConfigurer = blockConfigurer,
-                            body = config.bodyHolder.branchStartsFailing
+                        analysis = analysis,
+                        branchName = branchName,
+                        blockConfigurer = blockConfigurer,
+                        body = config.bodyHolder.branchStartsFailing
                     )
                 }
             }
@@ -81,9 +87,9 @@ class AnalysisService @Inject constructor(
 
         // runs every time
         parser.invoke(
-                analysis = analysis,
-                branchName = branchName,
-                body = config.bodyHolder.repository
+            analysis = analysis,
+            branchName = branchName,
+            body = config.bodyHolder.repository
         )
 
         finaliseAnalysis(analysis)
@@ -101,11 +107,11 @@ class AnalysisService @Inject constructor(
         }
 
         val analysis = Analysis(
-                logger = logger,
-                name = name,
-                branch = branchName,
-                user = report.build.triggeredBy,
-                url = report.build.fullUrl
+            logger = logger,
+            name = name,
+            branch = branchName,
+            user = report.build.triggeredBy,
+            url = report.build.fullUrl
         )
 
         // perform some basic history checks on the commit
@@ -131,28 +137,28 @@ class AnalysisService @Inject constructor(
         return analysis
     }
 
-    fun analysePullRequest(
-            mergeEvent: PullRequestMergedEvent,
-            currentBranchStatus: BuildStatus
+    override fun analysePullRequest(
+        mergeEvent: PullRequestMergedEvent,
+        currentBranchStatus: BuildStatus
     ): Analysis {
 
         val analysis = Analysis(
-                logger = logger,
-                name = "Pull request #${mergeEvent.pullRequest.id} merged into ${mergeEvent.pullRequest.destination.branch.name}",
-                branch = mergeEvent.pullRequest.destination.branch.name,
-                user = mergeEvent.actor.displayName
+            logger = logger,
+            name = "Pull request #${mergeEvent.pullRequest.id} merged into ${mergeEvent.pullRequest.destination.branch.name}",
+            branch = mergeEvent.pullRequest.destination.branch.name,
+            user = mergeEvent.actor.displayName
         )
 
         val config = parser.parse(Settings.Rules.configFile)
 
         parser.invoke(
-                analysis = analysis,
-                branchName = mergeEvent.pullRequest.destination.branch.name,
-                body = config.bodyHolder.pullRequestMerged,
-                blockConfigurer = { block ->
-                    block.mergeEvent = mergeEvent
-                    block.currentBranchStatus = currentBranchStatus
-                }
+            analysis = analysis,
+            branchName = mergeEvent.pullRequest.destination.branch.name,
+            body = config.bodyHolder.pullRequestMerged,
+            blockConfigurer = { block ->
+                block.mergeEvent = mergeEvent
+                block.currentBranchStatus = currentBranchStatus
+            }
         )
 
         finaliseAnalysis(analysis)

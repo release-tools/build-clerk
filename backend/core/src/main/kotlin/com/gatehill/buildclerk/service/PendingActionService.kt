@@ -1,9 +1,15 @@
 package com.gatehill.buildclerk.service
 
+import com.gatehill.buildclerk.api.dao.PendingActionDao
 import com.gatehill.buildclerk.api.model.MessageAction
 import com.gatehill.buildclerk.api.model.MessageAttachment
 import com.gatehill.buildclerk.api.model.UpdatedNotificationMessage
-import com.gatehill.buildclerk.api.model.action.*
+import com.gatehill.buildclerk.api.model.action.LockBranchAction
+import com.gatehill.buildclerk.api.model.action.PendingAction
+import com.gatehill.buildclerk.api.model.action.PendingActionSet
+import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
+import com.gatehill.buildclerk.api.model.action.RevertCommitAction
+import com.gatehill.buildclerk.api.model.action.ShowTextAction
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
@@ -25,14 +31,14 @@ import javax.inject.Inject
 class PendingActionService @Inject constructor(
     private val scmService: ScmService,
     private val buildRunnerService: BuildRunnerService,
-    private val notificationService: NotificationService
+    private val notificationService: NotificationService,
+    private val pendingActionDao: PendingActionDao
 ) {
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
-    private val pending = mutableMapOf<String, PendingActionSet>()
 
     fun enqueue(actionSet: PendingActionSet) {
         logger.info("Enqueuing ${actionSet.actions.size} pending actions: ${actionSet.actions}")
-        pending[actionSet.id] = actionSet
+        pendingActionDao.save(actionSet)
     }
 
     fun handleAsync(event: ActionTriggeredEvent) {
@@ -51,7 +57,7 @@ class PendingActionService @Inject constructor(
         event.actions?.let { actions ->
             val actionSetId = event.callbackId
 
-            pending[actionSetId]?.let { actionSet ->
+            pendingActionDao.load(actionSetId)?.let { actionSet ->
                 logger.debug("Found pending action set with ID: $actionSetId [${actionSet.actions.size} actions]")
                 resolveActions(event, actions, actionSet)
 
@@ -83,7 +89,7 @@ class PendingActionService @Inject constructor(
 
                 if (executed && pendingAction.exclusive) {
                     logger.debug("Selected action: ${pendingAction.name} is exclusive - removing action set with ID: ${pendingActionSet.id}")
-                    pending.remove(pendingActionSet.id)
+                    pendingActionDao.delete(pendingActionSet.id)
                 }
 
             } ?: logger.warn("No such action '${action.name}' in pending action set: ${pendingActionSet.id}")

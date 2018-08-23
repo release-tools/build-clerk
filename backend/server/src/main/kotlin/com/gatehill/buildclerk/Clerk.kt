@@ -1,18 +1,21 @@
 package com.gatehill.buildclerk
 
 import com.gatehill.buildclerk.api.dao.BuildReportDao
+import com.gatehill.buildclerk.api.dao.PendingActionDao
 import com.gatehill.buildclerk.api.dao.PullRequestEventDao
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.dao.inmem.InMemoryBuildReportDaoImpl
+import com.gatehill.buildclerk.dao.inmem.InMemoryPendingActionDaoImpl
 import com.gatehill.buildclerk.dao.inmem.InMemoryPullRequestEventDaoImpl
 import com.gatehill.buildclerk.parser.Parser
 import com.gatehill.buildclerk.parser.inject.InstanceFactory
 import com.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
 import com.gatehill.buildclerk.server.Server
 import com.gatehill.buildclerk.service.AnalysisService
+import com.gatehill.buildclerk.service.AnalysisServiceImpl
 import com.gatehill.buildclerk.service.CommandExecutorService
 import com.gatehill.buildclerk.service.PendingActionService
 import com.gatehill.buildclerk.service.builder.BuildEventService
@@ -49,12 +52,13 @@ fun main(args: Array<String>) {
 
             // event processors
             bind(BuildReportService::class.java).to(BuildReportServiceImpl::class.java).asSingleton()
-            bind(AnalysisService::class.java).asSingleton()
             bind(BuildEventService::class.java).asSingleton()
+            bind(AnalysisService::class.java).to(AnalysisServiceImpl::class.java).asSingleton()
 
             // daos
             bind(BuildReportDao::class.java).to(storeImplementation).asSingleton()
             bind(PullRequestEventDao::class.java).to(InMemoryPullRequestEventDaoImpl::class.java).asSingleton()
+            bind(PendingActionDao::class.java).to(InMemoryPendingActionDaoImpl::class.java).asSingleton()
 
             // slack
             bind(NotificationService::class.java).to(SlackNotificationServiceImpl::class.java).asSingleton()
