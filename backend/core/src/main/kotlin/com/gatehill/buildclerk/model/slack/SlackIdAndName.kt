@@ -7,6 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SlackIdAndName(
-        val id: String,
-        val name: String
+    val id: String,
+    val name: String
 )

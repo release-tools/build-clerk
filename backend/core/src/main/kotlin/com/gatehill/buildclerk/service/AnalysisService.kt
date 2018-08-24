@@ -1,16 +1,16 @@
 package com.gatehill.buildclerk.service
 
-import com.gatehill.buildclerk.api.model.Analysis
 import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import com.gatehill.buildclerk.api.model.analysis.Analysis
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.NotificationService
+import com.gatehill.buildclerk.api.util.toShortCommit
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.dsl.AbstractBuildBlock
 import com.gatehill.buildclerk.parser.Parser
 import com.gatehill.buildclerk.service.scm.PullRequestEventService
-import com.gatehill.buildclerk.toShortCommit
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 

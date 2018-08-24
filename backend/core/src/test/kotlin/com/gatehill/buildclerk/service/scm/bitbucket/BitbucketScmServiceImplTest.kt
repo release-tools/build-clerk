@@ -15,9 +15,9 @@ class BitbucketScmServiceImplTest {
     @Test
     fun lockBranch() {
         val service = BitbucketScmServiceImpl(
-                CommandExecutorService(),
-                BitbucketApiClientBuilder(),
-                BitbucketOperationsService()
+            CommandExecutorService(),
+            BitbucketApiClientBuilder(),
+            BitbucketOperationsService()
         )
         service.lockBranch("test")
     }

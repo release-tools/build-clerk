@@ -1,11 +1,12 @@
 rootProject.name = 'build-clerk'
 
-include ':api'
+include ':backend:api'
 include ':backend:core'
 include ':backend:dsl'
 include ':backend:parser'
 include ':backend:server'
 include ':backend:stores:inmem'
 include ':backend:stores:mongodb'
+include ':model'
 include ':rest'
 include ':jenkins-plugin'

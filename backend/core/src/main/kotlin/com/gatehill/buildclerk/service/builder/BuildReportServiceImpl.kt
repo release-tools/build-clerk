@@ -13,7 +13,7 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class BuildReportServiceImpl @Inject constructor(
-        private val buildReportDao: BuildReportDao
+    private val buildReportDao: BuildReportDao
 ) : BuildReportService {
 
     private val logger = LogManager.getLogger(BuildReportServiceImpl::class.java)
@@ -24,20 +24,20 @@ class BuildReportServiceImpl @Inject constructor(
     }
 
     override fun fetchLastBuildForBranch(branchName: String): BuildReport? =
-            buildReportDao.fetchLastBuildForBranch(branchName)
+        buildReportDao.fetchLastBuildForBranch(branchName)
 
     override fun hasEverSucceeded(commit: String): Boolean =
-            buildReportDao.hasEverSucceeded(commit)
+        buildReportDao.hasEverSucceeded(commit)
 
     override fun lastPassingBuildForBranch(branchName: String): BuildReport? =
-            buildReportDao.lastPassingCommitForBranch(branchName)
+        buildReportDao.lastPassingCommitForBranch(branchName)
 
     override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int =
-            buildReportDao.countFailuresForCommitOnBranch(commit, branch)
+        buildReportDao.countFailuresForCommitOnBranch(commit, branch)
 
     override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus =
-            buildReportDao.fetchBuildStatus(branchName, buildNumber)
+        buildReportDao.fetchBuildStatus(branchName, buildNumber)
 
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int =
-            buildReportDao.countConsecutiveFailuresOnBranch(branchName)
+        buildReportDao.countConsecutiveFailuresOnBranch(branchName)
 }

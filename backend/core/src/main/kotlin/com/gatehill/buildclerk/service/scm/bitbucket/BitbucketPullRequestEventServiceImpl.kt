@@ -1,10 +1,10 @@
 package com.gatehill.buildclerk.service.scm.bitbucket
 
+import com.gatehill.buildclerk.api.dao.PullRequestEventDao
 import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
-import com.gatehill.buildclerk.api.dao.PullRequestEventDao
 import com.gatehill.buildclerk.service.AnalysisService
 import com.gatehill.buildclerk.service.scm.PullRequestEventService
 import kotlinx.coroutines.experimental.launch

@@ -30,9 +30,9 @@ import kotlin.system.exitProcess
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class Server @Inject constructor(
-        private val buildEventService: BuildEventService,
-        private val pullRequestEventService: PullRequestEventService,
-        private val pendingActionService: PendingActionService
+    private val buildEventService: BuildEventService,
+    private val pullRequestEventService: PullRequestEventService,
+    private val pendingActionService: PendingActionService
 ) {
     private val logger = LogManager.getLogger(Server::class.java)
 
@@ -143,7 +143,8 @@ class Server @Inject constructor(
                 }
             }
 
-        } ?: logger.warn("No security is configured! All endpoints are exposed without authentication. Set AUTH_CONFIG_FILE to a valid Shiro properties file.")
+        }
+            ?: logger.warn("No security is configured! All endpoints are exposed without authentication. Set AUTH_CONFIG_FILE to a valid Shiro properties file.")
     }
 
 

@@ -1,15 +1,15 @@
 package com.gatehill.buildclerk.service
 
 import com.gatehill.buildclerk.api.dao.PendingActionDao
-import com.gatehill.buildclerk.api.model.MessageAction
-import com.gatehill.buildclerk.api.model.MessageAttachment
-import com.gatehill.buildclerk.api.model.UpdatedNotificationMessage
 import com.gatehill.buildclerk.api.model.action.LockBranchAction
 import com.gatehill.buildclerk.api.model.action.PendingAction
 import com.gatehill.buildclerk.api.model.action.PendingActionSet
 import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
 import com.gatehill.buildclerk.api.model.action.RevertCommitAction
 import com.gatehill.buildclerk.api.model.action.ShowTextAction
+import com.gatehill.buildclerk.api.model.message.MessageAction
+import com.gatehill.buildclerk.api.model.message.MessageAttachment
+import com.gatehill.buildclerk.api.model.message.UpdatedNotificationMessage
 import com.gatehill.buildclerk.api.service.BuildRunnerService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent

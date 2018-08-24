@@ -1,6 +1,8 @@
 apply plugin: 'kotlin'
 
 dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
     // json
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: version_jackson
 }

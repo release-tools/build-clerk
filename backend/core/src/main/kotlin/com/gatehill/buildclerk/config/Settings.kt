@@ -19,7 +19,7 @@ object Settings {
     object Repository {
         val localDir: File by lazy {
             System.getenv("GIT_REPO_LOCAL_DIR")?.let { File(it) }
-                    ?: Files.createTempDirectory("git_repo").toFile()
+                ?: Files.createTempDirectory("git_repo").toFile()
         }
         val pushChanges: Boolean by lazy { System.getenv("GIT_REPO_PUSH_CHANGES")?.toBoolean() == true }
     }
@@ -27,7 +27,7 @@ object Settings {
     object Jenkins {
         val baseUrl: String by lazy {
             System.getenv("JENKINS_BASE_URL")
-                    ?: throw IllegalStateException("Missing Jenkins base URL")
+                ?: throw IllegalStateException("Missing Jenkins base URL")
         }
 
         val username: String? by lazy { System.getenv("JENKINS_USERNAME") }
@@ -38,14 +38,14 @@ object Settings {
     object Slack {
         val userToken by lazy {
             System.getenv("SLACK_USER_TOKEN")
-                    ?: throw IllegalStateException("Missing Slack user token")
+                ?: throw IllegalStateException("Missing Slack user token")
         }
     }
 
     object Rules {
         val configFile: Path by lazy {
             System.getenv("RULES_FILE")?.let { Paths.get(it) }
-                    ?: throw IllegalStateException("Missing rules file")
+                ?: throw IllegalStateException("Missing rules file")
         }
     }
 
@@ -56,23 +56,23 @@ object Settings {
     object Bitbucket {
         val repoUsername: String by lazy {
             System.getenv("BITBUCKET_REPO_USERNAME")
-                    ?: throw IllegalStateException("Missing Bitbucket repository username")
+                ?: throw IllegalStateException("Missing Bitbucket repository username")
         }
 
         val repoSlug: String by lazy {
             System.getenv("BITBUCKET_REPO_SLUG")
-                    ?: throw IllegalStateException("Missing Bitbucket repository slug")
+                ?: throw IllegalStateException("Missing Bitbucket repository slug")
         }
 
         val authUsername: String by lazy {
             System.getenv("BITBUCKET_AUTH_USERNAME")
-                    ?: repoUsername
-                    ?: throw IllegalStateException("Missing Bitbucket authentication username")
+                ?: repoUsername
+                ?: throw IllegalStateException("Missing Bitbucket authentication username")
         }
 
         val password: String by lazy {
             System.getenv("BITBUCKET_PASSWORD")
-                    ?: throw IllegalStateException("Missing Bitbucket password")
+                ?: throw IllegalStateException("Missing Bitbucket password")
         }
     }
 

@@ -10,6 +10,6 @@ class InMemoryPullRequestEventDaoImpl : PullRequestEventDao {
         store += mergedEvent
     }
 
-    override fun findByMergeCommit(commit: String): PullRequestMergedEvent?  =
+    override fun findByMergeCommit(commit: String): PullRequestMergedEvent? =
         store.find { it.pullRequest.mergeCommit.hash == commit }
 }

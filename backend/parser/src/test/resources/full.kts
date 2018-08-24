@@ -1,5 +1,5 @@
 import com.gatehill.buildclerk.api.model.BuildStatus
-import com.gatehill.buildclerk.dsl.Color
+import com.gatehill.buildclerk.api.util.Color
 import com.gatehill.buildclerk.dsl.config
 
 config {

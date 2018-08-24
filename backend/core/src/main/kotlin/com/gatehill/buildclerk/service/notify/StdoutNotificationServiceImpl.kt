@@ -1,7 +1,7 @@
 package com.gatehill.buildclerk.service.notify
 
-import com.gatehill.buildclerk.api.model.Analysis
-import com.gatehill.buildclerk.api.model.UpdatedNotificationMessage
+import com.gatehill.buildclerk.api.model.analysis.Analysis
+import com.gatehill.buildclerk.api.model.message.UpdatedNotificationMessage
 import com.gatehill.buildclerk.api.service.NotificationService
 
 open class StdoutNotificationServiceImpl : NotificationService {

@@ -1,9 +1,9 @@
 package com.gatehill.buildclerk.service.notify.slack
 
-import com.gatehill.buildclerk.api.model.MessageAction
-import com.gatehill.buildclerk.api.model.MessageAttachment
-import com.gatehill.buildclerk.api.model.NotificationMessage
-import com.gatehill.buildclerk.api.model.UpdatedNotificationMessage
+import com.gatehill.buildclerk.api.model.message.MessageAction
+import com.gatehill.buildclerk.api.model.message.MessageAttachment
+import com.gatehill.buildclerk.api.model.message.NotificationMessage
+import com.gatehill.buildclerk.api.model.message.UpdatedNotificationMessage
 import com.gatehill.buildclerk.model.slack.SlackMessage
 import com.gatehill.buildclerk.model.slack.SlackMessageAction
 import com.gatehill.buildclerk.model.slack.SlackMessageAttachment

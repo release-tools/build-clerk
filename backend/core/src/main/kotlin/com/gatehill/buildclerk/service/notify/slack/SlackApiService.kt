@@ -34,18 +34,18 @@ class SlackApiService {
     }
 
     inline fun <reified R> invokeSlackCommand(
-            commandName: String,
-            params: Map<String, *> = emptyMap<String, Any>(),
-            method: HttpMethod = HttpMethod.POST,
-            bodyMode: BodyMode = BodyMode.FORM
+        commandName: String,
+        params: Map<String, *> = emptyMap<String, Any>(),
+        method: HttpMethod = HttpMethod.POST,
+        bodyMode: BodyMode = BodyMode.FORM
     ) = invokeSlackCommand(commandName, params, R::class.java, method, bodyMode)
 
     fun <R> invokeSlackCommand(
-            commandName: String,
-            params: Map<String, *>,
-            responseClass: Class<R>,
-            method: HttpMethod,
-            bodyMode: BodyMode
+        commandName: String,
+        params: Map<String, *>,
+        responseClass: Class<R>,
+        method: HttpMethod,
+        bodyMode: BodyMode
     ): R {
 
         HttpClientBuilder.create().build().use { httpClient ->
@@ -93,8 +93,8 @@ class SlackApiService {
     }
 
     private fun <R> parseResponse(
-            jsonResponse: String,
-            responseClass: Class<R>
+        jsonResponse: String,
+        responseClass: Class<R>
     ): R {
         val parsedResponse = jsonMapper.readValue(jsonResponse, responseClass)
         when (parsedResponse) {

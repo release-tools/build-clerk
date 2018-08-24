@@ -22,8 +22,8 @@ class MongoBuildReportDaoImpl : BuildReportDao {
 
     override fun fetchLastBuildForBranch(branchName: String): BuildReport? = withCollection {
         find(MongoBuildReport::name eq branchName)
-                .sort(descending(MongoBuildReport::createdDate))
-                .limit(1).first()?.toBuildReport()
+            .sort(descending(MongoBuildReport::createdDate))
+            .limit(1).first()?.toBuildReport()
     }
 
     override fun hasEverSucceeded(commit: String): Boolean = withCollection {
@@ -32,20 +32,20 @@ class MongoBuildReportDaoImpl : BuildReportDao {
 
     override fun lastPassingCommitForBranch(branchName: String): BuildReport? = withCollection {
         find("{ \$and: [ { 'build.scm.branch': '$branchName' }, { 'build.status': '${BuildStatus.SUCCESS}' } ] }")
-                .sort(descending(MongoBuildReport::createdDate))
-                .limit(1).first()?.toBuildReport()
+            .sort(descending(MongoBuildReport::createdDate))
+            .limit(1).first()?.toBuildReport()
     }
 
     override fun countFailuresForCommitOnBranch(commit: String, branchName: String): Int = withCollection {
         find("{ \$and: [ { 'build.scm.branch': '$branchName' }, { 'build.scm.commit': '$commit' }, { 'build.status': '${BuildStatus.FAILED}' } ] }")
-                .sort(descending(MongoBuildReport::createdDate))
-                .count()
+            .sort(descending(MongoBuildReport::createdDate))
+            .count()
     }
 
     override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus = withCollection {
         find("{ \$and: [ { 'build.scm.branch': '$branchName' }, { 'build.number': $buildNumber } ] }")
-                .sort(descending(MongoBuildReport::createdDate))
-                .limit(1).first()?.build?.status ?: BuildStatus.UNKNOWN
+            .sort(descending(MongoBuildReport::createdDate))
+            .limit(1).first()?.build?.status ?: BuildStatus.UNKNOWN
     }
 
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int = withCollection {
@@ -53,19 +53,19 @@ class MongoBuildReportDaoImpl : BuildReportDao {
         // see: `KMongoIterable.takeWhile`
 
         find("{ 'build.scm.branch': '$branchName' }")
-                .sort(descending(MongoBuildReport::createdDate))
-                .takeWhile { it.build.status == BuildStatus.FAILED }
-                .count()
+            .sort(descending(MongoBuildReport::createdDate))
+            .takeWhile { it.build.status == BuildStatus.FAILED }
+            .count()
     }
 
     /**
      * Execute `block` on a Mongo collection and close the client after use.
      */
     private fun <T> withCollection(
-            block: MongoCollection<MongoBuildReport>.() -> T
+        block: MongoCollection<MongoBuildReport>.() -> T
     ): T = KMongo.createClient(
-            host = MongoSettings.host,
-            port = MongoSettings.port
+        host = MongoSettings.host,
+        port = MongoSettings.port
     ).use { client ->
         val database = client.getDatabase("clerk")
         val collection = database.getCollection<MongoBuildReport>("buildreport")

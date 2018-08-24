@@ -54,7 +54,7 @@ class PendingActionServiceTest {
 
     @Before
     fun setUp() {
-        service = PendingActionService(mock(), mock(), mock())
+        service = PendingActionService(mock(), mock(), mock(), mock())
     }
 
     @Test

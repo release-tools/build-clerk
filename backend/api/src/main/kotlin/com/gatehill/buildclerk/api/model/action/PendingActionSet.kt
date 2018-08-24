@@ -1,6 +1,6 @@
 package com.gatehill.buildclerk.api.model.action
 
-import java.util.*
+import java.util.UUID
 
 /**
  * Identifies a set of pending actions.

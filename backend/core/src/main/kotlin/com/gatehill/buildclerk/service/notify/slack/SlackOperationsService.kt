@@ -12,7 +12,7 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class SlackOperationsService @Inject constructor(
-        private val slackApiService: SlackApiService
+    private val slackApiService: SlackApiService
 ) {
     private val logger: Logger = LogManager.getLogger(SlackOperationsService::class.java)
 
@@ -23,9 +23,9 @@ class SlackOperationsService @Inject constructor(
         logger.info("Sending message to channel '${message.channel}': $params")
 
         slackApiService.invokeSlackCommand<Map<String, Any>>(
-                commandName = "chat.postMessage",
-                params = params,
-                bodyMode = SlackApiService.BodyMode.JSON
+            commandName = "chat.postMessage",
+            params = params,
+            bodyMode = SlackApiService.BodyMode.JSON
         )
     }
 
@@ -36,9 +36,9 @@ class SlackOperationsService @Inject constructor(
         logger.info("Updating message in channel '${message.channel}': $params")
 
         slackApiService.invokeSlackCommand<Map<String, Any>>(
-                commandName = "chat.update",
-                params = params,
-                bodyMode = SlackApiService.BodyMode.JSON
+            commandName = "chat.update",
+            params = params,
+            bodyMode = SlackApiService.BodyMode.JSON
         )
     }
 
@@ -48,5 +48,5 @@ class SlackOperationsService @Inject constructor(
 
     @Suppress("UNCHECKED_CAST")
     private fun convertMessageToMap(message: SlackMessage): Map<String, *> =
-            jsonMapper.convertValue(message, Map::class.java) as Map<String, *>
+        jsonMapper.convertValue(message, Map::class.java) as Map<String, *>
 }

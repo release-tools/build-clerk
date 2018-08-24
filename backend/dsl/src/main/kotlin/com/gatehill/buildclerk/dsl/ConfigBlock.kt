@@ -1,16 +1,17 @@
 package com.gatehill.buildclerk.dsl
 
-import com.gatehill.buildclerk.api.model.Analysis
 import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
-import com.gatehill.buildclerk.api.model.PostConfig
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.model.action.LockBranchAction
 import com.gatehill.buildclerk.api.model.action.RebuildBranchAction
 import com.gatehill.buildclerk.api.model.action.RevertCommitAction
 import com.gatehill.buildclerk.api.model.action.ShowTextAction
+import com.gatehill.buildclerk.api.model.analysis.Analysis
+import com.gatehill.buildclerk.api.model.analysis.PostConfig
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.NotificationService
+import com.gatehill.buildclerk.api.util.Color
 import javax.inject.Inject
 
 /**
@@ -19,7 +20,7 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class ConfigBlock(
-        val body: ConfigBlock.() -> Unit
+    val body: ConfigBlock.() -> Unit
 ) {
     val bodyHolder = BodyHolder()
 
@@ -58,8 +59,8 @@ class BodyHolder {
 }
 
 abstract class AbstractBlock @Inject constructor(
-        private val notificationService: NotificationService,
-        private val buildReportService: BuildReportService
+    private val notificationService: NotificationService,
+    private val buildReportService: BuildReportService
 ) {
     lateinit var analysis: Analysis
     lateinit var branchName: String
@@ -79,20 +80,20 @@ abstract class AbstractBlock @Inject constructor(
     }
 
     fun showText(
-            body: String,
-            title: String = "Show",
-            description: String? = null,
-            color: Color = Color.BLACK,
-            channelName: String? = null
+        body: String,
+        title: String = "Show",
+        description: String? = null,
+        color: Color = Color.BLACK,
+        channelName: String? = null
     ) {
         analysis.recommend(
-                ShowTextAction(
-                        body = body,
-                        title = title,
-                        description = description,
-                        color = color,
-                        channelName = channelName
-                )
+            ShowTextAction(
+                body = body,
+                title = title,
+                description = description,
+                color = color,
+                channelName = channelName
+            )
         )
     }
 
@@ -101,22 +102,22 @@ abstract class AbstractBlock @Inject constructor(
     }
 
     fun notifyChannel(channelName: String, message: String, color: Color = Color.BLACK) =
-            notificationService.notify(channelName, message, color.hexCode)
+        notificationService.notify(channelName, message, color.hexCode)
 
     fun postAnalysisToChannel(channelName: String, color: Color = Color.BLACK) {
         analysis.postConfig = PostConfig(
-                channelName = channelName,
-                color = color
+            channelName = channelName,
+            color = color
         )
     }
 }
 
 abstract class AbstractBuildBlock @Inject constructor(
-        notificationService: NotificationService,
-        private val buildReportService: BuildReportService
+    notificationService: NotificationService,
+    private val buildReportService: BuildReportService
 ) : AbstractBlock(
-        notificationService,
-        buildReportService
+    notificationService,
+    buildReportService
 ) {
 
     lateinit var report: BuildReport
@@ -135,60 +136,60 @@ abstract class AbstractBuildBlock @Inject constructor(
 
     fun revertCommit() {
         analysis.recommend(
-                RevertCommitAction(
-                        commit = report.build.scm.commit,
-                        branch = branchName
-                )
+            RevertCommitAction(
+                commit = report.build.scm.commit,
+                branch = branchName
+            )
         )
     }
 }
 
 class BuildPassedBlock @Inject constructor(
-        notificationService: NotificationService,
-        buildReportService: BuildReportService
+    notificationService: NotificationService,
+    buildReportService: BuildReportService
 ) : AbstractBuildBlock(
-        notificationService,
-        buildReportService
+    notificationService,
+    buildReportService
 )
 
 class BuildFailedBlock @Inject constructor(
-        notificationService: NotificationService,
-        buildReportService: BuildReportService
+    notificationService: NotificationService,
+    buildReportService: BuildReportService
 ) : AbstractBuildBlock(
-        notificationService,
-        buildReportService
+    notificationService,
+    buildReportService
 )
 
 class BuildHealthyBlock @Inject constructor(
-        notificationService: NotificationService,
-        buildReportService: BuildReportService
+    notificationService: NotificationService,
+    buildReportService: BuildReportService
 ) : AbstractBuildBlock(
-        notificationService,
-        buildReportService
+    notificationService,
+    buildReportService
 )
 
 class BuildFailingBlock @Inject constructor(
-        notificationService: NotificationService,
-        buildReportService: BuildReportService
+    notificationService: NotificationService,
+    buildReportService: BuildReportService
 ) : AbstractBuildBlock(
-        notificationService,
-        buildReportService
+    notificationService,
+    buildReportService
 )
 
 class RepositoryBlock @Inject constructor(
-        notificationService: NotificationService,
-        buildReportService: BuildReportService
+    notificationService: NotificationService,
+    buildReportService: BuildReportService
 ) : AbstractBlock(
-        notificationService,
-        buildReportService
+    notificationService,
+    buildReportService
 )
 
 class PullRequestMergedBlock @Inject constructor(
-        notificationService: NotificationService,
-        buildReportService: BuildReportService
+    notificationService: NotificationService,
+    buildReportService: BuildReportService
 ) : AbstractBlock(
-        notificationService,
-        buildReportService
+    notificationService,
+    buildReportService
 ) {
     lateinit var mergeEvent: PullRequestMergedEvent
     lateinit var currentBranchStatus: BuildStatus
@@ -198,20 +199,11 @@ class PullRequestMergedBlock @Inject constructor(
 
     fun revertCommit() {
         analysis.recommend(
-                RevertCommitAction(
-                        commit = mergeEvent.pullRequest.mergeCommit.hash,
-                        branch = branchName
-                )
+            RevertCommitAction(
+                commit = mergeEvent.pullRequest.mergeCommit.hash,
+                branch = branchName
+            )
         )
-    }
-}
-
-class Color(val hexCode: String) {
-    companion object {
-        fun of(hexCode: String) = Color(hexCode)
-        val BLACK = of("#000000")
-        val RED = of("#ff0000")
-        val GREEN = of("#00ff00")
     }
 }
 

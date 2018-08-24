@@ -16,8 +16,8 @@ class BitbucketOperationsService {
 
     fun listRestrictions(branchName: String, apiClient: BitbucketApi): List<BranchRestriction> {
         val call = apiClient.listBranchRestrictions(
-                username = Settings.Bitbucket.repoUsername,
-                repoSlug = Settings.Bitbucket.repoSlug
+            username = Settings.Bitbucket.repoUsername,
+            repoSlug = Settings.Bitbucket.repoSlug
         )
         val response = call.execute()
 
@@ -29,33 +29,33 @@ class BitbucketOperationsService {
     }
 
     fun ensureRestriction(
-            apiClient: BitbucketApi,
-            branchName: String,
-            restrictions: List<BranchRestriction>,
-            kind: String
+        apiClient: BitbucketApi,
+        branchName: String,
+        restrictions: List<BranchRestriction>,
+        kind: String
     ) {
         val existing = restrictions.firstOrNull { restriction ->
             restriction.kind == kind && restriction.pattern == branchName
         }
 
         existing?.let { updateRestriction(apiClient, branchName, kind, existing.id!!) }
-                ?: addRestriction(apiClient, branchName, kind)
+            ?: addRestriction(apiClient, branchName, kind)
     }
 
     private fun addRestriction(
-            apiClient: BitbucketApi,
-            branchName: String,
-            kind: String
+        apiClient: BitbucketApi,
+        branchName: String,
+        kind: String
     ) {
         logger.debug("Adding branch restriction: [branch name: $branchName, kind: $kind]")
 
         val call: Call<Void> = apiClient.createBranchRestriction(
-                username = Settings.Bitbucket.repoUsername,
-                repoSlug = Settings.Bitbucket.repoSlug,
-                branchRestriction = BranchRestriction(
-                        kind = kind,
-                        pattern = branchName
-                )
+            username = Settings.Bitbucket.repoUsername,
+            repoSlug = Settings.Bitbucket.repoSlug,
+            branchRestriction = BranchRestriction(
+                kind = kind,
+                pattern = branchName
+            )
         )
 
         try {
@@ -72,21 +72,21 @@ class BitbucketOperationsService {
     }
 
     private fun updateRestriction(
-            apiClient: BitbucketApi,
-            branchName: String,
-            kind: String,
-            branchRestrictionId: Int
+        apiClient: BitbucketApi,
+        branchName: String,
+        kind: String,
+        branchRestrictionId: Int
     ) {
         logger.debug("Updating branch restriction: [branch name: $branchName, kind: $kind, id: $branchRestrictionId]")
 
         val call: Call<Void> = apiClient.updateBranchRestriction(
-                username = Settings.Bitbucket.repoUsername,
-                repoSlug = Settings.Bitbucket.repoSlug,
-                id = branchRestrictionId,
-                branchRestriction = BranchRestriction(
-                        kind = kind,
-                        pattern = branchName
-                )
+            username = Settings.Bitbucket.repoUsername,
+            repoSlug = Settings.Bitbucket.repoSlug,
+            id = branchRestrictionId,
+            branchRestriction = BranchRestriction(
+                kind = kind,
+                pattern = branchName
+            )
         )
 
         try {
@@ -98,14 +98,22 @@ class BitbucketOperationsService {
             }
 
         } catch (e: Exception) {
-            throw RuntimeException("Error updating branch restriction: [branch name: $branchName, kind: $kind, id: $branchRestrictionId]", e)
+            throw RuntimeException(
+                "Error updating branch restriction: [branch name: $branchName, kind: $kind, id: $branchRestrictionId]",
+                e
+            )
         }
     }
 
     /**
      * Process the response to adding a restriction.
      */
-    private fun handleRestrictionResponse(branchName: String, kind: String, call: Call<Void>, response: Response<Void>) {
+    private fun handleRestrictionResponse(
+        branchName: String,
+        kind: String,
+        call: Call<Void>,
+        response: Response<Void>
+    ) {
         when (response.code()) {
             200, 201 -> {
                 logger.info("Set branch restriction: [branch name: $branchName, kind: $kind]")

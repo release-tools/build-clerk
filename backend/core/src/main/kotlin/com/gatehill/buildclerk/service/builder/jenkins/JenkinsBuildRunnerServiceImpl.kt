@@ -16,7 +16,7 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class JenkinsBuildRunnerServiceImpl @Inject constructor(
-        private val apiClientBuilder: JenkinsApiClientBuilder
+    private val apiClientBuilder: JenkinsApiClientBuilder
 ) : BuildRunnerService {
 
     private val logger: Logger = LogManager.getLogger(JenkinsBuildRunnerServiceImpl::class.java)

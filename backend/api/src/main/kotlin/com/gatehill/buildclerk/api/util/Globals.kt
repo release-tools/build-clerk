@@ -1,4 +1,4 @@
-package com.gatehill.buildclerk
+package com.gatehill.buildclerk.api.util
 
 /**
  * Shorten a commit hash for display.

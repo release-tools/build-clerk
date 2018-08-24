@@ -12,11 +12,11 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class BitbucketScmServiceImpl @Inject constructor(
-        commandExecutorService: CommandExecutorService,
-        private val apiClientBuilder: BitbucketApiClientBuilder,
-        private val bitbucketOperationsService: BitbucketOperationsService
+    commandExecutorService: CommandExecutorService,
+    private val apiClientBuilder: BitbucketApiClientBuilder,
+    private val bitbucketOperationsService: BitbucketOperationsService
 ) : GitScmServiceImpl(
-        commandExecutorService
+    commandExecutorService
 ) {
     private val logger: Logger = LogManager.getLogger(BitbucketScmServiceImpl::class.java)
 

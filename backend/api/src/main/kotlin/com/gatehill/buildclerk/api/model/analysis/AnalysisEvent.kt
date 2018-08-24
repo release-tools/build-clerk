@@ -1,4 +1,4 @@
-package com.gatehill.buildclerk.api.model
+package com.gatehill.buildclerk.api.model.analysis
 
 import java.time.ZonedDateTime
 

@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    compile project(':api')
+    compile project(':model')
     compile project(':rest')
 
     // other plugins

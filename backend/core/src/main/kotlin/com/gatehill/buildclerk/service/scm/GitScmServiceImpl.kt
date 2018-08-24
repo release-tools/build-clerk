@@ -15,7 +15,7 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 open class GitScmServiceImpl @Inject constructor(
-        private val commandExecutorService: CommandExecutorService
+    private val commandExecutorService: CommandExecutorService
 ) : ScmService {
     private val logger = LogManager.getLogger(ScmService::class.java)
 
@@ -49,15 +49,15 @@ open class GitScmServiceImpl @Inject constructor(
         logger.info("Performing clean checkout of branch $branchName")
 
         git.clean()
-                .setCleanDirectories(true)
-                .setForce(true)
-                .call()
+            .setCleanDirectories(true)
+            .setForce(true)
+            .call()
 
         git.fetch().call()
 
         git.checkout()
-                .setName(branchName)
-                .call()
+            .setName(branchName)
+            .call()
 
         git.pull()
 
@@ -75,16 +75,16 @@ open class GitScmServiceImpl @Inject constructor(
         } else {
             // jgit doesn't support reverting commits with multiple parents (e.g. merge commits)
             commandExecutorService.exec(
-                    command = "git revert $commit --mainline 1",
-                    workingDir = Settings.Repository.localDir
+                command = "git revert $commit --mainline 1",
+                workingDir = Settings.Repository.localDir
             )
         }
     }
 
     private fun withRepo(block: Repository.() -> Unit) {
         FileRepositoryBuilder()
-                .setGitDir(Settings.Repository.localDir)
-                .build()
-                .use(block)
+            .setGitDir(Settings.Repository.localDir)
+            .build()
+            .use(block)
     }
 }

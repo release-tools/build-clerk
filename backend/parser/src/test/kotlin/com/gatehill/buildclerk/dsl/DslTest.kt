@@ -1,7 +1,7 @@
 package com.gatehill.buildclerk.dsl
 
 import com.gatehill.buildclerk.parser.Parser
-import org.junit.Assert.*
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.nio.file.Paths
 

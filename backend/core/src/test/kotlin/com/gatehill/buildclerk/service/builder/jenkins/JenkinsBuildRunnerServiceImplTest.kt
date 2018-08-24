@@ -29,8 +29,8 @@ class JenkinsBuildRunnerServiceImplTest {
     @Test
     fun `calculate job path for relative job URL`() {
         val report = buildReport(
-                shortUrl = "job/example/",
-                fullUrl = "job/example/11/"
+            shortUrl = "job/example/",
+            fullUrl = "job/example/11/"
         )
 
         val jobPath = service.calculateJobPath(report)
@@ -40,8 +40,8 @@ class JenkinsBuildRunnerServiceImplTest {
     @Test
     fun `calculate job path for simple job URL`() {
         val report = buildReport(
-                shortUrl = "job/example/",
-                fullUrl = "https://jenkins.example.com/job/example/11/"
+            shortUrl = "job/example/",
+            fullUrl = "https://jenkins.example.com/job/example/11/"
         )
 
         val jobPath = service.calculateJobPath(report)
@@ -51,8 +51,8 @@ class JenkinsBuildRunnerServiceImplTest {
     @Test
     fun `calculate job path for multibranch job URL`() {
         val report = buildReport(
-                shortUrl = "job/example/",
-                fullUrl = "https://jenkins.example.com/job/example/job/some-branch/11/"
+            shortUrl = "job/example/",
+            fullUrl = "https://jenkins.example.com/job/example/job/some-branch/11/"
         )
 
         val jobPath = service.calculateJobPath(report)
@@ -61,17 +61,17 @@ class JenkinsBuildRunnerServiceImplTest {
 
     private fun buildReport(shortUrl: String, fullUrl: String): BuildReport {
         return BuildReport(
-                name = "example",
-                url = shortUrl,
-                build = BuildDetails(
-                        number = 1,
-                        status = BuildStatus.SUCCESS,
-                        fullUrl = fullUrl,
-                        scm = Scm(
-                                branch = "master",
-                                commit = "c0ff33"
-                        )
+            name = "example",
+            url = shortUrl,
+            build = BuildDetails(
+                number = 1,
+                status = BuildStatus.SUCCESS,
+                fullUrl = fullUrl,
+                scm = Scm(
+                    branch = "master",
+                    commit = "c0ff33"
                 )
+            )
         )
     }
 }

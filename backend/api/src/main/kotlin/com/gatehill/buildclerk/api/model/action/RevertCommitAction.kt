@@ -1,6 +1,6 @@
 package com.gatehill.buildclerk.api.model.action
 
-import com.gatehill.buildclerk.toShortCommit
+import com.gatehill.buildclerk.api.util.toShortCommit
 
 data class RevertCommitAction(
     val commit: String,
