@@ -11,6 +11,7 @@ import com.gatehill.buildclerk.api.model.analysis.Analysis
 import com.gatehill.buildclerk.api.model.analysis.PostConfig
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.NotificationService
+import com.gatehill.buildclerk.api.service.PullRequestEventService
 import com.gatehill.buildclerk.api.util.Color
 import javax.inject.Inject
 
@@ -126,8 +127,12 @@ abstract class AbstractBuildBlock @Inject constructor(
         buildReportService.hasEverSucceeded(report.build.scm.commit)
     }
 
+    val successesForCommitOnBranch: Int by lazy {
+        buildReportService.countStatusForCommitOnBranch(report.build.scm.commit, branchName, BuildStatus.SUCCESS)
+    }
+
     val failuresForCommitOnBranch: Int by lazy {
-        buildReportService.countFailuresForCommitOnBranch(report.build.scm.commit, branchName)
+        buildReportService.countStatusForCommitOnBranch(report.build.scm.commit, branchName, BuildStatus.FAILED)
     }
 
     fun rebuildBranch() {
@@ -186,7 +191,8 @@ class RepositoryBlock @Inject constructor(
 
 class PullRequestMergedBlock @Inject constructor(
     notificationService: NotificationService,
-    buildReportService: BuildReportService
+    buildReportService: BuildReportService,
+    private val pullRequestEventService: PullRequestEventService
 ) : AbstractBlock(
     notificationService,
     buildReportService
@@ -195,7 +201,7 @@ class PullRequestMergedBlock @Inject constructor(
     lateinit var currentBranchStatus: BuildStatus
 
     val prSummary: String
-        get() = "#${mergeEvent.pullRequest.id} [author: ${mergeEvent.pullRequest.author.username}]"
+        get() = pullRequestEventService.describePullRequest(mergeEvent)
 
     fun revertCommit() {
         analysis.recommend(

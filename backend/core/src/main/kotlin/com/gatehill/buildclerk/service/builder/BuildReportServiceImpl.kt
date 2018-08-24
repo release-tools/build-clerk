@@ -32,8 +32,8 @@ class BuildReportServiceImpl @Inject constructor(
     override fun lastPassingBuildForBranch(branchName: String): BuildReport? =
         buildReportDao.lastPassingCommitForBranch(branchName)
 
-    override fun countFailuresForCommitOnBranch(commit: String, branch: String): Int =
-        buildReportDao.countFailuresForCommitOnBranch(commit, branch)
+    override fun countStatusForCommitOnBranch(commit: String, branch: String, status: BuildStatus): Int =
+        buildReportDao.countStatusForCommitOnBranch(commit, branch, status)
 
     override fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus =
         buildReportDao.fetchBuildStatus(branchName, buildNumber)

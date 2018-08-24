@@ -1,4 +1,4 @@
-package com.gatehill.buildclerk.service.scm
+package com.gatehill.buildclerk.api.service
 
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 

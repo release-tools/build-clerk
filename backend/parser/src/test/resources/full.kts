@@ -40,7 +40,7 @@ config {
         )
 
         if (consecutiveFailuresOnBranch >= 2) {
-            log("Branch `$branchName` has failed $consecutiveFailuresOnBranch times consecutively")
+            log("Branch `$branchName` has failed $consecutiveFailuresOnBranch time(s) consecutively")
             lockBranch()
 
             postAnalysisToChannel(
@@ -52,7 +52,7 @@ config {
 
     pullRequestMerged {
         if (currentBranchStatus == BuildStatus.FAILED) {
-            log("PR $prSummary was merged into failing branch `$branchName` by ${mergeEvent.actor.username}")
+            log("PR $prSummary was merged into failing branch `$branchName`")
             revertCommit()
 
             postAnalysisToChannel(
@@ -61,7 +61,7 @@ config {
             )
 
         } else {
-            log("PR $prSummary was merged into branch `$branchName` by ${mergeEvent.actor.username}")
+            log("PR $prSummary was merged into branch `$branchName`")
             postAnalysisToChannel(
                     channelName = "general",
                     color = Color.GREEN

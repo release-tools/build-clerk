@@ -3,7 +3,7 @@ package com.gatehill.buildclerk.service.builder
 import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
-import com.gatehill.buildclerk.service.AnalysisService
+import com.gatehill.buildclerk.api.service.AnalysisService
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject

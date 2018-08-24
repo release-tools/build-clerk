@@ -4,20 +4,16 @@ import com.gatehill.buildclerk.api.model.BuildReport
 import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.model.analysis.Analysis
+import com.gatehill.buildclerk.api.service.AnalysisService
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.api.service.NotificationService
 import com.gatehill.buildclerk.api.util.toShortCommit
 import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.dsl.AbstractBuildBlock
 import com.gatehill.buildclerk.parser.Parser
-import com.gatehill.buildclerk.service.scm.PullRequestEventService
+import com.gatehill.buildclerk.api.service.PullRequestEventService
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
-
-interface AnalysisService {
-    fun analyseBuild(report: BuildReport): Analysis
-    fun analysePullRequest(mergeEvent: PullRequestMergedEvent, currentBranchStatus: BuildStatus): Analysis
-}
 
 class AnalysisServiceImpl @Inject constructor(
     private val parser: Parser,
@@ -115,26 +111,57 @@ class AnalysisServiceImpl @Inject constructor(
         )
 
         // perform some basic history checks on the commit
-        val failuresForCommitOnBranch = buildReportService.countFailuresForCommitOnBranch(commit, branchName)
-        val failureCountDescription = when (failuresForCommitOnBranch) {
-            0 -> "never failed"
-            1 -> "failed once"
-            else -> "failed $failuresForCommitOnBranch times"
-        }
-        analysis.log("Commit `${toShortCommit(commit)}` has $failureCountDescription on this branch.")
+        analyseBranchStatus(commit, branchName, analysis, BuildStatus.SUCCESS, "passed")
+        analyseBranchStatus(commit, branchName, analysis, BuildStatus.FAILED, "failed")
 
-        if (buildReportService.hasEverSucceeded(commit)) {
-            analysis.log("This commit has previously succeeded (on at least 1 branch).")
-        } else {
-            analysis.log("This commit has never succeeded on any branch.")
+        if (report.build.status == BuildStatus.FAILED) {
+            val passesOnBranch = buildReportService.countStatusForCommitOnBranch(
+                commit = commit,
+                branch = branchName,
+                status = BuildStatus.FAILED
+            )
+
+            // check other branches for commit
+            if (passesOnBranch == 0) {
+                if (buildReportService.hasEverSucceeded(commit)) {
+                    analysis.log("This commit has previously succeeded (on at least 1 branch).")
+                } else {
+                    analysis.log("This commit has never succeeded on any branch.")
+                }
+            }
         }
 
         // check if the commit originated from a PR
         pullRequestEventService.findPullRequestByMergeCommit(report.build.scm.commit)?.let { pullRequest ->
-            analysis.log("This commit was introduced by PR: ${pullRequestEventService.describePullRequest(pullRequest)}")
+            val prInfo = pullRequestEventService.describePullRequest(pullRequest)
+            analysis.log("This commit was introduced by PR $prInfo.")
         }
 
         return analysis
+    }
+
+    /**
+     * @param statusDescription past tense outcome, e.g. 'passed' or 'failed'
+     */
+    private fun analyseBranchStatus(
+        commit: String,
+        branchName: String,
+        analysis: Analysis,
+        status: BuildStatus,
+        statusDescription: String
+    ) {
+        val statusCount = buildReportService.countStatusForCommitOnBranch(
+            commit = commit,
+            branch = branchName,
+            status = status
+        )
+        val statusCountDescription = when (statusCount) {
+            0 -> "never $statusDescription"
+            1 -> "$statusDescription once"
+            2 -> "$statusDescription twice"
+            else -> "$statusDescription $statusCount times"
+        }
+        analysis.log("Commit `${toShortCommit(commit)}` has $statusCountDescription on this branch.")
     }
 
     override fun analysePullRequest(

@@ -5,8 +5,8 @@ import com.gatehill.buildclerk.api.model.BuildStatus
 import com.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import com.gatehill.buildclerk.api.service.BuildReportService
 import com.gatehill.buildclerk.config.Settings
-import com.gatehill.buildclerk.service.AnalysisService
-import com.gatehill.buildclerk.service.scm.PullRequestEventService
+import com.gatehill.buildclerk.api.service.AnalysisService
+import com.gatehill.buildclerk.api.service.PullRequestEventService
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
@@ -26,7 +26,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
 
         pullRequestEventDao.record(event)
 
-        val prInfo = describePullRequest(event)
+        val prInfo = "PR ${describePullRequest(event)}"
         val branchName = event.pullRequest.destination.branch.name
 
         if (Settings.EventFilter.repoNames.isNotEmpty() &&
@@ -55,7 +55,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     }
 
     override fun describePullRequest(event: PullRequestMergedEvent) =
-        "PR #${event.pullRequest.id} [author: ${event.pullRequest.author.username}, merged by: ${event.actor.username}]"
+        "#${event.pullRequest.id} '${event.pullRequest.title}' (author: ${event.pullRequest.author.username}, merged by: ${event.actor.username})"
 
     private fun analyse(event: PullRequestMergedEvent, currentBranchStatus: BuildStatus) {
         analysisService.analysePullRequest(

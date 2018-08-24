@@ -13,7 +13,7 @@ interface BuildReportService {
     fun fetchLastBuildForBranch(branchName: String): BuildReport?
     fun hasEverSucceeded(commit: String): Boolean
     fun lastPassingBuildForBranch(branchName: String): BuildReport?
-    fun countFailuresForCommitOnBranch(commit: String, branch: String): Int
+    fun countStatusForCommitOnBranch(commit: String, branch: String, status: BuildStatus): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
 }

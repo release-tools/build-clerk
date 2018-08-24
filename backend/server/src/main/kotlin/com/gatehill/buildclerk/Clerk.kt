@@ -14,7 +14,7 @@ import com.gatehill.buildclerk.parser.Parser
 import com.gatehill.buildclerk.parser.inject.InstanceFactory
 import com.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
 import com.gatehill.buildclerk.server.Server
-import com.gatehill.buildclerk.service.AnalysisService
+import com.gatehill.buildclerk.api.service.AnalysisService
 import com.gatehill.buildclerk.service.AnalysisServiceImpl
 import com.gatehill.buildclerk.service.CommandExecutorService
 import com.gatehill.buildclerk.service.PendingActionService
@@ -25,7 +25,7 @@ import com.gatehill.buildclerk.service.builder.jenkins.JenkinsBuildRunnerService
 import com.gatehill.buildclerk.service.notify.slack.SlackApiService
 import com.gatehill.buildclerk.service.notify.slack.SlackNotificationServiceImpl
 import com.gatehill.buildclerk.service.notify.slack.SlackOperationsService
-import com.gatehill.buildclerk.service.scm.PullRequestEventService
+import com.gatehill.buildclerk.api.service.PullRequestEventService
 import com.gatehill.buildclerk.service.scm.ScmService
 import com.gatehill.buildclerk.service.scm.bitbucket.BitbucketApiClientBuilder
 import com.gatehill.buildclerk.service.scm.bitbucket.BitbucketOperationsService

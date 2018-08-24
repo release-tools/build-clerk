@@ -7,7 +7,7 @@ import com.gatehill.buildclerk.config.Settings
 import com.gatehill.buildclerk.model.slack.ActionTriggeredEvent
 import com.gatehill.buildclerk.service.PendingActionService
 import com.gatehill.buildclerk.service.builder.BuildEventService
-import com.gatehill.buildclerk.service.scm.PullRequestEventService
+import com.gatehill.buildclerk.api.service.PullRequestEventService
 import com.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerResponse
