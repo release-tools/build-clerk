@@ -17,9 +17,9 @@ Run it:
 
 ## Testing
 
-Build notification:
+Failed build report:
 
-    curl -v -d '{ "name": "example", "url": "job/example", "build": { "number": 1, "status": "FAILED", "full_url": "http://example.com/job/example/1", "scm": { "branch": "master", "commit": "c0ff33" } } }' -H 'Content-Type: application/json' http://localhost:9090/builds
+    curl -v -d @./examples/build-failed.json -H 'Content-Type: application/json' http://localhost:9090/builds
 
 Slack action trigger:
 
