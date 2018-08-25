@@ -5,6 +5,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0"
 
     compile project(':backend:dsl')
+    compile project(':backend:plugin')
 }
 
 compileKotlin {

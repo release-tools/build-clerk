@@ -107,7 +107,7 @@ By default, Clerk uses an in-memory data store for build reports. This will not 
 
 To switch to a persistent, MongoDB based store, set the following environment variables:
 
-    REPORT_STORE_IMPL=com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl
+    STORE_IMPL=mongo
     MONGO_HOST=localhost
     MONGO_PORT=27017
 

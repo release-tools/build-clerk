@@ -32,12 +32,12 @@ kotlin {
 
 test {
     useJUnit {
-        excludeCategories 'com.gatehill.buildclerk.service.support.IntegrationTest'
+        excludeCategories 'io.gatehill.buildclerk.service.support.IntegrationTest'
     }
 }
 
 task integrationTest(type: Test) {
     useJUnit {
-        includeCategories 'com.gatehill.buildclerk.service.support.IntegrationTest'
+        includeCategories 'io.gatehill.buildclerk.service.support.IntegrationTest'
     }
 }

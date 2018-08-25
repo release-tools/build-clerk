@@ -5,7 +5,7 @@ subprojects {
             version_log4j = '2.5'
             version_retrofit = '2.1.0'
             version_jackson = '2.9.6'
-            version_guice = '4.1.0'
+            version_guice = '4.2.0'
             version_mockitokotlin = '2.0.0-RC1'
             version_junit = '4.11'
         }
@@ -18,7 +18,7 @@ subprojects {
         }
     }
 
-    group 'com.gatehill'
+    group 'io.gatehill'
     version '0.1.0'
 
     repositories {

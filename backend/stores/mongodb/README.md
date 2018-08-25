@@ -3,9 +3,9 @@ MongoDB store
 
 Set environment variables:
 
-    REPORT_STORE_IMPL="com.gatehill.buildclerk.dao.mongo.MongoBuildReportDaoImpl"
-    MONGO_HOST="localhost"
-    MONGO_PORT="27017"
+    STORE_IMPL=mongo
+    MONGO_HOST=localhost
+    MONGO_PORT=27017
 
 Testing with a local MongoDB:
 

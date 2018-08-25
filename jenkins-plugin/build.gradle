@@ -7,7 +7,7 @@ apply plugin: 'java'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-group = 'com.gatehill.buildclerk.jenkins'
+group = 'io.gatehill.buildclerk.jenkins'
 version = '0.1.0-SNAPSHOT'
 description = 'Jenkins plugin for Build Clerk'
 
