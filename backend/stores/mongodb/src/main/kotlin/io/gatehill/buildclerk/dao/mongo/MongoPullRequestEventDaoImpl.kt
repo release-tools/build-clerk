@@ -12,7 +12,6 @@ import org.litote.kmongo.findOne
 
 class MongoPullRequestEventDaoImpl : AbstractMongoDao(), PullRequestEventDao {
     override val collectionName = "pull_requests_merged"
-
     override fun record(
         mergedEvent: PullRequestMergedEvent
     ) = withCollection<MongoPullRequestMergedEventWrapper, Unit> {
@@ -26,4 +25,8 @@ class MongoPullRequestEventDaoImpl : AbstractMongoDao(), PullRequestEventDao {
             findOne(MongoPullRequestMergedEventWrapper::mergeEvent / PullRequestMergedEvent::pullRequest / PullRequest::mergeCommit / Commit::hash eq commit)
                 ?.mergeEvent
         }
+
+    override fun count() = withCollection<MongoPullRequestMergedEventWrapper, Int> {
+        countDocuments().toInt()
+    }
 }

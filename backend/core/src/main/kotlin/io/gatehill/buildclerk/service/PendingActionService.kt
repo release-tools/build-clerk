@@ -234,6 +234,8 @@ class PendingActionService @Inject constructor(
     private fun showText(triggeringChannel: String, action: ShowTextAction) {
         notificationService.notify(action.channelName ?: triggeringChannel, action.body, action.color.hexCode)
     }
+
+    fun countPendingActionSets() = pendingActionDao.count()
 }
 
 internal data class SelectedAction(

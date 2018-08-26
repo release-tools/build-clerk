@@ -16,4 +16,5 @@ interface BuildReportService {
     fun countStatusForCommitOnBranch(commit: String, branch: String, status: BuildStatus): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
+    fun countReports(): Int
 }

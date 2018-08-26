@@ -10,7 +10,6 @@ import org.litote.kmongo.findOne
 
 class MongoPendingActionDaoImpl : AbstractMongoDao(), PendingActionDao {
     override val collectionName = "pending_actions"
-
     override fun save(actionSet: PendingActionSet) =
         withCollection<MongoActionSetWrapper, Unit> {
             insertOne(actionSet.wrap())
@@ -24,5 +23,9 @@ class MongoPendingActionDaoImpl : AbstractMongoDao(), PendingActionDao {
 
     override fun delete(actionSetId: String) = withCollection<MongoActionSetWrapper, Unit> {
         deleteOne(MongoActionSetWrapper::actionSet / PendingActionSet::id eq actionSetId)
+    }
+
+    override fun count() = withCollection<MongoActionSetWrapper, Int> {
+        countDocuments().toInt()
     }
 }

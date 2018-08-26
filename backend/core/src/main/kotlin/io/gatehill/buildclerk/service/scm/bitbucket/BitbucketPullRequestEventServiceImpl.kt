@@ -69,4 +69,6 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
 
     override fun findPullRequestByMergeCommit(commit: String): PullRequestMergedEvent? =
         pullRequestEventDao.findByMergeCommit(commit)
+
+    override fun countPullRequests() = pullRequestEventDao.count()
 }

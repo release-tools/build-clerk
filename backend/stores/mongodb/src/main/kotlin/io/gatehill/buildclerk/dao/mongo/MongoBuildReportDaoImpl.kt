@@ -87,4 +87,8 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             .takeWhile { it.buildReport.build.status == BuildStatus.FAILED }
             .count()
     }
+
+    override fun count() = withCollection<MongoBuildReportWrapper, Int> {
+        countDocuments().toInt()
+    }
 }

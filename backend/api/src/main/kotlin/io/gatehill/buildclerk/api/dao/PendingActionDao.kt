@@ -6,4 +6,5 @@ interface PendingActionDao {
     fun save(actionSet: PendingActionSet)
     fun load(actionSetId: String): PendingActionSet?
     fun delete(actionSetId: String)
+    fun count(): Int
 }

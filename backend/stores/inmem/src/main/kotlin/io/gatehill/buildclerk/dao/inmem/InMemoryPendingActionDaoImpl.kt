@@ -16,4 +16,6 @@ class InMemoryPendingActionDaoImpl : PendingActionDao {
     override fun delete(actionSetId: String) {
         pending.remove(actionSetId)
     }
+
+    override fun count() = pending.size
 }

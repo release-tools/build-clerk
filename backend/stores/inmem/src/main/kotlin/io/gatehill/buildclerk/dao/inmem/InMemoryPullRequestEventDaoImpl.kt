@@ -12,4 +12,6 @@ class InMemoryPullRequestEventDaoImpl : PullRequestEventDao {
 
     override fun findByMergeCommit(commit: String): PullRequestMergedEvent? =
         store.find { it.pullRequest.mergeCommit.hash == commit }
+
+    override fun count() = store.size
 }

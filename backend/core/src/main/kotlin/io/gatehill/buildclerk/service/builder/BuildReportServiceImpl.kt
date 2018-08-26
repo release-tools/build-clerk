@@ -15,7 +15,6 @@ import javax.inject.Inject
 class BuildReportServiceImpl @Inject constructor(
     private val buildReportDao: BuildReportDao
 ) : BuildReportService {
-
     private val logger = LogManager.getLogger(BuildReportServiceImpl::class.java)
 
     override fun record(buildReport: BuildReport) {
@@ -40,4 +39,6 @@ class BuildReportServiceImpl @Inject constructor(
 
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int =
         buildReportDao.countConsecutiveFailuresOnBranch(branchName)
+
+    override fun countReports() = buildReportDao.count()
 }
