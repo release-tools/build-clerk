@@ -1,13 +1,12 @@
 package io.gatehill.buildclerk.dao.mongo
 
 import io.gatehill.buildclerk.api.dao.BuildReportDao
+import io.gatehill.buildclerk.api.model.BuildDetails
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
-import io.gatehill.buildclerk.dao.mongo.model.MongoBuildDetails
-import io.gatehill.buildclerk.dao.mongo.model.MongoBuildReport
-import io.gatehill.buildclerk.dao.mongo.model.MongoScm
-import io.gatehill.buildclerk.dao.mongo.model.toBuildReport
-import io.gatehill.buildclerk.dao.mongo.model.toMongoBuildReport
+import io.gatehill.buildclerk.api.model.Scm
+import io.gatehill.buildclerk.dao.mongo.model.MongoBuildReportWrapper
+import io.gatehill.buildclerk.dao.mongo.model.wrap
 import org.litote.kmongo.descending
 import org.litote.kmongo.div
 import org.litote.kmongo.eq
@@ -15,36 +14,38 @@ import org.litote.kmongo.find
 import org.litote.kmongo.findOne
 
 class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
+    override val collectionName = "build_reports"
+
     override fun save(
         report: BuildReport
-    ) = withCollection<MongoBuildReport, Unit> {
-        insertOne(report.toMongoBuildReport())
+    ) = withCollection<MongoBuildReportWrapper, Unit> {
+        insertOne(report.wrap())
     }
 
     override fun fetchLastBuildForBranch(
         branchName: String
-    ): BuildReport? = withCollection<MongoBuildReport, BuildReport?> {
-        find(MongoBuildReport::name eq branchName)
-            .sort(descending(MongoBuildReport::createdDate))
-            .limit(1).first()?.toBuildReport()
+    ): BuildReport? = withCollection<MongoBuildReportWrapper, BuildReport?> {
+        find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
+            .sort(descending(MongoBuildReportWrapper::createdDate))
+            .limit(1).first()?.buildReport
     }
 
     override fun hasEverSucceeded(
         commit: String
-    ): Boolean = withCollection<MongoBuildReport, Boolean> {
-        findOne(MongoBuildReport::build / MongoBuildDetails::scm / MongoScm::commit eq commit) != null
+    ): Boolean = withCollection<MongoBuildReportWrapper, Boolean> {
+        findOne(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::commit eq commit) != null
     }
 
     override fun lastPassingCommitForBranch(
         branchName: String
-    ): BuildReport? = withCollection<MongoBuildReport, BuildReport?> {
+    ): BuildReport? = withCollection<MongoBuildReportWrapper, BuildReport?> {
         find(
-            MongoBuildReport::build / MongoBuildDetails::scm / MongoScm::branch eq branchName,
-            MongoBuildReport::build / MongoBuildDetails::status eq BuildStatus.SUCCESS
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::status eq BuildStatus.SUCCESS
         ).run {
-            sort(descending(MongoBuildReport::createdDate))
+            sort(descending(MongoBuildReportWrapper::createdDate))
                 .limit(1).first()
-                ?.toBuildReport()
+                ?.buildReport
         }
     }
 
@@ -52,38 +53,38 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         commit: String,
         branchName: String,
         status: BuildStatus
-    ): Int = withCollection<MongoBuildReport, Int> {
+    ): Int = withCollection<MongoBuildReportWrapper, Int> {
         find(
-            MongoBuildReport::build / MongoBuildDetails::scm / MongoScm::branch eq branchName,
-            MongoBuildReport::build / MongoBuildDetails::scm / MongoScm::commit eq commit,
-            MongoBuildReport::build / MongoBuildDetails::status eq status
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::commit eq commit,
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::status eq status
         ).run {
-            sort(descending(MongoBuildReport::createdDate)).count()
+            sort(descending(MongoBuildReportWrapper::createdDate)).count()
         }
     }
 
     override fun fetchBuildStatus(
         branchName: String,
         buildNumber: Int
-    ): BuildStatus = withCollection<MongoBuildReport, BuildStatus> {
+    ): BuildStatus = withCollection<MongoBuildReportWrapper, BuildStatus> {
         find(
-            MongoBuildReport::build / MongoBuildDetails::scm / MongoScm::branch eq branchName,
-            MongoBuildReport::build / MongoBuildDetails::number eq buildNumber
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number eq buildNumber
         ).run {
-            sort(descending(MongoBuildReport::createdDate))
-                .limit(1).first()?.build?.status
+            sort(descending(MongoBuildReportWrapper::createdDate))
+                .limit(1).first()?.buildReport?.build?.status
                 ?: BuildStatus.UNKNOWN
         }
     }
 
     override fun countConsecutiveFailuresOnBranch(
         branchName: String
-    ): Int = withCollection<MongoBuildReport, Int> {
+    ): Int = withCollection<MongoBuildReportWrapper, Int> {
         // Note: find() returns a cursor, so only the required results are fetched, until takeWhile {} terminates.
         // see: `KMongoIterable.takeWhile`
-        find(MongoBuildReport::build / MongoBuildDetails::scm / MongoScm::branch eq branchName)
-            .sort(descending(MongoBuildReport::createdDate))
-            .takeWhile { it.build.status == BuildStatus.FAILED }
+        find(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName)
+            .sort(descending(MongoBuildReportWrapper::createdDate))
+            .takeWhile { it.buildReport.build.status == BuildStatus.FAILED }
             .count()
     }
 }

@@ -6,6 +6,8 @@ import org.litote.kmongo.KMongo
 import org.litote.kmongo.getCollection
 
 abstract class AbstractMongoDao {
+    abstract val collectionName: String
+
     /**
      * Execute `block` on a Mongo collection and close the client after use.
      */
@@ -16,7 +18,7 @@ abstract class AbstractMongoDao {
         port = MongoSettings.port
     ).use { client ->
         val database = client.getDatabase("clerk")
-        val collection = database.getCollection<T>()
+        val collection = database.getCollection<T>(collectionName)
         collection.block()
     }
 }
