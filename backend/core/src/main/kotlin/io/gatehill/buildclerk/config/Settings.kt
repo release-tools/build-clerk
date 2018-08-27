@@ -10,17 +10,34 @@ object Settings {
         val repoNames: List<Regex> by lazy {
             System.getenv("FILTER_REPOS")?.split(",")?.map { it.toRegex() } ?: emptyList()
         }
+
         val branchNames: List<Regex> by lazy {
             System.getenv("FILTER_BRANCHES")?.split(",")?.map { it.toRegex() } ?: emptyList()
         }
     }
 
-    object Repository {
+    class Repository(env: Map<String, String>? = null) : EnvironmentSettings(env) {
         val localDir: File by lazy {
-            System.getenv("GIT_REPO_LOCAL_DIR")?.let { File(it) }
+            getenv("GIT_REPO_LOCAL_DIR")?.let { File(it) }
                 ?: Files.createTempDirectory("git_repo").toFile()
         }
-        val pushChanges: Boolean by lazy { System.getenv("GIT_REPO_PUSH_CHANGES")?.toBoolean() == true }
+
+        val pushChanges: Boolean by lazy { getenv("GIT_REPO_PUSH_CHANGES")?.toBoolean() == true }
+
+        /**
+         * Examples:
+         *
+         * - ssh://user@example.com/repo.git
+         * - https://github.com/user/repo.git
+         */
+        val remoteUrl: String by lazy {
+            getenv("GIT_REPO_REMOTE_URL")
+                ?: throw IllegalStateException("Missing Git remote URL")
+        }
+
+        val userName: String? by lazy { getenv("GIT_REPO_USERNAME") }
+
+        val password: String? by lazy { getenv("GIT_REPO_PASSWORD") }
     }
 
     object Jenkins {

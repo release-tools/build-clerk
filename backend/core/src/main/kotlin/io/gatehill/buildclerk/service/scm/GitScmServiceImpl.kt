@@ -1,5 +1,6 @@
 package io.gatehill.buildclerk.service.scm
 
+import com.jcraft.jsch.Session
 import io.gatehill.buildclerk.config.Settings
 import io.gatehill.buildclerk.service.CommandExecutorService
 import org.apache.logging.log4j.LogManager
@@ -7,7 +8,15 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.transport.JschConfigSessionFactory
+import org.eclipse.jgit.transport.OpenSshConfig.Host
+import org.eclipse.jgit.transport.SshTransport
+import org.eclipse.jgit.transport.TransportHttp
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.eclipse.jgit.util.FileUtils
+import java.util.Objects.nonNull
 import javax.inject.Inject
+
 
 /**
  * Git SCM repository.
@@ -15,6 +24,7 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 open class GitScmServiceImpl @Inject constructor(
+    private val repositorySettings: Settings.Repository,
     private val commandExecutorService: CommandExecutorService
 ) : ScmService {
     private val logger = LogManager.getLogger(ScmService::class.java)
@@ -27,11 +37,11 @@ open class GitScmServiceImpl @Inject constructor(
                 cleanCheckout(git, branchName)
                 revertCommit(git, commit)
 
-                if (repositoryState != RepositoryState.SAFE) {
+                if (repositoryState != RepositoryState.BARE) {
                     throw IllegalStateException("Repository state is: $repositoryState")
                 }
 
-                if (Settings.Repository.pushChanges) {
+                if (repositorySettings.pushChanges) {
                     logger.info("Pushing changes to remote")
                     git.push().call()
                 } else {
@@ -53,16 +63,17 @@ open class GitScmServiceImpl @Inject constructor(
             .setForce(true)
             .call()
 
-        git.fetch().call()
+        git.fetch()
+            .setRemoveDeletedRefs(true)
+            .call()
 
         git.checkout()
             .setName(branchName)
+            .setForce(true)
             .call()
 
-        git.pull()
-
-        if (git.repository.repositoryState != RepositoryState.SAFE) {
-            throw IllegalStateException("Repository state is: ${git.repository.repositoryState}")
+        if (git.repository.repositoryState != RepositoryState.BARE) {
+            throw IllegalStateException("Repository state is not bare. Current state is: ${git.repository.repositoryState}")
         }
     }
 
@@ -76,15 +87,73 @@ open class GitScmServiceImpl @Inject constructor(
             // jgit doesn't support reverting commits with multiple parents (e.g. merge commits)
             commandExecutorService.exec(
                 command = "git revert $commit --mainline 1",
-                workingDir = Settings.Repository.localDir
+                workingDir = repositorySettings.localDir
             )
         }
     }
 
     private fun withRepo(block: Repository.() -> Unit) {
-        FileRepositoryBuilder()
-            .setGitDir(Settings.Repository.localDir)
-            .build()
-            .use(block)
+        val repository: Repository = if (isLocalRepoPresent()) {
+            logger.debug("Existing local bare repository found at: ${repositorySettings.localDir}")
+            FileRepositoryBuilder()
+                .setGitDir(repositorySettings.localDir)
+                .build()
+        } else {
+            logger.debug("Local bare repository not found at: ${repositorySettings.localDir} - attempting clone")
+            clone().repository
+        }
+
+        repository.use(block)
     }
+
+    /**
+     * Clone a repository.
+     */
+    internal fun clone(): Git {
+        logger.info("Cloning remote repository: ${repositorySettings.remoteUrl} to: ${repositorySettings.localDir}")
+
+        FileUtils.delete(repositorySettings.localDir, FileUtils.RECURSIVE)
+
+        val cloneCommand = Git.cloneRepository()
+        cloneCommand.setBare(true)
+        cloneCommand.setDirectory(repositorySettings.localDir)
+        cloneCommand.setURI(repositorySettings.remoteUrl)
+
+        val sshSessionFactory = object : JschConfigSessionFactory() {
+            override fun configure(host: Host, session: Session) {
+                // caters for SSH + password, i.e. not public key authentication
+                repositorySettings.password?.let { session.setPassword(it) }
+            }
+        }
+
+        cloneCommand.setTransportConfigCallback { transport ->
+            when (transport) {
+                is SshTransport -> {
+                    logger.debug("Configuring repository transport for SSH")
+                    transport.sshSessionFactory = sshSessionFactory
+                }
+                is TransportHttp -> {
+                    if (isUserNameAndPasswordConfigured()) {
+                        logger.debug("Configuring repository transport with HTTP credentials")
+                        transport.credentialsProvider = UsernamePasswordCredentialsProvider(
+                            repositorySettings.userName,
+                            repositorySettings.password
+                        )
+                    } else {
+                        logger.debug("No HTTP credentials configured for repository transport - assuming unauthenticated")
+                    }
+                }
+            }
+        }
+
+        return cloneCommand.call()
+    }
+
+    private fun isLocalRepoPresent() =
+        repositorySettings.localDir.exists() &&
+                repositorySettings.localDir.isDirectory &&
+                repositorySettings.localDir.list().isNotEmpty()
+
+    private fun isUserNameAndPasswordConfigured() =
+        nonNull(repositorySettings.userName) && nonNull(repositorySettings.password)
 }

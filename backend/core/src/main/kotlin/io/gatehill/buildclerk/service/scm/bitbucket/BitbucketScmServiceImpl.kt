@@ -1,5 +1,6 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
+import io.gatehill.buildclerk.config.Settings
 import io.gatehill.buildclerk.service.CommandExecutorService
 import io.gatehill.buildclerk.service.scm.GitScmServiceImpl
 import org.apache.logging.log4j.LogManager
@@ -12,10 +13,12 @@ import javax.inject.Inject
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class BitbucketScmServiceImpl @Inject constructor(
+    repositorySettings: Settings.Repository,
     commandExecutorService: CommandExecutorService,
     private val apiClientBuilder: BitbucketApiClientBuilder,
     private val bitbucketOperationsService: BitbucketOperationsService
 ) : GitScmServiceImpl(
+    repositorySettings,
     commandExecutorService
 ) {
     private val logger: Logger = LogManager.getLogger(BitbucketScmServiceImpl::class.java)

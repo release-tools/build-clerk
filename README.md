@@ -83,11 +83,6 @@ Bitbucket configuration:
 * `BITBUCKET_AUTH_USERNAME` - the username to authenticate with Bitbucket (if it differs from the repository username)
 * `BITBUCKET_PASSWORD` - the password (preferably an 'app password') to authenticate with Bitbucket
 
-Git repository configuration:
-
-* `GIT_REPO_LOCAL_DIR` - path to a local repository clone
-* `GIT_REPO_PUSH_CHANGES` - whether to push changes to the remote
-
 Global filters:
 
 * `FILTER_BRANCHES` - only process events for this SCM branch
@@ -112,6 +107,24 @@ To switch to a persistent, MongoDB based store, set the following environment va
     MONGO_PORT=27017
 
 > Set the host and port variables to those of your MongoDB instance.
+
+### Cloning remote repository
+
+For some actions, Clerk can examine the commits in a remote source repository.
+
+In order for this to work, Clerk must have access to a bare Git repository, or be authenticated to clone one.
+
+* `GIT_REPO_LOCAL_DIR` - path to a local repository clone
+* `GIT_REPO_PUSH_CHANGES` - whether to push changes to the remote
+* `GIT_REPO_REMOTE_URL` - the remote URL of the repository.
+* `GIT_REPO_USERNAME` - used for HTTP(S) remote repository URLs only
+* `GIT_REPO_PASSWORD` - used for HTTP(S) remote repository URLs, or, optionally with SSH URLs where a public key is not used
+
+#### A note on Git authentication
+
+For SSH URLs, Clerk uses the configuration of the machine on which it is running. This means your local SSH configuration (public key etc.) is used.
+
+For HTTP(S) URLs, Clerk looks for the configured username and password, or else assumes the remote repository is unauthenticated.
 
 ## Endpoints
 

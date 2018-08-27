@@ -14,6 +14,7 @@ dependencies {
     // testing
     testCompile "junit:junit:$version_junit"
     testCompile "org.apache.logging.log4j:log4j-core:$version_log4j"
+    testCompile "org.apache.logging.log4j:log4j-slf4j-impl:$version_log4j"
     testCompile "com.nhaarman.mockitokotlin2:mockito-kotlin:$version_mockitokotlin"
 }
 
