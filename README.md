@@ -108,17 +108,24 @@ To switch to a persistent, MongoDB based store, set the following environment va
 
 > Set the host and port variables to those of your MongoDB instance.
 
-### Cloning remote repository
+### Understanding your source repository
 
-For some actions, Clerk can examine the commits in a remote source repository.
+For some analyses, Clerk can examine the commits in your source repository.
 
 In order for this to work, Clerk must have access to a bare Git repository, or be authenticated to clone one.
 
+The relevant configuration variables for working with the source repository are:
+
 * `GIT_REPO_LOCAL_DIR` - path to a local repository clone
-* `GIT_REPO_PUSH_CHANGES` - whether to push changes to the remote
 * `GIT_REPO_REMOTE_URL` - the remote URL of the repository.
 * `GIT_REPO_USERNAME` - used for HTTP(S) remote repository URLs only
 * `GIT_REPO_PASSWORD` - used for HTTP(S) remote repository URLs, or, optionally with SSH URLs where a public key is not used
+
+If you choose to use the `revertCommit` action, you'll also need to set the following configuration variable:
+
+* `GIT_REPO_PUSH_CHANGES` (default: `false`) - whether to push changes to the remote
+
+> If this is set to `false`, any changes will not be pushed to the remote repository. This can be useful for testing.
 
 #### A note on Git authentication
 

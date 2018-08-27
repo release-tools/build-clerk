@@ -110,9 +110,11 @@ open class GitScmServiceImpl @Inject constructor(
      * Clone a repository.
      */
     internal fun clone(): Git {
-        logger.info("Cloning remote repository: ${repositorySettings.remoteUrl} to: ${repositorySettings.localDir}")
+        logger.info("Cloning remote repository: ${repositorySettings.remoteUrl}")
 
-        FileUtils.delete(repositorySettings.localDir, FileUtils.RECURSIVE)
+        if (repositorySettings.localDir.exists()) {
+            FileUtils.delete(repositorySettings.localDir, FileUtils.RECURSIVE)
+        }
 
         val cloneCommand = Git.cloneRepository()
         cloneCommand.setBare(true)
@@ -146,7 +148,10 @@ open class GitScmServiceImpl @Inject constructor(
             }
         }
 
-        return cloneCommand.call()
+        val git = cloneCommand.call()
+        logger.info("Cloned remote repository to: ${repositorySettings.localDir}")
+
+        return git
     }
 
     private fun isLocalRepoPresent() =
