@@ -3,9 +3,16 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.3.0] - 2018-08-28
 ### Added
-- ...
+- Adds support for cloning remote Git repositories (fixes #2).
+- Fetches committer and author identities for analysis (fixes #16).
+- Adds statistics endpoint listing object counts.
+- Improves DSL for publishing analysis and posting messages.
+- Improves SCM clone documentation.
+
+### Changed
+- Only removes local repository directory on cloning if already exists.
 
 ## [0.2.0] - 2018-08-26
 ### Added
