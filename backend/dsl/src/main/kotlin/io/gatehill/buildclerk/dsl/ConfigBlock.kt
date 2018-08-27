@@ -8,7 +8,7 @@ import io.gatehill.buildclerk.api.model.action.RebuildBranchAction
 import io.gatehill.buildclerk.api.model.action.RevertCommitAction
 import io.gatehill.buildclerk.api.model.action.ShowTextAction
 import io.gatehill.buildclerk.api.model.analysis.Analysis
-import io.gatehill.buildclerk.api.model.analysis.PostConfig
+import io.gatehill.buildclerk.api.model.analysis.PublishConfig
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.NotificationService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
@@ -102,18 +102,18 @@ abstract class AbstractBlock @Inject constructor(
         analysis.recommend(LockBranchAction(branchName))
     }
 
-    fun notifyChannel(
+    fun postMessage(
         channelName: String,
         message: String,
         color: Color = Color.BLACK
     ) =
         notificationService.notify(channelName, message, color.hexCode)
 
-    fun postAnalysisToChannel(
+    fun publishAnalysis(
         channelName: String,
         color: Color = Color.BLACK
     ) {
-        analysis.postConfig = PostConfig(
+        analysis.publishConfig = PublishConfig(
             channelName = channelName,
             color = color
         )

@@ -13,7 +13,7 @@ class Analysis(
     val url: String? = null
 ) {
     val actionSet = PendingActionSet()
-    var postConfig: PostConfig? = null
+    var publishConfig: PublishConfig? = null
     private val events = mutableListOf<AnalysisEvent>()
 
     fun log(message: String) {

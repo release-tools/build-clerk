@@ -27,7 +27,7 @@ if (failuresForCommitOnBranch <= 2) {
     lockBranch()
 }
 
-postAnalysisToChannel("general")
+publishAnalysis("general")
 ```
 
 > This is just a taste of what you can do. See the examples in the `parser` module's tests for more, or read on to learn about the events supported.

@@ -18,14 +18,14 @@ config {
             revertCommit()
         }
 
-        postAnalysisToChannel(
+        publishAnalysis(
                 channelName = "general",
                 color = Color.RED
         )
     }
 
     branchStartsPassing {
-        notifyChannel(
+        postMessage(
                 channelName = "general",
                 message = "${report.name} branch `$branchName` is healthy again! ${report.build.fullUrl}",
                 color = Color.GREEN
@@ -43,7 +43,7 @@ config {
             log("Branch `$branchName` has failed $consecutiveFailuresOnBranch time(s) consecutively")
             lockBranch()
 
-            postAnalysisToChannel(
+            publishAnalysis(
                     channelName = "general",
                     color = Color.RED
             )
@@ -55,14 +55,14 @@ config {
             log("PR $prSummary was merged into failing branch `$branchName`")
             revertCommit()
 
-            postAnalysisToChannel(
+            publishAnalysis(
                     channelName = "general",
                     color = Color.RED
             )
 
         } else {
             log("PR $prSummary was merged into branch `$branchName`")
-            postAnalysisToChannel(
+            publishAnalysis(
                     channelName = "general",
                     color = Color.GREEN
             )
@@ -70,7 +70,7 @@ config {
     }
 
     buildPassed {
-        notifyChannel(
+        postMessage(
                 channelName = "general",
                 message = "${report.name} build passed on branch `$branchName`: ${report.build.fullUrl}",
                 color = Color.GREEN
@@ -78,7 +78,7 @@ config {
     }
 
     branchStartsFailing {
-        notifyChannel(
+        postMessage(
                 channelName = "general",
                 message = "${report.name} branch `$branchName` is now failing: ${report.build.fullUrl}",
                 color = Color.RED

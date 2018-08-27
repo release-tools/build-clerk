@@ -239,7 +239,7 @@ class AnalysisServiceImpl @Inject constructor(
         if (analysis.isNotEmpty()) {
             pendingActionService.enqueue(analysis.actionSet)
         }
-        analysis.postConfig?.let { postConfig ->
+        analysis.publishConfig?.let { postConfig ->
             notificationService.notify(postConfig.channelName, analysis, postConfig.color.hexCode)
         }
     }
