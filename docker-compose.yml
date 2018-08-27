@@ -37,6 +37,9 @@ services:
     # If it differs from the repo username, override here
     - BITBUCKET_AUTH_USERNAME
 
+    # Git repository
+    - GIT_REPO_REMOTE_URL=https://github.com/outofcoffee/build-clerk.git
+
   mongo:
     image: mongo:3.6
     container_name: mongo

@@ -12,6 +12,10 @@ import io.gatehill.buildclerk.api.util.toShortCommit
 import io.gatehill.buildclerk.config.Settings
 import io.gatehill.buildclerk.dsl.AbstractBuildBlock
 import io.gatehill.buildclerk.parser.Parser
+import io.gatehill.buildclerk.service.scm.ScmService
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.awaitAll
+import kotlinx.coroutines.experimental.runBlocking
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -20,7 +24,8 @@ class AnalysisServiceImpl @Inject constructor(
     private val buildReportService: BuildReportService,
     private val pendingActionService: PendingActionService,
     private val notificationService: NotificationService,
-    private val pullRequestEventService: PullRequestEventService
+    private val pullRequestEventService: PullRequestEventService,
+    private val scmService: ScmService
 ) : AnalysisService {
 
     private val logger = LogManager.getLogger(AnalysisService::class.java)
@@ -93,26 +98,71 @@ class AnalysisServiceImpl @Inject constructor(
     }
 
     private fun initBuildAnalysis(report: BuildReport): Analysis {
-        val branchName = report.build.scm.branch
-        val commit = report.build.scm.commit
-
         val name = when (report.build.status) {
-            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on $branchName"
-            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on $branchName"
-            else -> "${report.name} build #${report.build.number} on $branchName"
+            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on ${report.build.scm.branch}"
+            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on ${report.build.scm.branch}"
+            else -> "${report.name} build #${report.build.number} on ${report.build.scm.branch}"
         }
 
         val analysis = Analysis(
             logger = logger,
             name = name,
-            branch = branchName,
+            branch = report.build.scm.branch,
             user = report.build.triggeredBy,
             url = report.build.fullUrl
         )
 
-        // perform some basic history checks on the commit
-        analyseBranchStatus(commit, branchName, analysis, BuildStatus.SUCCESS, "passed")
-        analyseBranchStatus(commit, branchName, analysis, BuildStatus.FAILED, "failed")
+        runBlocking {
+            // perform some basic history checks on the commit
+            val checkHistory = async {
+                performHistoryChecks(report, analysis)
+            }
+
+            // check if the commit originated from a PR
+            val findPr = async {
+                pullRequestEventService.findPullRequestByMergeCommit(report.build.scm.commit)
+            }
+
+            // look up commit user info
+            val fetchUserInfo = async {
+                scmService.fetchUserInfoForCommit(report.build.scm.commit)
+            }
+
+            // wait for all jobs to complete, including ones with unit return value
+            // to avoid race condition updates to analysis
+            awaitAll(checkHistory, findPr, fetchUserInfo)
+
+            findPr.getCompleted()?.let { pullRequest ->
+                val prInfo = pullRequestEventService.describePullRequest(pullRequest)
+                analysis.log("This commit was introduced by PR $prInfo")
+            }
+
+            fetchUserInfo.getCompleted().let { userInfo ->
+                val sb = StringBuilder()
+                sb.append("Author is ${userInfo.author.userName} <${userInfo.author.email}>")
+                if (userInfo.author != userInfo.committer) {
+                    sb.append(", committer is ${userInfo.author.userName} <${userInfo.author.email}>")
+                }
+                analysis.log(sb.toString())
+            }
+        }
+
+        return analysis
+    }
+
+    /**
+     * Perform some basic history checks on the commit.
+     */
+    private fun performHistoryChecks(
+        report: BuildReport,
+        analysis: Analysis
+    ) {
+        val branchName = report.build.scm.branch
+        val commit = report.build.scm.commit
+
+        val passedCount = analyseBranchStatus(commit, branchName, BuildStatus.SUCCESS, "passed")
+        val failedCount = analyseBranchStatus(commit, branchName, BuildStatus.FAILED, "failed")
+        analysis.log("Commit `${toShortCommit(commit)}` has $passedCount and $failedCount on this branch")
 
         if (report.build.status == BuildStatus.FAILED) {
             val passesOnBranch = buildReportService.countStatusForCommitOnBranch(
@@ -124,20 +174,12 @@ class AnalysisServiceImpl @Inject constructor(
             // check other branches for commit
             if (passesOnBranch == 0) {
                 if (buildReportService.hasEverSucceeded(commit)) {
-                    analysis.log("This commit has previously succeeded (on at least 1 branch).")
+                    analysis.log("This commit has previously succeeded (on at least 1 branch)")
                 } else {
-                    analysis.log("This commit has never succeeded on any branch.")
+                    analysis.log("This commit has never succeeded on any branch")
                 }
             }
         }
-
-        // check if the commit originated from a PR
-        pullRequestEventService.findPullRequestByMergeCommit(report.build.scm.commit)?.let { pullRequest ->
-            val prInfo = pullRequestEventService.describePullRequest(pullRequest)
-            analysis.log("This commit was introduced by PR $prInfo.")
-        }
-
-        return analysis
     }
 
     /**
@@ -146,22 +188,20 @@ class AnalysisServiceImpl @Inject constructor(
     private fun analyseBranchStatus(
         commit: String,
         branchName: String,
-        analysis: Analysis,
         status: BuildStatus,
         statusDescription: String
-    ) {
+    ) : String {
         val statusCount = buildReportService.countStatusForCommitOnBranch(
             commit = commit,
             branch = branchName,
             status = status
         )
-        val statusCountDescription = when (statusCount) {
+        return when (statusCount) {
             0 -> "never $statusDescription"
             1 -> "$statusDescription once"
             2 -> "$statusDescription twice"
             else -> "$statusDescription $statusCount times"
         }
-        analysis.log("Commit `${toShortCommit(commit)}` has $statusCountDescription on this branch.")
     }
 
     override fun analysePullRequest(

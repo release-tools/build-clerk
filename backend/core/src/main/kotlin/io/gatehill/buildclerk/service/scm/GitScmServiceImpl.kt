@@ -2,6 +2,8 @@ package io.gatehill.buildclerk.service.scm
 
 import com.jcraft.jsch.Session
 import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.model.scm.CommitUserInfo
+import io.gatehill.buildclerk.model.scm.ScmUser
 import io.gatehill.buildclerk.service.CommandExecutorService
 import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
@@ -27,27 +29,46 @@ open class GitScmServiceImpl @Inject constructor(
     private val repositorySettings: Settings.Repository,
     private val commandExecutorService: CommandExecutorService
 ) : ScmService {
+
     private val logger = LogManager.getLogger(ScmService::class.java)
 
-    override fun revertCommit(commit: String, branchName: String) {
+    override fun fetchUserInfoForCommit(commit: String): CommitUserInfo = withGit {
+        logger.debug("Fetching user info for commit $commit")
+
+        fetch()
+            .setRemoveDeletedRefs(true)
+            .call()
+
+        val resolvedCommit = repository.resolve(commit)
+        val revCommit = repository.parseCommit(resolvedCommit)
+
+        CommitUserInfo(
+            author = ScmUser(
+                userName = revCommit.authorIdent.name,
+                email = revCommit.authorIdent.emailAddress
+            ),
+            committer = ScmUser(
+                userName = revCommit.committerIdent.name,
+                email = revCommit.committerIdent.emailAddress
+            )
+        )
+    }
+
+    override fun revertCommit(commit: String, branchName: String): Unit = withGit {
         logger.info("Reverting commit $commit in branch $branchName")
 
-        withRepo {
-            Git(this).use { git ->
-                cleanCheckout(git, branchName)
-                revertCommit(git, commit)
+        fetchCheckout(branchName)
+        revertCommit(commit)
 
-                if (repositoryState != RepositoryState.BARE) {
-                    throw IllegalStateException("Repository state is: $repositoryState")
-                }
+        if (repository.repositoryState != RepositoryState.BARE) {
+            throw IllegalStateException("Repository state is: ${repository.repositoryState}")
+        }
 
-                if (repositorySettings.pushChanges) {
-                    logger.info("Pushing changes to remote")
-                    git.push().call()
-                } else {
-                    logger.info("Skipped pushing changes to remote")
-                }
-            }
+        if (repositorySettings.pushChanges) {
+            logger.info("Pushing changes to remote")
+            this.push().call()
+        } else {
+            logger.info("Skipped pushing changes to remote")
         }
     }
 
@@ -55,34 +76,29 @@ open class GitScmServiceImpl @Inject constructor(
         throw NotImplementedError("locking branches is not implemented")
     }
 
-    private fun cleanCheckout(git: Git, branchName: String) {
-        logger.info("Performing clean checkout of branch $branchName")
+    private fun Git.fetchCheckout(branchName: String) {
+        logger.debug("Performing checkout of branch $branchName")
 
-        git.clean()
-            .setCleanDirectories(true)
-            .setForce(true)
-            .call()
-
-        git.fetch()
+        fetch()
             .setRemoveDeletedRefs(true)
             .call()
 
-        git.checkout()
+        checkout()
             .setName(branchName)
             .setForce(true)
             .call()
 
-        if (git.repository.repositoryState != RepositoryState.BARE) {
-            throw IllegalStateException("Repository state is not bare. Current state is: ${git.repository.repositoryState}")
+        if (repository.repositoryState != RepositoryState.BARE) {
+            throw IllegalStateException("Repository state is not bare. Current state is: ${repository.repositoryState}")
         }
     }
 
-    private fun revertCommit(git: Git, commit: String) {
-        val ref = git.repository.findRef(commit)
-        val revCommit = git.repository.parseCommit(ref.objectId)
+    private fun Git.revertCommit(commit: String) {
+        val resolvedCommit = repository.resolve(commit)
+        val revCommit = repository.parseCommit(resolvedCommit)
 
         if (revCommit.parentCount == 1) {
-            git.revert().include(revCommit).call()
+            revert().include(revCommit).call()
         } else {
             // jgit doesn't support reverting commits with multiple parents (e.g. merge commits)
             commandExecutorService.exec(
@@ -92,7 +108,7 @@ open class GitScmServiceImpl @Inject constructor(
         }
     }
 
-    private fun withRepo(block: Repository.() -> Unit) {
+    private fun <T> withRepo(block: Repository.() -> T): T {
         val repository: Repository = if (isLocalRepoPresent()) {
             logger.debug("Existing local bare repository found at: ${repositorySettings.localDir}")
             FileRepositoryBuilder()
@@ -103,7 +119,15 @@ open class GitScmServiceImpl @Inject constructor(
             clone().repository
         }
 
-        repository.use(block)
+        return repository.use(block)
+    }
+
+    /**
+     * Creates a `Git` for the configured repository, on which the `block` is
+     * executed, then closes it.
+     */
+    private fun <T> withGit(block: Git.() -> T): T = withRepo {
+        Git(this).use(block)
     }
 
     /**
