@@ -18,8 +18,29 @@ pipeline {
         }
     }
     post {
-        always {
-            buildClerk serverUrl: 'http://b2c409e2.ngrok.io', branch: scmVars.GIT_LOCAL_BRANCH, commit: scmVars.GIT_COMMIT
+        success {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'SUCCESS',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
+        }
+        aborted {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'FAILED',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
+        }
+        failure {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'FAILED',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
+        }
+        unstable {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'FAILED',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
         }
     }
 }

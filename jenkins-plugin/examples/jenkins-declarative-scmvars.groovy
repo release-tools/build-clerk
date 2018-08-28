@@ -18,8 +18,25 @@ pipeline {
         }
     }
     post {
-        always {
-            buildClerk serverUrl: 'http://b2c409e2.ngrok.io', scmVars: scmVars
+        success {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'SUCCESS',
+                    scmVars: scmVars
+        }
+        aborted {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'FAILED',
+                    scmVars: scmVars
+        }
+        failure {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'FAILED',
+                    scmVars: scmVars
+        }
+        unstable {
+            buildClerk serverUrl: 'https://clerk.example.com',
+                    status: 'FAILED',
+                    scmVars: scmVars
         }
     }
 }

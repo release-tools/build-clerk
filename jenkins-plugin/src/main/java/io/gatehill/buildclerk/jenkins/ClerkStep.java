@@ -1,16 +1,15 @@
 package io.gatehill.buildclerk.jenkins;
 
-import io.gatehill.buildclerk.jenkins.service.NotificationService;
-import io.gatehill.buildclerk.jenkins.util.Constants;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
-import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import io.gatehill.buildclerk.jenkins.service.NotificationService;
+import io.gatehill.buildclerk.jenkins.util.Constants;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.steps.*;
+import org.jetbrains.annotations.NotNull;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -28,6 +27,7 @@ import java.util.Set;
  */
 public class ClerkStep extends Step {
     private final String serverUrl;
+    private String status;
     private String branch;
     private String commit;
     private Map<String, String> scmVars;
@@ -35,6 +35,15 @@ public class ClerkStep extends Step {
     @DataBoundConstructor
     public ClerkStep(@Nonnull final String serverUrl) {
         this.serverUrl = serverUrl;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    @DataBoundSetter
+    public void setStatus(@Nullable String status) {
+        this.status = status;
     }
 
     public String getServerUrl() {
@@ -70,6 +79,12 @@ public class ClerkStep extends Step {
 
     @Override
     public StepExecution start(StepContext context) {
+        final Map<String, String> consolidatedScmVars = consolidateScmVars();
+        return new ClerkStepExecution(this, context, consolidatedScmVars);
+    }
+
+    @NotNull
+    private Map<String, String> consolidateScmVars() {
         final Map<String, String> consolidatedScmVars = new HashMap<>();
         if (null != scmVars) {
             consolidatedScmVars.putAll(scmVars);
@@ -80,7 +95,7 @@ public class ClerkStep extends Step {
         if (StringUtils.isNotBlank(commit)) {
             consolidatedScmVars.put("GIT_COMMIT", commit);
         }
-        return new ClerkStepExecution(this, context, consolidatedScmVars);
+        return consolidatedScmVars;
     }
 
     @Symbol("buildClerk")
@@ -98,7 +113,7 @@ public class ClerkStep extends Step {
 
         @Override
         public Set<? extends Class<?>> getRequiredContext() {
-            return ImmutableSet.of(Run.class, TaskListener.class, Launcher.class);
+            return ImmutableSet.of(Run.class, TaskListener.class);
         }
     }
 
@@ -118,7 +133,7 @@ public class ClerkStep extends Step {
             final PrintStream logger = getContext().get(TaskListener.class).getLogger();
             final Run run = getContext().get(Run.class);
 
-            notificationService.sendNotification(logger, run, step.getServerUrl(), scmVars);
+            notificationService.sendNotification(logger, run, step.getServerUrl(), step.getStatus(), scmVars);
             return null;
         }
     }

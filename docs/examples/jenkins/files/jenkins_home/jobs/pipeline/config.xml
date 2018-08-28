@@ -28,8 +28,29 @@ pipeline {
         }
     }
     post {
-        always {
-            buildClerk serverUrl: 'http://clerk:9090', scmVars: scmVars
+        success {
+            buildClerk serverUrl: 'http://clerk:9090',
+                    status: 'SUCCESS',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
+        }
+        aborted {
+            buildClerk serverUrl: 'http://clerk:9090',
+                    status: 'FAILED',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
+        }
+        failure {
+            buildClerk serverUrl: 'http://clerk:9090',
+                    status: 'FAILED',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
+        }
+        unstable {
+            buildClerk serverUrl: 'http://clerk:9090',
+                    status: 'FAILED',
+                    branch: scmVars.GIT_LOCAL_BRANCH,
+                    commit: scmVars.GIT_COMMIT
         }
     }
 }

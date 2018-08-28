@@ -33,9 +33,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class NotificationService {
     private final JenkinsLocationConfiguration jenkinsConfig = new JenkinsLocationConfiguration();
 
-    public void sendNotification(PrintStream logger, Run run, String serverUrl, Map<String, String> scmVars) {
+    public void sendNotification(PrintStream logger, Run run, @Nonnull String serverUrl,
+                                 @Nonnull Map<String, String> scmVars) {
+        sendNotification(logger, run, serverUrl, null, scmVars);
+    }
+
+    public void sendNotification(PrintStream logger, Run run, @Nonnull String serverUrl,
+                                 @Nullable String status, @Nonnull Map<String, String> scmVars) {
         try {
-            final BuildReport notification = createBuildReport(logger, run, scmVars);
+            final BuildReport notification = createBuildReport(logger, run, status, scmVars);
             final String finalServerUrl = buildFinalServerUrl(serverUrl);
             logger.printf("Sending build report to %s:%n%s%n", finalServerUrl, notification);
 
@@ -51,8 +57,10 @@ public class NotificationService {
         }
     }
 
-    private BuildReport createBuildReport(PrintStream logger, Run run, Map<String, String> scmVars) {
-        final BuildStatus buildStatus = determineBuildStatus(logger, run);
+    private BuildReport createBuildReport(PrintStream logger, Run run, @Nullable String status,
+                                          @Nonnull Map<String, String> scmVars) {
+
+        final BuildStatus buildStatus = determineBuildStatus(logger, run, status);
         final Scm scm = fetchScmDetails(scmVars);
         final String triggeredBy = determineTriggeredBy(run);
 
@@ -86,24 +94,32 @@ public class NotificationService {
     }
 
     /**
-     * Workaround for null result bug - see https://issues.jenkins-ci.org/browse/JENKINS-46325
-     *
      * @param logger the logger
      * @param run    the current run
+     * @param status the status set by the caller
      * @return the build status
      */
-    private BuildStatus determineBuildStatus(PrintStream logger, Run run) {
+    private BuildStatus determineBuildStatus(PrintStream logger, Run run, @Nullable String status) {
         final BuildStatus buildStatus;
-        if (null == run.getResult()) {
-            if (run.isBuilding()) {
-                logger.println("Run result was null, but run is building - interpreting as success");
-                buildStatus = BuildStatus.SUCCESS;
-            } else {
-                logger.println("Run result was null, but run is not building - interpreting as failure");
-                buildStatus = BuildStatus.FAILED;
-            }
+        if (null != status) {
+            buildStatus = BuildStatus.valueOf(status);
+
         } else {
-            buildStatus = convertResult(run.getResult());
+            logger.print("Status not specified - attempting to determine from current run");
+
+            if (null != run.getResult()) {
+                buildStatus = convertResult(run.getResult());
+
+            } else {
+                // workaround for null result bug - see https://issues.jenkins-ci.org/browse/JENKINS-46325
+                if (run.isBuilding()) {
+                    logger.println("Run result was null, but run is building - interpreting as success");
+                    buildStatus = BuildStatus.SUCCESS;
+                } else {
+                    logger.println("Run result was null, but run is not building - interpreting as failure");
+                    buildStatus = BuildStatus.FAILED;
+                }
+            }
         }
         return buildStatus;
     }
@@ -115,7 +131,7 @@ public class NotificationService {
      * @return the corresponding build status
      */
     private BuildStatus convertResult(@CheckForNull Result result) {
-        if (Result.FAILURE.equals(result) || Result.UNSTABLE.equals(result)) {
+        if (Result.FAILURE.equals(result) || Result.UNSTABLE.equals(result) || Result.ABORTED.equals(result)) {
             return BuildStatus.FAILED;
         } else {
             // By design we presume a positive outcome unless an explicit failure result is returned.

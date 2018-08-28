@@ -14,8 +14,19 @@
     </f:entry>
 
     <!--
+      Creates a text field that shows the value of the "status" property.
+      When submitted, it will be passed to the corresponding setter.
+    -->
+    <f:entry title="Status" field="status">
+        <f:textbox/>
+        <div>
+            Set to 'SUCCESS' or 'FAILED'.
+        </div>
+    </f:entry>
+
+    <!--
       Creates a text field that shows the value of the "branch" property.
-      When submitted, it will be passed to the corresponding constructor parameter.
+      When submitted, it will be passed to the corresponding setter.
     -->
     <f:entry title="Branch name" field="branch">
         <f:textbox/>
@@ -23,19 +34,20 @@
 
     <!--
       Creates a text field that shows the value of the "commit" property.
-      When submitted, it will be passed to the corresponding constructor parameter.
+      When submitted, it will be passed to the corresponding setter.
     -->
     <f:entry title="Commit ID" field="commit">
         <f:textbox/>
     </f:entry>
 
     <!--
-      Creates a text field that shows the value of the "serverUrl" property.
-      When submitted, it will be passed to the corresponding constructor parameter.
+      Creates a text field that shows the value of the "scmVars" property.
+      When submitted, it will be passed to the corresponding setter.
     -->
     <f:entry title="SCM Variables" field="scmVars">
         <div>
-            Capture the return value of the 'scm checkout' step and pass them as the 'scmVars' parameter.
+            If you do not want to set the commit and branch properties yourself, you can
+            capture the return value of the 'scm checkout' step and pass it as the 'scmVars' parameter.
         </div>
     </f:entry>
 </j:jelly>
