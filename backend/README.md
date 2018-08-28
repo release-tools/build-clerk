@@ -27,4 +27,4 @@ Slack action trigger:
 
 PR merged event:
 
-    curl -v -d @./examples/pr-merged.json -H 'Content-Type: application/json' http://localhost:9090/pull-requests/merged
+    curl -v -d @./examples/pr-merged.json -H 'Content-Type: application/json' -H 'X-Event-Key: pullrequest:fulfilled' http://localhost:9090/pull-requests/merged

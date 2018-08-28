@@ -99,6 +99,14 @@ class Server @Inject constructor(
         }
 
         post("/pull-requests/merged").consumes(JSON_CONTENT_TYPE).handler { rc ->
+            val eventKey = rc.request().getHeader("X-Event-Key")
+            if (eventKey != "pullrequest:fulfilled") {
+                val message = "Ignoring unsupported event: $eventKey"
+                logger.debug(message)
+                rc.response().end(message)
+                return@handler
+            }
+
             val event = try {
                 rc.readBodyJson<PullRequestMergedEvent>()
             } catch (e: Exception) {
