@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.4] - 2018-08-28
+### Added
+- Allows build status to be set via DSL (fixes #17).
+
+## [0.3.3] - 2018-08-28
+### Added
+- Sets SSH transport configuration on all remote operations.
+
+## [0.3.2] - 2018-08-28
+### Added
+- Improves logging for SSH host key checking.
+
 ## [0.3.1] - 2018-08-28
 ### Added
 - Allows override of SSH strict host key checking when working with remote repositories.
