@@ -7,6 +7,7 @@ import io.gatehill.buildclerk.model.scm.ScmUser
 import io.gatehill.buildclerk.service.CommandExecutorService
 import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.TransportConfigCallback
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -35,10 +36,7 @@ open class GitScmServiceImpl @Inject constructor(
     override fun fetchUserInfoForCommit(commit: String): CommitUserInfo = withGit {
         logger.debug("Fetching user info for commit $commit")
 
-        fetch()
-            .setRemoveDeletedRefs(true)
-            .call()
-
+        fetchRefs()
         val resolvedCommit = repository.resolve(commit)
         val revCommit = repository.parseCommit(resolvedCommit)
 
@@ -66,7 +64,9 @@ open class GitScmServiceImpl @Inject constructor(
 
         if (repositorySettings.pushChanges) {
             logger.info("Pushing changes to remote")
-            this.push().call()
+            this.push()
+                .setTransportConfigCallback(buildTransportConfigCallback())
+                .call()
         } else {
             logger.info("Skipped pushing changes to remote")
         }
@@ -79,10 +79,7 @@ open class GitScmServiceImpl @Inject constructor(
     private fun Git.fetchCheckout(branchName: String) {
         logger.debug("Performing checkout of branch $branchName")
 
-        fetch()
-            .setRemoveDeletedRefs(true)
-            .call()
-
+        fetchRefs()
         checkout()
             .setName(branchName)
             .setForce(true)
@@ -91,6 +88,13 @@ open class GitScmServiceImpl @Inject constructor(
         if (repository.repositoryState != RepositoryState.BARE) {
             throw IllegalStateException("Repository state is not bare. Current state is: ${repository.repositoryState}")
         }
+    }
+
+    private fun Git.fetchRefs() {
+        fetch()
+            .setTransportConfigCallback(buildTransportConfigCallback())
+            .setRemoveDeletedRefs(true)
+            .call()
     }
 
     private fun Git.revertCommit(commit: String) {
@@ -141,10 +145,17 @@ open class GitScmServiceImpl @Inject constructor(
         }
 
         val cloneCommand = Git.cloneRepository()
-        cloneCommand.setBare(true)
-        cloneCommand.setDirectory(repositorySettings.localDir)
-        cloneCommand.setURI(repositorySettings.remoteUrl)
+            .setTransportConfigCallback(buildTransportConfigCallback())
+            .setBare(true)
+            .setDirectory(repositorySettings.localDir)
+            .setURI(repositorySettings.remoteUrl)
 
+        val git = cloneCommand.call()
+        logger.info("Cloned remote repository to: ${repositorySettings.localDir}")
+        return git
+    }
+
+    private fun buildTransportConfigCallback() = TransportConfigCallback { transport ->
         val sshSessionFactory = object : JschConfigSessionFactory() {
             override fun configure(host: Host, session: Session) {
                 // caters for SSH + password, i.e. not public key authentication
@@ -159,30 +170,23 @@ open class GitScmServiceImpl @Inject constructor(
             }
         }
 
-        cloneCommand.setTransportConfigCallback { transport ->
-            when (transport) {
-                is SshTransport -> {
-                    logger.debug("Configuring repository transport for SSH")
-                    transport.sshSessionFactory = sshSessionFactory
-                }
-                is TransportHttp -> {
-                    if (isUserNameAndPasswordConfigured()) {
-                        logger.debug("Configuring repository transport with HTTP credentials")
-                        transport.credentialsProvider = UsernamePasswordCredentialsProvider(
-                            repositorySettings.userName,
-                            repositorySettings.password
-                        )
-                    } else {
-                        logger.debug("No HTTP credentials configured for repository transport - assuming unauthenticated")
-                    }
+        when (transport) {
+            is SshTransport -> {
+                logger.debug("Configuring repository transport for SSH")
+                transport.sshSessionFactory = sshSessionFactory
+            }
+            is TransportHttp -> {
+                if (isUserNameAndPasswordConfigured()) {
+                    logger.debug("Configuring repository transport with HTTP credentials")
+                    transport.credentialsProvider = UsernamePasswordCredentialsProvider(
+                        repositorySettings.userName,
+                        repositorySettings.password
+                    )
+                } else {
+                    logger.debug("No HTTP credentials configured for repository transport - assuming unauthenticated")
                 }
             }
         }
-
-        val git = cloneCommand.call()
-        logger.info("Cloned remote repository to: ${repositorySettings.localDir}")
-
-        return git
     }
 
     private fun isLocalRepoPresent() =
