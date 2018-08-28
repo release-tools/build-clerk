@@ -7,7 +7,7 @@ import io.gatehill.buildclerk.model.scm.ScmUser
 import io.gatehill.buildclerk.service.CommandExecutorService
 import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.TransportConfigCallback
+import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -64,8 +64,8 @@ open class GitScmServiceImpl @Inject constructor(
 
         if (repositorySettings.pushChanges) {
             logger.info("Pushing changes to remote")
-            this.push()
-                .setTransportConfigCallback(buildTransportConfigCallback())
+            push()
+                .configureTransport()
                 .call()
         } else {
             logger.info("Skipped pushing changes to remote")
@@ -92,7 +92,7 @@ open class GitScmServiceImpl @Inject constructor(
 
     private fun Git.fetchRefs() {
         fetch()
-            .setTransportConfigCallback(buildTransportConfigCallback())
+            .configureTransport()
             .setRemoveDeletedRefs(true)
             .call()
     }
@@ -139,51 +139,59 @@ open class GitScmServiceImpl @Inject constructor(
      */
     internal fun clone(): Git {
         logger.info("Cloning remote repository: ${repositorySettings.remoteUrl}")
+        val startMs = System.currentTimeMillis()
 
         if (repositorySettings.localDir.exists()) {
             FileUtils.delete(repositorySettings.localDir, FileUtils.RECURSIVE)
         }
 
         val cloneCommand = Git.cloneRepository()
-            .setTransportConfigCallback(buildTransportConfigCallback())
+            .configureTransport()
             .setBare(true)
             .setDirectory(repositorySettings.localDir)
             .setURI(repositorySettings.remoteUrl)
 
         val git = cloneCommand.call()
-        logger.info("Cloned remote repository to: ${repositorySettings.localDir}")
+        val duration = (System.currentTimeMillis() - startMs) / 1000f
+        logger.info("Cloned remote repository to: ${repositorySettings.localDir} [took $duration seconds]")
         return git
     }
 
-    private fun buildTransportConfigCallback() = TransportConfigCallback { transport ->
-        val sshSessionFactory = object : JschConfigSessionFactory() {
-            override fun configure(host: Host, session: Session) {
-                // caters for SSH + password, i.e. not public key authentication
-                repositorySettings.password?.let { session.setPassword(it) }
+    /**
+     * Applies the transport configuration to any commands requiring interaction
+     * with a remote repository.
+     */
+    private fun <T : TransportCommand<*, *>> T.configureTransport(): T = apply {
+        setTransportConfigCallback { transport ->
+            val sshSessionFactory = object : JschConfigSessionFactory() {
+                override fun configure(host: Host, session: Session) {
+                    // caters for SSH + password, i.e. when not using public key authentication
+                    repositorySettings.password?.let { session.setPassword(it) }
 
-                // equivalent to StrictHostKeyChecking=no in ~/.ssh/config
-                repositorySettings.strictHostKeyChecking?.let { overrideValue ->
-                    val strictHostKeyChecking = if (overrideValue) "yes" else "no"
-                    logger.debug("Set SSH strict host key checking to '$strictHostKeyChecking'")
-                    session.setConfig("StrictHostKeyChecking", strictHostKeyChecking)
+                    // equivalent to StrictHostKeyChecking=no in ~/.ssh/config
+                    repositorySettings.strictHostKeyChecking?.let { overrideValue ->
+                        val strictHostKeyChecking = if (overrideValue) "yes" else "no"
+                        logger.debug("Set SSH strict host key checking to '$strictHostKeyChecking'")
+                        session.setConfig("StrictHostKeyChecking", strictHostKeyChecking)
+                    }
                 }
             }
-        }
 
-        when (transport) {
-            is SshTransport -> {
-                logger.debug("Configuring repository transport for SSH")
-                transport.sshSessionFactory = sshSessionFactory
-            }
-            is TransportHttp -> {
-                if (isUserNameAndPasswordConfigured()) {
-                    logger.debug("Configuring repository transport with HTTP credentials")
-                    transport.credentialsProvider = UsernamePasswordCredentialsProvider(
-                        repositorySettings.userName,
-                        repositorySettings.password
-                    )
-                } else {
-                    logger.debug("No HTTP credentials configured for repository transport - assuming unauthenticated")
+            when (transport) {
+                is SshTransport -> {
+                    logger.debug("Configuring repository transport for SSH")
+                    transport.sshSessionFactory = sshSessionFactory
+                }
+                is TransportHttp -> {
+                    if (isUserNameAndPasswordConfigured()) {
+                        logger.debug("Configuring repository transport with HTTP credentials")
+                        transport.credentialsProvider = UsernamePasswordCredentialsProvider(
+                            repositorySettings.userName,
+                            repositorySettings.password
+                        )
+                    } else {
+                        logger.debug("No HTTP credentials configured for repository transport - assuming unauthenticated")
+                    }
                 }
             }
         }
