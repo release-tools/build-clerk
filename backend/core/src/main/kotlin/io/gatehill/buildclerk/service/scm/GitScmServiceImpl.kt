@@ -149,6 +149,11 @@ open class GitScmServiceImpl @Inject constructor(
             override fun configure(host: Host, session: Session) {
                 // caters for SSH + password, i.e. not public key authentication
                 repositorySettings.password?.let { session.setPassword(it) }
+
+                // equivalent to StrictHostKeyChecking=no in ~/.ssh/config
+                repositorySettings.strictHostKeyCheckingOverride?.let { overrideValue ->
+                    session.setConfig("StrictHostKeyChecking", if (overrideValue) "yes" else "no")
+                }
             }
         }
 

@@ -131,6 +131,10 @@ If you choose to use the `revertCommit` action, you'll also need to set the foll
 
 For SSH URLs, Clerk uses the configuration of the machine on which it is running. This means your local SSH configuration (public key etc.) is used.
 
+If you need to override SSH strict host key checking when working with remote repositories, set the following:
+
+* `GIT_REPO_STRICT_HOST_KEY_CHECK_OVERRIDE` (boolean)
+
 For HTTP(S) URLs, Clerk looks for the configured username and password, or else assumes the remote repository is unauthenticated.
 
 ## Endpoints

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.1] - 2018-08-28
+### Added
+- Allows override of SSH strict host key checking when working with remote repositories.
+
 ## [0.3.0] - 2018-08-28
 ### Added
 - Adds support for cloning remote Git repositories (fixes #2).
