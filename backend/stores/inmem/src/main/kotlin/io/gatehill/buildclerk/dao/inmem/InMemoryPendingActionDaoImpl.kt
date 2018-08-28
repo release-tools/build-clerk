@@ -2,20 +2,29 @@ package io.gatehill.buildclerk.dao.inmem
 
 import io.gatehill.buildclerk.api.dao.PendingActionDao
 import io.gatehill.buildclerk.api.model.action.PendingActionSet
+import io.gatehill.buildclerk.dao.inmem.model.Record
+import java.time.ZonedDateTime
 
 class InMemoryPendingActionDaoImpl : PendingActionDao {
-    private val pending = mutableMapOf<String, PendingActionSet>()
+    private val store = linkedMapOf<String, Record<PendingActionSet>>()
 
     override fun save(actionSet: PendingActionSet) {
-        pending[actionSet.id] = actionSet
+        store[actionSet.id] = Record.create(actionSet)
     }
 
     override fun load(actionSetId: String): PendingActionSet? =
-        pending[actionSetId]
+        store[actionSetId]?.record
 
     override fun delete(actionSetId: String) {
-        pending.remove(actionSetId)
+        store.remove(actionSetId)
     }
 
-    override fun count() = pending.size
+    override val count
+        get() = store.size
+
+    override val oldestDate: ZonedDateTime?
+        get() = store.values.firstOrNull()?.createdDate
+
+    override val newestDate: ZonedDateTime?
+        get() = store.values.lastOrNull()?.createdDate
 }

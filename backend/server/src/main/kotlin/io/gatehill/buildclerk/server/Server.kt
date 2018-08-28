@@ -1,13 +1,14 @@
 package io.gatehill.buildclerk.server
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.slack.ActionTriggeredEvent
 import io.gatehill.buildclerk.api.service.BuildReportService
+import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.config.Settings
-import io.gatehill.buildclerk.model.slack.ActionTriggeredEvent
-import io.gatehill.buildclerk.service.PendingActionService
 import io.gatehill.buildclerk.service.builder.BuildEventService
 import io.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
@@ -135,13 +136,21 @@ class Server @Inject constructor(
         }
     }
 
-    private suspend fun gatherStats() = mapOf(
+    private fun gatherStats() = mapOf(
         "objects" to mapOf(
-            "buildReports" to buildReportService.countReports(),
-            "mergeEvents" to pullRequestEventService.countPullRequests(),
-            "pendingActionSets" to pendingActionService.countPendingActionSets()
+            "buildReports" to gatherStats(buildReportService),
+            "mergeEvents" to gatherStats(pullRequestEventService),
+            "pendingActionSets" to gatherStats(pendingActionService)
         )
     )
+
+    private fun gatherStats(recorded: Recorded): Map<String, Any?> {
+        return mapOf(
+            "count" to recorded.count,
+            "oldest" to recorded.oldestDate,
+            "newest" to recorded.newestDate
+        )
+    }
 
     /**
      * Add an auth handler if security properties are configured.
@@ -163,8 +172,9 @@ class Server @Inject constructor(
                 }
             }
 
-        }
-            ?: logger.warn("No security is configured! All endpoints are exposed without authentication. Set AUTH_CONFIG_FILE to a valid Shiro properties file.")
+        } ?: logger.warn(
+            "No security is configured! All endpoints are exposed without authentication. Set AUTH_CONFIG_FILE to a valid Shiro properties file."
+        )
     }
 
 

@@ -10,11 +10,12 @@ import io.gatehill.buildclerk.api.model.action.ShowTextAction
 import io.gatehill.buildclerk.api.model.message.MessageAction
 import io.gatehill.buildclerk.api.model.message.MessageAttachment
 import io.gatehill.buildclerk.api.model.message.UpdatedNotificationMessage
+import io.gatehill.buildclerk.api.model.slack.ActionTriggeredEvent
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAction
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAttachment
 import io.gatehill.buildclerk.api.service.BuildRunnerService
 import io.gatehill.buildclerk.api.service.NotificationService
-import io.gatehill.buildclerk.model.slack.ActionTriggeredEvent
-import io.gatehill.buildclerk.model.slack.SlackMessageAction
-import io.gatehill.buildclerk.model.slack.SlackMessageAttachment
+import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.service.notify.slack.toMessageAction
 import io.gatehill.buildclerk.service.notify.slack.toMessageAttachment
 import io.gatehill.buildclerk.service.scm.ScmService
@@ -28,20 +29,30 @@ import javax.inject.Inject
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class PendingActionService @Inject constructor(
+class PendingActionServiceImpl @Inject constructor(
     private val scmService: ScmService,
     private val buildRunnerService: BuildRunnerService,
     private val notificationService: NotificationService,
     private val pendingActionDao: PendingActionDao
-) {
+) : PendingActionService {
+
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
 
-    fun enqueue(actionSet: PendingActionSet) {
+    override val count
+        get() = pendingActionDao.count
+
+    override val oldestDate
+        get() = pendingActionDao.oldestDate
+
+    override val newestDate
+        get() = pendingActionDao.newestDate
+
+    override fun enqueue(actionSet: PendingActionSet) {
         logger.info("Enqueuing ${actionSet.actions.size} pending actions: ${actionSet.actions}")
         pendingActionDao.save(actionSet)
     }
 
-    fun handleAsync(event: ActionTriggeredEvent) {
+    override fun handleAsync(event: ActionTriggeredEvent) {
         launch {
             try {
                 handle(event)
@@ -114,7 +125,9 @@ class PendingActionService @Inject constructor(
         val attachments = mutableListOf<MessageAttachment>()
 
         attachments += slackAttachments.mapNotNull { slackAttachment ->
-            if (null == slackAttachment.actions || slackAttachment.actions.isEmpty()) {
+            val slackActions = slackAttachment.actions
+
+            if (slackActions?.isEmpty() != false) {
                 // attachment has no actions - include it
                 slackAttachment.toMessageAttachment(emptyList())
 
@@ -123,13 +136,13 @@ class PendingActionService @Inject constructor(
                 null
 
             } else {
-                if (isAttachmentActionSelected(slackAttachment.actions, selectedActions)) {
+                if (isAttachmentActionSelected(slackActions, selectedActions)) {
                     // if attachment's action was selected skip it (outcome rendered later)
                     null
 
                 } else {
                     // for attachments with actions, include only unselected actions
-                    val actions = filterUnselectedActions(slackAttachment.actions, selectedActions)
+                    val actions = filterUnselectedActions(slackActions, selectedActions)
                     slackAttachment.toMessageAttachment(actions)
                 }
             }
@@ -179,9 +192,9 @@ class PendingActionService @Inject constructor(
         event: ActionTriggeredEvent,
         attachments: List<MessageAttachment>
     ) {
-        event.originalMessage.ts?.let {
+        event.originalMessage.ts?.let { ts ->
             val updatedMessage = UpdatedNotificationMessage(
-                messageId = event.originalMessage.ts,
+                messageId = ts,
                 channel = event.channel.id,
                 text = event.originalMessage.text,
                 attachments = attachments
@@ -234,8 +247,6 @@ class PendingActionService @Inject constructor(
     private fun showText(triggeringChannel: String, action: ShowTextAction) {
         notificationService.notify(action.channelName ?: triggeringChannel, action.body, action.color.hexCode)
     }
-
-    fun countPendingActionSets() = pendingActionDao.count()
 }
 
 internal data class SelectedAction(

@@ -8,6 +8,9 @@ dependencies {
     compile project(':backend:parser')
     compile project(':rest')
 
+    // json
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$version_jackson"
+
     // git
     compile 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'
 

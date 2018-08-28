@@ -7,6 +7,7 @@ import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.NotificationService
+import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.api.util.toShortCommit
 import io.gatehill.buildclerk.config.Settings
@@ -190,7 +191,7 @@ class AnalysisServiceImpl @Inject constructor(
         branchName: String,
         status: BuildStatus,
         statusDescription: String
-    ) : String {
+    ): String {
         val statusCount = buildReportService.countStatusForCommitOnBranch(
             commit = commit,
             branch = branchName,

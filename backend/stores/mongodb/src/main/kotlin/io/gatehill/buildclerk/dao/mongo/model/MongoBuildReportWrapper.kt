@@ -8,8 +8,8 @@ import java.time.ZonedDateTime
 
 data class MongoBuildReportWrapper(
     val buildReport: BuildReport,
-    val createdDate: ZonedDateTime
-) {
+    override val createdDate: ZonedDateTime
+) : Dated {
     @BsonId
     val key: Id<MongoBuildReportWrapper> = newId()
 }

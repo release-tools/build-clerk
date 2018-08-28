@@ -1,5 +1,6 @@
 package io.gatehill.buildclerk.api.dao
 
+import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
 
@@ -8,7 +9,7 @@ import io.gatehill.buildclerk.api.model.BuildStatus
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-interface BuildReportDao {
+interface BuildReportDao : Recorded {
     fun save(report: BuildReport)
     fun fetchLastBuildForBranch(branchName: String): BuildReport?
     fun hasEverSucceeded(commit: String): Boolean
@@ -16,5 +17,4 @@ interface BuildReportDao {
     fun countStatusForCommitOnBranch(commit: String, branchName: String, status: BuildStatus): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
-    fun count(): Int
 }

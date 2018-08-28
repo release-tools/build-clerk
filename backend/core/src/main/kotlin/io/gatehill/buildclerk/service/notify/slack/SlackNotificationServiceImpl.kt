@@ -3,10 +3,10 @@ package io.gatehill.buildclerk.service.notify.slack
 import io.gatehill.buildclerk.api.model.action.PendingAction
 import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.model.message.UpdatedNotificationMessage
-import io.gatehill.buildclerk.model.slack.SlackAttachmentField
-import io.gatehill.buildclerk.model.slack.SlackMessage
-import io.gatehill.buildclerk.model.slack.SlackMessageAction
-import io.gatehill.buildclerk.model.slack.SlackMessageAttachment
+import io.gatehill.buildclerk.api.model.slack.SlackAttachmentField
+import io.gatehill.buildclerk.api.model.slack.SlackMessage
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAction
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAttachment
 import io.gatehill.buildclerk.service.notify.StdoutNotificationServiceImpl
 import javax.inject.Inject
 

@@ -1,5 +1,6 @@
 package io.gatehill.buildclerk.api.service
 
+import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
 
@@ -8,7 +9,7 @@ import io.gatehill.buildclerk.api.model.BuildStatus
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-interface BuildReportService {
+interface BuildReportService : Recorded {
     fun record(buildReport: BuildReport)
     fun fetchLastBuildForBranch(branchName: String): BuildReport?
     fun hasEverSucceeded(commit: String): Boolean
@@ -16,5 +17,4 @@ interface BuildReportService {
     fun countStatusForCommitOnBranch(commit: String, branch: String, status: BuildStatus): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
-    fun countReports(): Int
 }

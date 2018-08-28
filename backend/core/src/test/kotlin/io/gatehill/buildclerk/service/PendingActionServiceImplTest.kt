@@ -1,8 +1,8 @@
 package io.gatehill.buildclerk.service
 
 import com.nhaarman.mockitokotlin2.mock
-import io.gatehill.buildclerk.model.slack.SlackMessageAction
-import io.gatehill.buildclerk.model.slack.SlackMessageAttachment
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAction
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAttachment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -13,8 +13,8 @@ import org.junit.Test
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class PendingActionServiceTest {
-    private lateinit var service: PendingActionService
+class PendingActionServiceImplTest {
+    private lateinit var service: PendingActionServiceImpl
 
     private val slackAttachments = listOf(
         SlackMessageAttachment(
@@ -54,7 +54,7 @@ class PendingActionServiceTest {
 
     @Before
     fun setUp() {
-        service = PendingActionService(mock(), mock(), mock(), mock())
+        service = PendingActionServiceImpl(mock(), mock(), mock(), mock())
     }
 
     @Test

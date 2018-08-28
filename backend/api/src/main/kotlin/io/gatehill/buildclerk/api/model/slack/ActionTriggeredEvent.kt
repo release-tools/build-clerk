@@ -1,4 +1,4 @@
-package io.gatehill.buildclerk.model.slack
+package io.gatehill.buildclerk.api.model.slack
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty

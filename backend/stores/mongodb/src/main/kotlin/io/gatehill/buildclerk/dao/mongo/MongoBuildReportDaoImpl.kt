@@ -12,6 +12,7 @@ import org.litote.kmongo.div
 import org.litote.kmongo.eq
 import org.litote.kmongo.find
 import org.litote.kmongo.findOne
+import java.time.ZonedDateTime
 
 class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
     override val collectionName = "build_reports"
@@ -88,7 +89,12 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             .count()
     }
 
-    override fun count() = withCollection<MongoBuildReportWrapper, Int> {
-        countDocuments().toInt()
-    }
+    override val count
+        get () = count<MongoBuildReportWrapper>()
+
+    override val oldestDate: ZonedDateTime?
+        get() = oldestDate<MongoBuildReportWrapper>()
+
+    override val newestDate: ZonedDateTime?
+        get() = newestDate<MongoBuildReportWrapper>()
 }

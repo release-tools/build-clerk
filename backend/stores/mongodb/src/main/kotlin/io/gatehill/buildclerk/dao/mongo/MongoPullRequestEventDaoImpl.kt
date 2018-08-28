@@ -9,9 +9,11 @@ import io.gatehill.buildclerk.dao.mongo.model.wrap
 import org.litote.kmongo.div
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
+import java.time.ZonedDateTime
 
 class MongoPullRequestEventDaoImpl : AbstractMongoDao(), PullRequestEventDao {
     override val collectionName = "pull_requests_merged"
+
     override fun record(
         mergedEvent: PullRequestMergedEvent
     ) = withCollection<MongoPullRequestMergedEventWrapper, Unit> {
@@ -26,7 +28,12 @@ class MongoPullRequestEventDaoImpl : AbstractMongoDao(), PullRequestEventDao {
                 ?.mergeEvent
         }
 
-    override fun count() = withCollection<MongoPullRequestMergedEventWrapper, Int> {
-        countDocuments().toInt()
-    }
+    override val count
+        get () = count<MongoPullRequestMergedEventWrapper>()
+
+    override val oldestDate: ZonedDateTime?
+        get() = oldestDate<MongoPullRequestMergedEventWrapper>()
+
+    override val newestDate: ZonedDateTime?
+        get() = newestDate<MongoPullRequestMergedEventWrapper>()
 }

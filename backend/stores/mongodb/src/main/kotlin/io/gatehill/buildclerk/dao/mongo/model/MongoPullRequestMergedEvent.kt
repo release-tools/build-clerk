@@ -8,8 +8,8 @@ import java.time.ZonedDateTime
 
 class MongoPullRequestMergedEventWrapper(
     val mergeEvent: PullRequestMergedEvent,
-    val createdDate: ZonedDateTime
-) {
+    override val createdDate: ZonedDateTime
+) : Dated {
     @BsonId
     val key: Id<MongoPullRequestMergedEventWrapper> = newId()
 }

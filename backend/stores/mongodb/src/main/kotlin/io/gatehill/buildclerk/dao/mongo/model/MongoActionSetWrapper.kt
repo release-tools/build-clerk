@@ -8,8 +8,8 @@ import java.time.ZonedDateTime
 
 class MongoActionSetWrapper(
     val actionSet: PendingActionSet,
-    val createdDate: ZonedDateTime
-) {
+    override val createdDate: ZonedDateTime
+) : Dated {
     @BsonId
     val key: Id<MongoActionSetWrapper> = newId()
 }

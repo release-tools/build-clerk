@@ -4,9 +4,9 @@ import io.gatehill.buildclerk.api.model.message.MessageAction
 import io.gatehill.buildclerk.api.model.message.MessageAttachment
 import io.gatehill.buildclerk.api.model.message.NotificationMessage
 import io.gatehill.buildclerk.api.model.message.UpdatedNotificationMessage
-import io.gatehill.buildclerk.model.slack.SlackMessage
-import io.gatehill.buildclerk.model.slack.SlackMessageAction
-import io.gatehill.buildclerk.model.slack.SlackMessageAttachment
+import io.gatehill.buildclerk.api.model.slack.SlackMessage
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAction
+import io.gatehill.buildclerk.api.model.slack.SlackMessageAttachment
 
 /**************************************
  * Convert to Slack messages

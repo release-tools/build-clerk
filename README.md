@@ -165,6 +165,12 @@ Bitbucket webhooks for the 'Pull request merged' event should target:
 
 > Example: https://clerk.example.com/pull-requests/merged
 
+### Utility endpoints
+
+* `/` - root page shows project information
+* `/health` - returns HTTP 200 when server is up - useful for healthchecks 
+* `/stats` - shows statistics. Requires authentication if endpoint security is enabled. 
+
 ### Endpoint security
 
 You can (and should!) set up authentication for these endpoints to prevent others from accessing your Clerk instance.

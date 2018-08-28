@@ -19,7 +19,17 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     private val analysisService: AnalysisService,
     private val pullRequestEventDao: PullRequestEventDao
 ) : PullRequestEventService {
+
     private val logger = LogManager.getLogger(PullRequestEventService::class.java)
+
+    override val count
+        get() = pullRequestEventDao.count
+
+    override val oldestDate
+        get() = pullRequestEventDao.oldestDate
+
+    override val newestDate
+        get() = pullRequestEventDao.newestDate
 
     override fun checkPullRequest(event: PullRequestMergedEvent) {
         logger.debug("Processing PR merge event: $event")
@@ -69,6 +79,4 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
 
     override fun findPullRequestByMergeCommit(commit: String): PullRequestMergedEvent? =
         pullRequestEventDao.findByMergeCommit(commit)
-
-    override fun countPullRequests() = pullRequestEventDao.count()
 }

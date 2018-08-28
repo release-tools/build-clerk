@@ -7,9 +7,11 @@ import io.gatehill.buildclerk.dao.mongo.model.wrap
 import org.litote.kmongo.div
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
+import java.time.ZonedDateTime
 
 class MongoPendingActionDaoImpl : AbstractMongoDao(), PendingActionDao {
     override val collectionName = "pending_actions"
+
     override fun save(actionSet: PendingActionSet) =
         withCollection<MongoActionSetWrapper, Unit> {
             insertOne(actionSet.wrap())
@@ -25,7 +27,12 @@ class MongoPendingActionDaoImpl : AbstractMongoDao(), PendingActionDao {
         deleteOne(MongoActionSetWrapper::actionSet / PendingActionSet::id eq actionSetId)
     }
 
-    override fun count() = withCollection<MongoActionSetWrapper, Int> {
-        countDocuments().toInt()
-    }
+    override val count
+        get () = count<MongoActionSetWrapper>()
+
+    override val oldestDate: ZonedDateTime?
+        get() = oldestDate<MongoActionSetWrapper>()
+
+    override val newestDate: ZonedDateTime?
+        get() = newestDate<MongoActionSetWrapper>()
 }

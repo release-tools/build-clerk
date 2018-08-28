@@ -2,16 +2,15 @@ package io.gatehill.buildclerk.dao.inmem
 
 import io.gatehill.buildclerk.api.dao.PullRequestEventDao
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.dao.inmem.model.Record
 
-class InMemoryPullRequestEventDaoImpl : PullRequestEventDao {
-    private val store = mutableListOf<PullRequestMergedEvent>()
+class InMemoryPullRequestEventDaoImpl : AbstractInMemoryDao<PullRequestMergedEvent>(), PullRequestEventDao {
+    override val store = mutableListOf<Record<PullRequestMergedEvent>>()
 
     override fun record(mergedEvent: PullRequestMergedEvent) {
-        store += mergedEvent
+        store += Record.create(mergedEvent)
     }
 
     override fun findByMergeCommit(commit: String): PullRequestMergedEvent? =
-        store.find { it.pullRequest.mergeCommit.hash == commit }
-
-    override fun count() = store.size
+        store.find { it.record.pullRequest.mergeCommit.hash == commit }?.record
 }

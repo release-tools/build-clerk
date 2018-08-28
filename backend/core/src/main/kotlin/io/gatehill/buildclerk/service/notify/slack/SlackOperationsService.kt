@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.service.notify.slack
 
-import io.gatehill.buildclerk.model.slack.SlackMessage
+import io.gatehill.buildclerk.api.model.slack.SlackMessage
 import io.gatehill.buildclerk.util.jsonMapper
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
