@@ -151,8 +151,10 @@ open class GitScmServiceImpl @Inject constructor(
                 repositorySettings.password?.let { session.setPassword(it) }
 
                 // equivalent to StrictHostKeyChecking=no in ~/.ssh/config
-                repositorySettings.strictHostKeyCheckingOverride?.let { overrideValue ->
-                    session.setConfig("StrictHostKeyChecking", if (overrideValue) "yes" else "no")
+                repositorySettings.strictHostKeyChecking?.let { overrideValue ->
+                    val strictHostKeyChecking = if (overrideValue) "yes" else "no"
+                    logger.debug("Set SSH strict host key checking to '$strictHostKeyChecking'")
+                    session.setConfig("StrictHostKeyChecking", strictHostKeyChecking)
                 }
             }
         }

@@ -133,7 +133,7 @@ For SSH URLs, Clerk uses the configuration of the machine on which it is running
 
 If you need to override SSH strict host key checking when working with remote repositories, set the following:
 
-* `GIT_REPO_STRICT_HOST_KEY_CHECK_OVERRIDE` (boolean)
+* `GIT_REPO_STRICT_HOST_KEY_CHECKING` (boolean)
 
 For HTTP(S) URLs, Clerk looks for the configured username and password, or else assumes the remote repository is unauthenticated.
 

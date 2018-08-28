@@ -40,10 +40,10 @@ object Settings {
         val password: String? by lazy { getenv("GIT_REPO_PASSWORD") }
 
         /**
-         * Whether to override strict host key checking.
+         * Overrides system strict host key checking.
          */
-        val strictHostKeyCheckingOverride: Boolean? by lazy {
-            getenv("GIT_REPO_STRICT_HOST_KEY_CHECK_OVERRIDE")?.toBoolean()
+        val strictHostKeyChecking: Boolean? by lazy {
+            getenv("GIT_REPO_STRICT_HOST_KEY_CHECKING")?.toBoolean()
         }
     }
 
