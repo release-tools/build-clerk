@@ -59,6 +59,15 @@ class BodyHolder {
     var repository: (RepositoryBlock.() -> Unit)? = null
 }
 
+/**
+ * Behaviour relating to a commit.
+ */
+interface CommitBlock {
+    val commit: String
+
+    fun revertCommit()
+}
+
 abstract class AbstractBlock @Inject constructor(
     private val notificationService: NotificationService,
     private val buildReportService: BuildReportService
@@ -126,9 +135,12 @@ abstract class AbstractBuildBlock @Inject constructor(
 ) : AbstractBlock(
     notificationService,
     buildReportService
-) {
+), CommitBlock {
 
     lateinit var report: BuildReport
+
+    override val commit: String
+        get() = report.build.scm.commit
 
     val commitHasEverSucceeded: Boolean by lazy {
         buildReportService.hasEverSucceeded(report.build.scm.commit)
@@ -146,7 +158,7 @@ abstract class AbstractBuildBlock @Inject constructor(
         analysis.recommend(RebuildBranchAction(report))
     }
 
-    fun revertCommit() {
+    override fun revertCommit() {
         analysis.recommend(
             RevertCommitAction(
                 commit = report.build.scm.commit,
@@ -203,14 +215,18 @@ class PullRequestMergedBlock @Inject constructor(
 ) : AbstractBlock(
     notificationService,
     buildReportService
-) {
+), CommitBlock {
+
     lateinit var mergeEvent: PullRequestMergedEvent
     lateinit var currentBranchStatus: BuildStatus
+
+    override val commit: String
+        get() = mergeEvent.pullRequest.mergeCommit.hash
 
     val prSummary: String
         get() = pullRequestEventService.describePullRequest(mergeEvent)
 
-    fun revertCommit() {
+    override fun revertCommit() {
         analysis.recommend(
             RevertCommitAction(
                 commit = mergeEvent.pullRequest.mergeCommit.hash,
