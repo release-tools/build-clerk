@@ -96,27 +96,34 @@ abstract class AbstractBaseBlock @Inject constructor(
         channelName: String,
         branchName: String
     ) {
-        val summary: String = buildReportService.fetchLastBuildForBranch(branchName)?.let { lastBuild ->
+        buildReportService.fetchLastBuildForBranch(branchName)?.let { lastBuild ->
             val currentStatus = if (lastBuild.build.status == BuildStatus.SUCCESS) "healthy" else "unhealthy"
             val branchStatus = analysisService.analyseCommitHistory(
                 branchName = branchName,
                 commit = lastBuild.build.scm.commit
             )
 
-            """
+            val color = when (lastBuild.build.status ) {
+                BuildStatus.SUCCESS -> Color.GREEN
+                else -> Color.RED
+            }
+
+            val summary = """
                 Summary of `$branchName`:
                 Current status is $currentStatus
                 Most recent commit `${lastBuild.build.scm.commit}` has $branchStatus
             """.trimIndent()
 
+            notificationService.notify(channelName, summary, color.hexCode)
+
         } ?: run {
-            """
+            val summary = """
                 Summary of `$branchName`:
                 No history for branch.
             """.trimIndent()
-        }
 
-        notificationService.notify(channelName, summary)
+            notificationService.notify(channelName, summary, Color.BLACK.hexCode)
+        }
     }
 }
 

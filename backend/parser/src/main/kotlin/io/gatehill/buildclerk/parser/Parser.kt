@@ -31,6 +31,7 @@ class Parser {
 
         } ?: throw IllegalStateException("No 'config' block defined in: $rulesFile")
 
+        config.scheduledTasks.clear()
         config.body(config)
         return config
     }

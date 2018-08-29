@@ -33,8 +33,17 @@ class ScheduledTaskService @Inject constructor(
     }
 
     init {
-        initialiseTasks()
         scheduleConfigRefresh()
+    }
+
+    private fun scheduleConfigRefresh() {
+        val job = newJob(ConfigReloadJob::class.java).build()
+
+        val trigger = newTrigger()
+            .withSchedule(simpleSchedule().withIntervalInMinutes(5).repeatForever())
+            .build()
+
+        scheduler.scheduleJob(job, trigger)
     }
 
     fun initialiseTasks() {
@@ -42,7 +51,7 @@ class ScheduledTaskService @Inject constructor(
         tasks.clear()
 
         val config = parser.parse(Settings.Rules.configFile)
-        logger.debug("Initialising ${config.scheduledTasks.size} scheduled tasks")
+        logger.debug("Initialising ${config.scheduledTasks.size} scheduled task(s)")
 
         config.scheduledTasks.forEach { scheduledTask ->
             val taskId = UUID.randomUUID().toString()
@@ -58,16 +67,6 @@ class ScheduledTaskService @Inject constructor(
 
             scheduler.scheduleJob(job, trigger)
         }
-    }
-
-    private fun scheduleConfigRefresh() {
-        val job = newJob(ConfigReloadJob::class.java).build()
-
-        val trigger = newTrigger()
-            .withSchedule(simpleSchedule().withIntervalInMinutes(5).repeatForever())
-            .build()
-
-        scheduler.scheduleJob(job, trigger)
     }
 
     fun runTask(taskId: String) {
