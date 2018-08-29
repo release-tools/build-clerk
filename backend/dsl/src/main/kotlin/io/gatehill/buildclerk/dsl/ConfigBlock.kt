@@ -9,6 +9,7 @@ import io.gatehill.buildclerk.api.model.action.RevertCommitAction
 import io.gatehill.buildclerk.api.model.action.ShowTextAction
 import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.model.analysis.PublishConfig
+import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.NotificationService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
@@ -24,6 +25,7 @@ class ConfigBlock(
     val body: ConfigBlock.() -> Unit
 ) {
     val bodyHolder = BodyHolder()
+    val scheduledTasks = mutableListOf<Pair<String, CronBlock.() -> Unit>>()
 
     fun buildPassed(body: BuildPassedBlock.() -> Unit) {
         bodyHolder.buildPassed = body
@@ -48,6 +50,13 @@ class ConfigBlock(
     fun pullRequestMerged(body: PullRequestMergedBlock.() -> Unit) {
         bodyHolder.pullRequestMerged = body
     }
+
+    /**
+     * @param schedule in cron format: `seconds minutes hours day_of_month month day_of_year year`
+     */
+    fun cron(schedule: String, body: CronBlock.() -> Unit) {
+        scheduledTasks += schedule to body
+    }
 }
 
 class BodyHolder {
@@ -68,10 +77,59 @@ interface CommitBlock {
     fun revertCommit()
 }
 
-abstract class AbstractBlock @Inject constructor(
+abstract class AbstractBaseBlock @Inject constructor(
     private val notificationService: NotificationService,
-    private val buildReportService: BuildReportService
+    private val buildReportService: BuildReportService,
+    private val analysisService: AnalysisService
+    ) {
+    fun postMessage(
+        channelName: String,
+        message: String,
+        color: Color = Color.BLACK
+    ) = notificationService.notify(
+        channelName,
+        message,
+        color.hexCode
+    )
+
+    fun publishSummary(
+        channelName: String,
+        branchName: String
+    ) {
+        val summary: String = buildReportService.fetchLastBuildForBranch(branchName)?.let { lastBuild ->
+            val currentStatus = if (lastBuild.build.status == BuildStatus.SUCCESS) "healthy" else "unhealthy"
+            val branchStatus = analysisService.analyseCommitHistory(
+                branchName = branchName,
+                commit = lastBuild.build.scm.commit
+            )
+
+            """
+                Summary of `$branchName`:
+                Current status is $currentStatus
+                Most recent commit `${lastBuild.build.scm.commit}` has $branchStatus
+            """.trimIndent()
+
+        } ?: run {
+            """
+                Summary of `$branchName`:
+                No history for branch.
+            """.trimIndent()
+        }
+
+        notificationService.notify(channelName, summary)
+    }
+}
+
+abstract class AbstractBranchBlock @Inject constructor(
+    notificationService: NotificationService,
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
+) : AbstractBaseBlock(
+    notificationService,
+    buildReportService,
+    analysisService
 ) {
+
     lateinit var analysis: Analysis
     lateinit var branchName: String
 
@@ -111,13 +169,6 @@ abstract class AbstractBlock @Inject constructor(
         analysis.recommend(LockBranchAction(branchName))
     }
 
-    fun postMessage(
-        channelName: String,
-        message: String,
-        color: Color = Color.BLACK
-    ) =
-        notificationService.notify(channelName, message, color.hexCode)
-
     fun publishAnalysis(
         channelName: String,
         color: Color = Color.BLACK
@@ -131,10 +182,12 @@ abstract class AbstractBlock @Inject constructor(
 
 abstract class AbstractBuildBlock @Inject constructor(
     notificationService: NotificationService,
-    private val buildReportService: BuildReportService
-) : AbstractBlock(
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
+) : AbstractBranchBlock(
     notificationService,
-    buildReportService
+    buildReportService,
+    analysisService
 ), CommitBlock {
 
     lateinit var report: BuildReport
@@ -170,51 +223,63 @@ abstract class AbstractBuildBlock @Inject constructor(
 
 class BuildPassedBlock @Inject constructor(
     notificationService: NotificationService,
-    buildReportService: BuildReportService
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
 ) : AbstractBuildBlock(
     notificationService,
-    buildReportService
+    buildReportService,
+    analysisService
 )
 
 class BuildFailedBlock @Inject constructor(
     notificationService: NotificationService,
-    buildReportService: BuildReportService
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
 ) : AbstractBuildBlock(
     notificationService,
-    buildReportService
+    buildReportService,
+    analysisService
 )
 
 class BuildHealthyBlock @Inject constructor(
     notificationService: NotificationService,
-    buildReportService: BuildReportService
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
 ) : AbstractBuildBlock(
     notificationService,
-    buildReportService
+    buildReportService,
+    analysisService
 )
 
 class BuildFailingBlock @Inject constructor(
     notificationService: NotificationService,
-    buildReportService: BuildReportService
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
 ) : AbstractBuildBlock(
     notificationService,
-    buildReportService
+    buildReportService,
+    analysisService
 )
 
 class RepositoryBlock @Inject constructor(
     notificationService: NotificationService,
-    buildReportService: BuildReportService
-) : AbstractBlock(
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
+) : AbstractBranchBlock(
     notificationService,
-    buildReportService
+    buildReportService,
+    analysisService
 )
 
 class PullRequestMergedBlock @Inject constructor(
     notificationService: NotificationService,
     buildReportService: BuildReportService,
+    analysisService: AnalysisService,
     private val pullRequestEventService: PullRequestEventService
-) : AbstractBlock(
+) : AbstractBranchBlock(
     notificationService,
-    buildReportService
+    buildReportService,
+    analysisService
 ), CommitBlock {
 
     lateinit var mergeEvent: PullRequestMergedEvent
@@ -235,6 +300,16 @@ class PullRequestMergedBlock @Inject constructor(
         )
     }
 }
+
+class CronBlock @Inject constructor(
+    notificationService: NotificationService,
+    buildReportService: BuildReportService,
+    analysisService: AnalysisService
+) : AbstractBaseBlock(
+    notificationService,
+    buildReportService,
+    analysisService
+)
 
 /**
  * Entrypoint into the DSL.

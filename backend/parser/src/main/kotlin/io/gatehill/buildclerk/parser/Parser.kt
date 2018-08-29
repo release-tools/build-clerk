@@ -2,8 +2,7 @@ package io.gatehill.buildclerk.parser
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.gatehill.buildclerk.api.model.analysis.Analysis
-import io.gatehill.buildclerk.dsl.AbstractBlock
+import io.gatehill.buildclerk.dsl.AbstractBaseBlock
 import io.gatehill.buildclerk.dsl.ConfigBlock
 import io.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
 import org.apache.logging.log4j.LogManager
@@ -39,19 +38,13 @@ class Parser {
     /**
      * Instantiate the block of type `B`, configure it, then invoke the `body` on it.
      */
-    inline fun <reified B : AbstractBlock> invoke(
-        analysis: Analysis,
-        branchName: String,
+    inline fun <reified B : AbstractBaseBlock> invoke(
         noinline blockConfigurer: ((B) -> Unit)? = null,
         noinline body: (B.() -> Unit)?
     ) {
         body?.let {
             val block = InstanceFactoryLocator.instance<B>()
-
-            block.analysis = analysis
-            block.branchName = branchName
             blockConfigurer?.let { configurer -> configurer(block) }
-
             block.body()
         }
     }

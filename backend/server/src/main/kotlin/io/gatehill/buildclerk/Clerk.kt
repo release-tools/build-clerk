@@ -3,6 +3,7 @@ package io.gatehill.buildclerk
 import com.google.inject.Guice
 import io.gatehill.buildclerk.config.Settings
 import io.gatehill.buildclerk.inject.ClerkModule
+import io.gatehill.buildclerk.inject.DaemonModule
 import io.gatehill.buildclerk.inject.buildStoreModule
 import io.gatehill.buildclerk.parser.inject.InstanceFactory
 import io.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
@@ -21,6 +22,7 @@ object Clerk {
 
         val injector = Guice.createInjector(
             ClerkModule(),
+            DaemonModule(),
             buildStoreModule(logger, Settings.Store.implementation)
         )
 

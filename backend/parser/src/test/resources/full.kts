@@ -84,4 +84,12 @@ config {
                 color = Color.RED
         )
     }
+
+    // run every hour
+    cron("0 0 * * * ?") {
+        publishSummary(
+            branchName = "branch",
+            channelName = "general"
+        )
+    }
 }

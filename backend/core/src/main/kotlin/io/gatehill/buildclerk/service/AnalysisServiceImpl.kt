@@ -20,6 +20,11 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
+/**
+ * Performs analyses of certain events.
+ *
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
+ */
 class AnalysisServiceImpl @Inject constructor(
     private val parser: Parser,
     private val buildReportService: BuildReportService,
@@ -44,14 +49,14 @@ class AnalysisServiceImpl @Inject constructor(
 
         val config = parser.parse(Settings.Rules.configFile)
         val blockConfigurer = { block: AbstractBuildBlock ->
+            block.analysis = analysis
+            block.branchName = branchName
             block.report = report
         }
 
         when (report.build.status) {
             BuildStatus.SUCCESS -> {
                 parser.invoke(
-                    analysis = analysis,
-                    branchName = branchName,
                     blockConfigurer = blockConfigurer,
                     body = config.bodyHolder.buildPassed
                 )
@@ -59,8 +64,6 @@ class AnalysisServiceImpl @Inject constructor(
                 if (previousBuildStatus == BuildStatus.FAILED) {
                     logger.info("Branch started passing: $report")
                     parser.invoke(
-                        analysis = analysis,
-                        branchName = branchName,
                         blockConfigurer = blockConfigurer,
                         body = config.bodyHolder.branchStartsPassing
                     )
@@ -68,8 +71,6 @@ class AnalysisServiceImpl @Inject constructor(
             }
             BuildStatus.FAILED -> {
                 parser.invoke(
-                    analysis = analysis,
-                    branchName = branchName,
                     blockConfigurer = blockConfigurer,
                     body = config.bodyHolder.buildFailed
                 )
@@ -77,8 +78,6 @@ class AnalysisServiceImpl @Inject constructor(
                 if (previousBuildStatus == BuildStatus.SUCCESS) {
                     logger.info("Branch started failing: $report")
                     parser.invoke(
-                        analysis = analysis,
-                        branchName = branchName,
                         blockConfigurer = blockConfigurer,
                         body = config.bodyHolder.branchStartsFailing
                     )
@@ -89,8 +88,6 @@ class AnalysisServiceImpl @Inject constructor(
 
         // runs every time
         parser.invoke(
-            analysis = analysis,
-            branchName = branchName,
             body = config.bodyHolder.repository
         )
 
@@ -161,9 +158,8 @@ class AnalysisServiceImpl @Inject constructor(
         val branchName = report.build.scm.branch
         val commit = report.build.scm.commit
 
-        val passedCount = analyseBranchStatus(commit, branchName, BuildStatus.SUCCESS, "passed")
-        val failedCount = analyseBranchStatus(commit, branchName, BuildStatus.FAILED, "failed")
-        analysis.log("Commit `${toShortCommit(commit)}` has $passedCount and $failedCount on this branch")
+        val commitHistory = analyseCommitHistory(branchName, commit)
+        analysis.log("Commit `${toShortCommit(commit)}` has $commitHistory")
 
         if (report.build.status == BuildStatus.FAILED) {
             val passesOnBranch = buildReportService.countStatusForCommitOnBranch(
@@ -181,6 +177,12 @@ class AnalysisServiceImpl @Inject constructor(
                 }
             }
         }
+    }
+
+    override fun analyseCommitHistory(branchName: String, commit: String): String {
+        val passedCount = analyseBranchStatus(commit, branchName, BuildStatus.SUCCESS, "passed")
+        val failedCount = analyseBranchStatus(commit, branchName, BuildStatus.FAILED, "failed")
+        return "$passedCount and $failedCount on this branch"
     }
 
     /**
@@ -220,10 +222,10 @@ class AnalysisServiceImpl @Inject constructor(
         val config = parser.parse(Settings.Rules.configFile)
 
         parser.invoke(
-            analysis = analysis,
-            branchName = mergeEvent.pullRequest.destination.branch.name,
             body = config.bodyHolder.pullRequestMerged,
             blockConfigurer = { block ->
+                block.analysis = analysis
+                block.branchName = mergeEvent.pullRequest.destination.branch.name
                 block.mergeEvent = mergeEvent
                 block.currentBranchStatus = currentBranchStatus
             }
