@@ -8,7 +8,7 @@ import io.gatehill.buildclerk.api.model.slack.ActionTriggeredEvent
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.config.ServerSettings
 import io.gatehill.buildclerk.service.builder.BuildEventService
 import io.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
@@ -49,11 +49,11 @@ class Server @Inject constructor(
         val server = vertx.createHttpServer()
         val router = buildRouter(vertx)
 
-        server.requestHandler(router::accept).listen(Settings.Server.port) { event ->
+        server.requestHandler(router::accept).listen(ServerSettings.Http.port) { event ->
             if (event.succeeded()) {
-                logger.info("Listening on http://localhost:${Settings.Server.port}")
+                logger.info("Listening on http://localhost:${ServerSettings.Http.port}")
             } else {
-                logger.error("Error listening on port ${Settings.Server.port}", event.cause())
+                logger.error("Error listening on port ${ServerSettings.Http.port}", event.cause())
                 vertx.close { exitProcess(1) }
             }
         }
@@ -164,7 +164,7 @@ class Server @Inject constructor(
      * Add an auth handler if security properties are configured.
      */
     private fun configureAuth(vertx: Vertx, router: Router) {
-        Settings.Auth.configFile?.let { authConfigFile ->
+        ServerSettings.Auth.configFile?.let { authConfigFile ->
             logger.info("Configuring security from $authConfigFile")
             val authProvider = ShiroAuth.create(vertx, ShiroAuthOptions().apply {
                 config = json {

@@ -72,10 +72,6 @@ object Settings {
         }
     }
 
-    object Server {
-        val port: Int by lazy { System.getenv("SERVER_PORT")?.toInt() ?: 9090 }
-    }
-
     object Bitbucket {
         val repoUsername: String by lazy {
             System.getenv("BITBUCKET_REPO_USERNAME")
@@ -96,15 +92,6 @@ object Settings {
         val password: String by lazy {
             System.getenv("BITBUCKET_PASSWORD")
                 ?: throw IllegalStateException("Missing Bitbucket password")
-        }
-    }
-
-    object Auth {
-        /**
-         * See https://vertx.io/docs/vertx-auth-shiro/kotlin/
-         */
-        val configFile: String? by lazy {
-            System.getenv("AUTH_CONFIG_FILE")?.takeUnless(String::isEmpty)?.let { "file:$it" }
         }
     }
 
