@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.5] - 2018-08-30
+### Added
+- Adds earliest and newest record timestamps to statistics endpoint.
+- Adds 'commit' property to DSL.
+
+# Changed
+- Ignores event keys that are not PR merges.
+
 ## [0.3.4] - 2018-08-28
 ### Added
 - Allows build status to be set via DSL (fixes #17).
