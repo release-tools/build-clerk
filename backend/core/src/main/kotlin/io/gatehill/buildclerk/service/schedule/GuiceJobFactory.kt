@@ -1,10 +1,11 @@
 package io.gatehill.buildclerk.service.schedule
 
-import io.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
+import com.google.inject.Injector
 import org.quartz.Job
 import org.quartz.Scheduler
 import org.quartz.spi.JobFactory
 import org.quartz.spi.TriggerFiredBundle
+import javax.inject.Inject
 
 
 /**
@@ -12,8 +13,8 @@ import org.quartz.spi.TriggerFiredBundle
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class GuiceJobFactory : JobFactory {
+class GuiceJobFactory @Inject constructor(private val injector: Injector) : JobFactory {
     override fun newJob(bundle: TriggerFiredBundle, scheduler: Scheduler): Job {
-        return InstanceFactoryLocator.instance(bundle.jobDetail.jobClass)
+        return injector.getInstance(bundle.jobDetail.jobClass)
     }
 }

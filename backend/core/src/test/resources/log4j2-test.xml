@@ -15,6 +15,6 @@
         <Logger name="org.apache.shiro" level="info"/>
         <Logger name="org.mongodb" level="warn"/>
         <Logger name="org.eclipse.jgit" level="info"/>
-        <Logger name="org.quartz" level="info"/>
+        <Logger name="org.quartz" level="warn"/>
     </Loggers>
 </Configuration>

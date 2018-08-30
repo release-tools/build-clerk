@@ -13,9 +13,6 @@ dependencies {
     compile project(':backend:stores:inmem')
     compile project(':backend:stores:mongodb')
 
-    // DI
-    compile "com.google.inject:guice:$version_guice"
-
     // server
     compile ('io.vertx:vertx-lang-kotlin:3.5.3') {
         // these are deprecated and superseded by their -jdk* equivalents

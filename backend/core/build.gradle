@@ -8,6 +8,9 @@ dependencies {
     compile project(':backend:parser')
     compile project(':rest')
 
+    // DI
+    compile "com.google.inject:guice:$version_guice"
+
     // json
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$version_jackson"
 

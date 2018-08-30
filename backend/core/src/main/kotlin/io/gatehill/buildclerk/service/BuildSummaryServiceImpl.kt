@@ -6,8 +6,9 @@ import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.util.Color
+import javax.inject.Inject
 
-class BuildSummaryServiceImpl(
+class BuildSummaryServiceImpl @Inject constructor(
     private val buildReportService: BuildReportService,
     private val analysisService: AnalysisService
 ) : BuildSummaryService {
