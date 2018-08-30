@@ -1,6 +1,5 @@
 package io.gatehill.buildclerk.service.schedule
 
-import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.dsl.CronBlock
 import io.gatehill.buildclerk.parser.Parser
 import org.quartz.CronScheduleBuilder.cronSchedule
@@ -50,7 +49,7 @@ class ScheduledTaskService @Inject constructor(
         scheduler.clear()
         tasks.clear()
 
-        val config = parser.parse(Settings.Rules.configFile)
+        val config = parser.parse()
         logger.debug("Initialising ${config.scheduledTasks.size} scheduled task(s)")
 
         config.scheduledTasks.forEach { scheduledTask ->

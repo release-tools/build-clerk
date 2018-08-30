@@ -2,8 +2,6 @@ package io.gatehill.buildclerk.api.config
 
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 object Settings {
     object EventFilter {
@@ -63,14 +61,6 @@ object Settings {
             System.getenv("SLACK_USER_TOKEN")
                 ?: throw IllegalStateException("Missing Slack user token")
         }
-    }
-
-    object Rules {
-        val configFile: Path by lazy {
-            System.getenv("RULES_FILE")?.let { Paths.get(it) }
-                ?: throw IllegalStateException("Missing rules file")
-        }
-        val parseOnStartup: Boolean by lazy { System.getenv("RULES_PARSE_ON_STARTUP")?.toBoolean() != false }
     }
 
     object Bitbucket {

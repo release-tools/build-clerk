@@ -4,12 +4,13 @@ import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.model.action.LockBranchAction
+import io.gatehill.buildclerk.api.model.action.PendingAction
+import io.gatehill.buildclerk.api.model.action.PendingActionSet
 import io.gatehill.buildclerk.api.model.action.RebuildBranchAction
 import io.gatehill.buildclerk.api.model.action.RevertCommitAction
 import io.gatehill.buildclerk.api.model.action.ShowTextAction
 import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.model.analysis.PublishConfig
-import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.service.NotificationService
@@ -69,102 +70,10 @@ class BodyHolder {
     var repository: (RepositoryBlock.() -> Unit)? = null
 }
 
-/**
- * Behaviour relating to a commit.
- */
-interface CommitBlock {
-    val buildReportService: BuildReportService
-    val commit: String
-    val branchName: String
+interface BaseBlock {
+    val notificationService: NotificationService
+    val buildSummaryService: BuildSummaryService
 
-    var analysis: Analysis
-
-    val commitHasEverSucceeded: Boolean
-        get() = buildReportService.hasEverSucceeded(commit)
-
-    val successesForCommitOnBranch: Int
-        get() = buildReportService.countStatusForCommitOnBranch(commit, branchName, BuildStatus.SUCCESS)
-
-    val failuresForCommitOnBranch: Int
-        get() = buildReportService.countStatusForCommitOnBranch(commit, branchName, BuildStatus.FAILED)
-
-    fun revertCommit() {
-        analysis.recommend(
-            RevertCommitAction(
-                commit = commit,
-                branch = branchName
-            )
-        )
-    }
-}
-
-/**
- * Behaviour relating to a branch.
- */
-interface BranchBlock {
-    val buildReportService: BuildReportService
-
-    var analysis: Analysis
-    var branchName: String
-
-    val consecutiveFailuresOnBranch: Int
-        get() = buildReportService.countConsecutiveFailuresOnBranch(branchName)
-
-    val lastPassingBuildForBranch: BuildReport?
-        get() = buildReportService.lastPassingBuildForBranch(branchName)
-
-    val lastPassingCommitForBranch: String?
-        get() = lastPassingBuildForBranch?.build?.scm?.commit
-
-    fun lockBranch() {
-        analysis.recommend(LockBranchAction(branchName))
-    }
-}
-
-/**
- * Behaviour relating to an analysis.
- */
-interface AnalysisBlock {
-    var analysis: Analysis
-    var branchName: String
-
-    fun log(message: String) = analysis.log(message)
-
-    fun showText(
-        body: String,
-        title: String = "Show",
-        description: String? = null,
-        color: Color = Color.BLACK,
-        channelName: String? = null
-    ) {
-        analysis.recommend(
-            ShowTextAction(
-                body = body,
-                title = title,
-                description = description,
-                color = color,
-                channelName = channelName
-            )
-        )
-    }
-
-    fun publishAnalysis(
-        channelName: String,
-        color: Color = Color.BLACK
-    ) {
-        analysis.publishConfig = PublishConfig(
-            channelName = channelName,
-            color = color
-        )
-    }
-}
-
-abstract class BaseBlock @Inject constructor(
-    private val notificationService: NotificationService,
-    private val buildReportService: BuildReportService,
-    private val analysisService: AnalysisService,
-    private val buildSummaryService: BuildSummaryService
-) {
     fun postMessage(
         channelName: String,
         message: String,
@@ -185,107 +94,155 @@ abstract class BaseBlock @Inject constructor(
 }
 
 /**
+ * Behaviour relating to an analysis.
+ */
+interface AnalysisBlock {
+    val analysis: Analysis
+
+    val perform: ActionCaptureBlock
+        get() = ActionCaptureBlock(analysis.perform)
+
+    val suggest: ActionCaptureBlock
+        get() = ActionCaptureBlock(analysis.suggested)
+
+    fun log(message: String) = analysis.log(message)
+
+    fun showText(
+        body: String,
+        title: String = "Show",
+        description: String? = null,
+        color: Color = Color.BLACK,
+        channelName: String? = null
+    ) = ShowTextAction(
+        body = body,
+        title = title,
+        description = description,
+        color = color,
+        channelName = channelName
+    )
+
+    fun publishAnalysis(
+        channelName: String,
+        color: Color = Color.BLACK
+    ) {
+        analysis.publishConfig = PublishConfig(
+            channelName = channelName,
+            color = color
+        )
+    }
+}
+
+data class ActionCaptureBlock(
+    private val actionSet: PendingActionSet
+) {
+    infix fun action(pendingAction: PendingAction) {
+        if (!actionSet.actions.contains(pendingAction)) {
+            actionSet.actions += pendingAction
+        }
+    }
+}
+
+/**
+ * Behaviour relating to a commit.
+ */
+interface CommitBlock : AnalysisBlock {
+    val buildReportService: BuildReportService
+    val commit: String
+    val branchName: String
+
+    val commitHasEverSucceeded: Boolean
+        get() = buildReportService.hasEverSucceeded(commit)
+
+    val successesForCommitOnBranch: Int
+        get() = buildReportService.countStatusForCommitOnBranch(commit, branchName, BuildStatus.SUCCESS)
+
+    val failuresForCommitOnBranch: Int
+        get() = buildReportService.countStatusForCommitOnBranch(commit, branchName, BuildStatus.FAILED)
+
+    fun revertCommit() = RevertCommitAction(
+        commit = commit,
+        branch = branchName
+    )
+}
+
+/**
+ * Behaviour relating to a branch.
+ */
+interface BranchBlock : AnalysisBlock {
+    val buildReportService: BuildReportService
+
+    val branchName: String
+
+    val consecutiveFailuresOnBranch: Int
+        get() = buildReportService.countConsecutiveFailuresOnBranch(branchName)
+
+    val lastPassingBuildForBranch: BuildReport?
+        get() = buildReportService.lastPassingBuildForBranch(branchName)
+
+    val lastPassingCommitForBranch: String?
+        get() = lastPassingBuildForBranch?.build?.scm?.commit
+
+    fun lockBranch() = LockBranchAction(branchName)
+}
+
+/**
  * Behaviour for build reports.
  */
-abstract class BuildBlock @Inject constructor(
-    override val buildReportService: BuildReportService,
-    notificationService: NotificationService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService
-) : AnalysisBlock, BranchBlock, CommitBlock, BaseBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-) {
+abstract class BuildBlock : AnalysisBlock, BranchBlock, CommitBlock, BaseBlock {
     override lateinit var analysis: Analysis
-    override lateinit var branchName: String
     lateinit var report: BuildReport
+
+    override val branchName: String
+        get() = report.build.scm.branch
 
     override val commit: String
         get() = report.build.scm.commit
 
-    fun rebuildBranch() {
-        analysis.recommend(RebuildBranchAction(report))
-    }
+    fun rebuildBranch() = RebuildBranchAction(report)
 }
 
 class BuildPassedBlock @Inject constructor(
-    buildReportService: BuildReportService,
-    notificationService: NotificationService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService
-) : BuildBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-)
+    override val buildReportService: BuildReportService,
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService
+) : BuildBlock()
 
 class BuildFailedBlock @Inject constructor(
-    buildReportService: BuildReportService,
-    notificationService: NotificationService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService
-) : BuildBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-)
+    override val buildReportService: BuildReportService,
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService
+) : BuildBlock()
 
 class BuildHealthyBlock @Inject constructor(
-    buildReportService: BuildReportService,
-    notificationService: NotificationService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService
-) : BuildBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-)
+    override val buildReportService: BuildReportService,
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService
+) : BuildBlock()
 
 class BuildFailingBlock @Inject constructor(
-    buildReportService: BuildReportService,
-    notificationService: NotificationService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService
-) : BuildBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-)
+    override val buildReportService: BuildReportService,
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService
+) : BuildBlock()
 
 class RepositoryBlock @Inject constructor(
-    buildReportService: BuildReportService,
-    notificationService: NotificationService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService
-) : BuildBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-)
+    override val buildReportService: BuildReportService,
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService
+) : BuildBlock()
 
 class PullRequestMergedBlock @Inject constructor(
-    buildReportService: BuildReportService,
-    notificationService: NotificationService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService,
+    override val buildReportService: BuildReportService,
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService,
     private val pullRequestEventService: PullRequestEventService
-) : AnalysisBlock, CommitBlock, BuildBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-) {
-    override lateinit var analysis: Analysis
-    override lateinit var branchName: String
+) : AnalysisBlock, CommitBlock, BuildBlock() {
+
     lateinit var mergeEvent: PullRequestMergedEvent
     lateinit var currentBranchStatus: BuildStatus
+
+    override val branchName: String
+        get() = mergeEvent.pullRequest.destination.branch.name
 
     override val commit: String
         get() = mergeEvent.pullRequest.mergeCommit.hash
@@ -295,16 +252,9 @@ class PullRequestMergedBlock @Inject constructor(
 }
 
 class CronBlock @Inject constructor(
-    notificationService: NotificationService,
-    buildReportService: BuildReportService,
-    analysisService: AnalysisService,
-    buildSummaryService: BuildSummaryService
-) : BaseBlock(
-    notificationService = notificationService,
-    buildReportService = buildReportService,
-    analysisService = analysisService,
-    buildSummaryService = buildSummaryService
-)
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService
+) : BaseBlock
 
 /**
  * Entrypoint into the DSL.

@@ -20,11 +20,14 @@ Respond to events in your build pipeline and keep your main branch stable.
 Clerk has a powerful DSL that lets you customise your rules:
 
 ```
-if (failuresForCommitOnBranch <= 2) {
-    rebuildBranch()
+if (failuresForCommitOnBranch == 1) {
+    // this action will be triggered immediately
+    perform action rebuildBranch()
+    
 } else {
-    revertCommit()
-    lockBranch()
+    // these actions will be posted to Slack as buttons
+    suggest action revertCommit()
+    suggest action lockBranch()
 }
 
 publishAnalysis("general")
@@ -51,9 +54,14 @@ With Clerk's DSL, you can perform arbitrary logic in response to build events. O
 * revert the offending commit
 * lock down the branch against further changes
 * trigger a rebuild of the branch - useful to help determine if you have a flaky test
-* send the above actions to a Slack channel for a human to make a decision
+* publish a summary of a branch's health - useful in combination with the `cron` event for sending periodic status updates
+* post an arbitrary message to a Slack channel of your choice, in case you need to notify people of something or cajole someone into action.
 
-In addition, you can post an arbitrary message to a Slack channel of your choice, in case you need to notify people of something or cajole someone into action.
+#### Performing vs. suggesting actions
+
+If you choose to _perform_ an action, it will be triggered immediately and a notification will be posted to Slack.
+
+If you would prefer a human to make a decision, you can _suggest_ an action. This will result in the action being posted in Slack with buttons to confirm or dismiss it.
 
 ## Run it
 

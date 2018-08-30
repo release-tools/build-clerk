@@ -46,8 +46,11 @@ class SlackNotificationServiceImpl @Inject constructor(
             channel = channelName,
             attachments = mutableListOf<SlackMessageAttachment>().apply {
                 this += buildAnalysisAttachment(analysis, color)
-                this += analysis.actionSet.actions.map { action ->
-                    buildMessageAttachment(analysis.actionSet.id, action, color)
+                this += analysis.perform.actions.map { action ->
+                    buildDumbAttachment(action)
+                }
+                this += analysis.suggested.actions.map { action ->
+                    buildMessageAttachment(analysis.suggested.id, action)
                 }
             }
         )
@@ -93,13 +96,11 @@ class SlackNotificationServiceImpl @Inject constructor(
 
     private fun buildMessageAttachment(
         actionSetId: String,
-        action: PendingAction,
-        color: String
+        action: PendingAction
     ) = SlackMessageAttachment(
         fallback = "Do you want to ${action.describe()}?",
         title = "Do you want to ${action.describe()}?",
         callbackId = actionSetId,
-        color = color,
         attachmentType = "default",
         actions = listOf(
             SlackMessageAction(
@@ -116,5 +117,10 @@ class SlackNotificationServiceImpl @Inject constructor(
                 value = "no"
             )
         )
+    )
+
+    private fun buildDumbAttachment(action: PendingAction) = SlackMessageAttachment(
+        text = ":white_check_mark: Automatically performed action: ${action.describe()}",
+        attachmentType = "default"
     )
 }

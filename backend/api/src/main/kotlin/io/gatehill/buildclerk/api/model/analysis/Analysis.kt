@@ -1,6 +1,5 @@
 package io.gatehill.buildclerk.api.model.analysis
 
-import io.gatehill.buildclerk.api.model.action.PendingAction
 import io.gatehill.buildclerk.api.model.action.PendingActionSet
 import org.apache.logging.log4j.Logger
 import java.time.ZonedDateTime
@@ -12,7 +11,8 @@ class Analysis(
     val user: String? = null,
     val url: String? = null
 ) {
-    val actionSet = PendingActionSet()
+    val perform = PendingActionSet()
+    val suggested = PendingActionSet()
     var publishConfig: PublishConfig? = null
     private val events = mutableListOf<AnalysisEvent>()
 
@@ -25,27 +25,16 @@ class Analysis(
         )
     }
 
-    fun recommend(pendingAction: PendingAction) {
-        if (!actionSet.actions.contains(pendingAction)) {
-            logger.debug("Recommending action: ${pendingAction.describe()}")
-            actionSet.actions += pendingAction
-        }
-    }
+    fun isNotEmpty(): Boolean = events.isNotEmpty() || perform.actions.isNotEmpty() || suggested.actions.isNotEmpty()
 
-    fun isNotEmpty(): Boolean = events.isNotEmpty() || actionSet.actions.isNotEmpty()
+    fun describeEvents(): String = events.joinToString("\n") { it.message }
 
-    fun describeEvents(): String {
-        return """
-${events.joinToString("\n") { it.message }}
-""".trimMargin()
-    }
-
-    override fun toString(): String {
-        return """
+    override fun toString() = """
 ----- Analysis of $name -----
 ${events.joinToString("\n")}
-Recommended actions:
-${actionSet.actions.joinToString("\n")}
+Performed actions:
+${perform.actions.joinToString("\n")}
+Suggested actions:
+${suggested.actions.joinToString("\n")}
 """.trimMargin()
-    }
 }

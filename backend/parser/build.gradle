@@ -13,6 +13,7 @@ dependencies {
 
     // testing
     testCompile "junit:junit:$version_junit"
+    testCompile "org.apache.logging.log4j:log4j-core:$version_log4j"
 }
 
 compileKotlin {

@@ -1,6 +1,7 @@
 package io.gatehill.buildclerk.dsl
 
 import io.gatehill.buildclerk.parser.Parser
+import io.gatehill.buildclerk.parser.config.ParserSettings
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.nio.file.Paths
@@ -8,8 +9,16 @@ import java.nio.file.Paths
 class DslTest {
     @Test
     fun `parse configuration`() {
-        val rules = Paths.get(DslTest::class.java.getResource("/full.kts").toURI())
-        val config = Parser().parse(rules)
+        val rules = Paths.get(DslTest::class.java.getResource("/full.kts").toURI()).toString()
+
+        val parserSettings = ParserSettings(
+            mapOf(
+                "RULES_FILE" to rules,
+                "RULES_PARSE_ON_STARTUP" to "false"
+            )
+        )
+
+        val config = Parser(parserSettings).parse()
         config.body(config)
 
         assertNotNull(config.bodyHolder.buildPassed)

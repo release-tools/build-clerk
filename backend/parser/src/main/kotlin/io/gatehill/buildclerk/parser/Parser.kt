@@ -2,14 +2,15 @@ package io.gatehill.buildclerk.parser
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.dsl.BaseBlock
 import io.gatehill.buildclerk.dsl.ConfigBlock
+import io.gatehill.buildclerk.parser.config.ParserSettings
 import io.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import javax.script.ScriptEngineManager
 
 /**
@@ -17,7 +18,9 @@ import javax.script.ScriptEngineManager
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class Parser {
+class Parser @Inject constructor(
+    private val parserSettings: ParserSettings
+) {
     private val logger: Logger = LogManager.getLogger(Parser::class.java)
     private val engine by lazy { ScriptEngineManager().getEngineByExtension("kts")!! }
 
@@ -26,17 +29,17 @@ class Parser {
         .build()
 
     init {
-        if (Settings.Rules.parseOnStartup) {
-            parse(Settings.Rules.configFile)
+        if (parserSettings.parseOnStartup) {
+            parse()
         }
     }
 
-    fun parse(rulesFile: Path): ConfigBlock {
-        val config = configCache.get(rulesFile) { path ->
+    fun parse(): ConfigBlock {
+        val config = configCache.get(parserSettings.configFile) { path ->
             logger.debug("Loading configuration from rules file: $path")
             engine.eval(path.toFile().reader()) as? ConfigBlock
 
-        } ?: throw IllegalStateException("No 'config' block defined in: $rulesFile")
+        } ?: throw IllegalStateException("No 'config' block defined in: ${parserSettings.configFile}")
 
         config.scheduledTasks.clear()
         config.body(config)

@@ -10,7 +10,6 @@ import io.gatehill.buildclerk.api.service.NotificationService
 import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.api.util.toShortCommit
-import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.dsl.BuildBlock
 import io.gatehill.buildclerk.parser.Parser
 import io.gatehill.buildclerk.service.scm.ScmService
@@ -40,17 +39,15 @@ class AnalysisServiceImpl @Inject constructor(
         logger.info("Analysing build report: $report")
 
         val analysis = initBuildAnalysis(report)
-        val branchName = report.build.scm.branch
 
         val previousBuildStatus = buildReportService.fetchBuildStatus(
-            branchName = branchName,
+            branchName = report.build.scm.branch,
             buildNumber = report.build.number - 1
         )
 
-        val config = parser.parse(Settings.Rules.configFile)
+        val config = parser.parse()
         val blockConfigurer = { block: BuildBlock ->
             block.analysis = analysis
-            block.branchName = branchName
             block.report = report
         }
 
@@ -88,6 +85,7 @@ class AnalysisServiceImpl @Inject constructor(
 
         // runs every time
         parser.invoke(
+            blockConfigurer = blockConfigurer,
             body = config.bodyHolder.repository
         )
 
@@ -219,13 +217,12 @@ class AnalysisServiceImpl @Inject constructor(
             user = mergeEvent.actor.displayName
         )
 
-        val config = parser.parse(Settings.Rules.configFile)
+        val config = parser.parse()
 
         parser.invoke(
             body = config.bodyHolder.pullRequestMerged,
             blockConfigurer = { block ->
                 block.analysis = analysis
-                block.branchName = mergeEvent.pullRequest.destination.branch.name
                 block.mergeEvent = mergeEvent
                 block.currentBranchStatus = currentBranchStatus
             }
@@ -236,12 +233,14 @@ class AnalysisServiceImpl @Inject constructor(
     }
 
     /**
-     * Enqueue actions and send notifications.
+     * Perform and enqueue actions, then send analysis notification.
      */
     private fun finaliseAnalysis(analysis: Analysis) {
         if (analysis.isNotEmpty()) {
-            pendingActionService.enqueue(analysis.actionSet)
+            pendingActionService.perform(analysis.perform)
+            pendingActionService.enqueue(analysis.suggested)
         }
+
         analysis.publishConfig?.let { postConfig ->
             notificationService.notify(postConfig.channelName, analysis, postConfig.color.hexCode)
         }

@@ -47,9 +47,24 @@ class PendingActionServiceImpl @Inject constructor(
     override val newestDate
         get() = pendingActionDao.newestDate
 
+    override fun perform(actionSet: PendingActionSet) {
+        when (actionSet.actions.size) {
+            0 -> logger.debug("No actions to perform")
+            else -> {
+                logger.info("Performing ${actionSet.actions.size} actions: ${actionSet.actions}")
+                actionSet.actions.forEach { action -> perform(null, action) }
+            }
+        }
+    }
+
     override fun enqueue(actionSet: PendingActionSet) {
-        logger.info("Enqueuing ${actionSet.actions.size} pending actions: ${actionSet.actions}")
-        pendingActionDao.save(actionSet)
+        when (actionSet.actions.size) {
+            0 -> logger.debug("No actions to enqueue")
+            else -> {
+                logger.info("Enqueuing ${actionSet.actions.size} actions: ${actionSet.actions}")
+                pendingActionDao.save(actionSet)
+            }
+        }
     }
 
     override fun handleAsync(event: ActionTriggeredEvent) {
@@ -215,7 +230,7 @@ class PendingActionServiceImpl @Inject constructor(
 
         when (action.value) {
             pendingAction.name -> {
-                executePendingAction(triggeringChannel, pendingAction)
+                perform(triggeringChannel, pendingAction)
                 return true
             }
             else -> logger.info("Discarding pending action: $pendingAction [actionValue: ${action.value}]")
@@ -224,8 +239,8 @@ class PendingActionServiceImpl @Inject constructor(
         return false
     }
 
-    private fun executePendingAction(
-        triggeringChannel: String,
+    private fun perform(
+        triggeringChannel: String?,
         pendingAction: PendingAction
     ) {
         logger.info("Executing pending action: $pendingAction")
@@ -244,8 +259,13 @@ class PendingActionServiceImpl @Inject constructor(
     /**
      * Show text on the specified channel, or the triggering channel if it is not specified.
      */
-    private fun showText(triggeringChannel: String, action: ShowTextAction) {
-        notificationService.notify(action.channelName ?: triggeringChannel, action.body, action.color.hexCode)
+    private fun showText(triggeringChannel: String?, action: ShowTextAction) {
+        val channelName = action.channelName ?: triggeringChannel
+        channelName?.let {
+            notificationService.notify(channelName, action.body, action.color.hexCode)
+        } ?: run {
+            logger.error("No channel name set or triggering channel provided for action: $action")
+        }
     }
 }
 

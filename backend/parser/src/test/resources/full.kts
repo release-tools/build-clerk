@@ -7,15 +7,15 @@ config {
         if (commitHasEverSucceeded) {
             // commit has previously succeeded (on at least 1 branch)
 
-            if (failuresForCommitOnBranch < 3) {
-                rebuildBranch()
-            } else {
-                lockBranch()
+            when (failuresForCommitOnBranch) {
+                1 -> perform action rebuildBranch()
+                2 -> suggest action rebuildBranch()
+                else -> suggest action lockBranch()
             }
 
         } else {
             // commit has never succeeded on any branch
-            revertCommit()
+            suggest action revertCommit()
         }
 
         publishAnalysis(
@@ -33,7 +33,7 @@ config {
     }
 
     repository {
-        showText(
+        suggest action showText(
                 title = "Show instructions",
                 description = "hard reset branch $branchName to last passing commit",
                 body = "Hard reset branch with command: ```git checkout $branchName && git reset $lastPassingCommitForBranch --hard```"
@@ -41,7 +41,7 @@ config {
 
         if (consecutiveFailuresOnBranch >= 2) {
             log("Branch `$branchName` has failed $consecutiveFailuresOnBranch time(s) consecutively")
-            lockBranch()
+            suggest action lockBranch()
 
             publishAnalysis(
                     channelName = "general",
@@ -53,7 +53,7 @@ config {
     pullRequestMerged {
         if (currentBranchStatus == BuildStatus.FAILED) {
             log("PR $prSummary was merged into failing branch `$branchName`")
-            revertCommit()
+            suggest action revertCommit()
 
             publishAnalysis(
                     channelName = "general",
