@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import retrofit2.Call

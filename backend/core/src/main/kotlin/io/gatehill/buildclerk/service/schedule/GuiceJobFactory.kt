@@ -8,8 +8,9 @@ import org.quartz.spi.TriggerFiredBundle
 
 
 /**
+ * Creates dependency injected Quartz jobs.
  *
- * @author pete
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 class GuiceJobFactory : JobFactory {
     override fun newJob(bundle: TriggerFiredBundle, scheduler: Scheduler): Job {

@@ -2,7 +2,8 @@ package io.gatehill.buildclerk.parser
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.gatehill.buildclerk.dsl.AbstractBaseBlock
+import io.gatehill.buildclerk.api.config.Settings
+import io.gatehill.buildclerk.dsl.BaseBlock
 import io.gatehill.buildclerk.dsl.ConfigBlock
 import io.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
 import org.apache.logging.log4j.LogManager
@@ -24,6 +25,12 @@ class Parser {
         .expireAfterWrite(1, TimeUnit.MINUTES)
         .build()
 
+    init {
+        if (Settings.Rules.parseOnStartup) {
+            parse(Settings.Rules.configFile)
+        }
+    }
+
     fun parse(rulesFile: Path): ConfigBlock {
         val config = configCache.get(rulesFile) { path ->
             logger.debug("Loading configuration from rules file: $path")
@@ -39,7 +46,7 @@ class Parser {
     /**
      * Instantiate the block of type `B`, configure it, then invoke the `body` on it.
      */
-    inline fun <reified B : AbstractBaseBlock> invoke(
+    inline fun <reified B : BaseBlock> invoke(
         noinline blockConfigurer: ((B) -> Unit)? = null,
         noinline body: (B.() -> Unit)?
     ) {

@@ -4,12 +4,13 @@ import com.google.inject.AbstractModule
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.BuildRunnerService
+import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.service.NotificationService
 import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
-import io.gatehill.buildclerk.parser.Parser
 import io.gatehill.buildclerk.server.Server
 import io.gatehill.buildclerk.service.AnalysisServiceImpl
+import io.gatehill.buildclerk.service.BuildSummaryServiceImpl
 import io.gatehill.buildclerk.service.CommandExecutorService
 import io.gatehill.buildclerk.service.PendingActionServiceImpl
 import io.gatehill.buildclerk.service.builder.BuildEventService
@@ -35,6 +36,7 @@ internal class ClerkModule : AbstractModule() {
 
         // event processors
         bind(BuildReportService::class.java).to(BuildReportServiceImpl::class.java).asSingleton()
+        bind(BuildSummaryService::class.java).to(BuildSummaryServiceImpl::class.java).asSingleton()
         bind(BuildEventService::class.java).asSingleton()
         bind(AnalysisService::class.java).to(AnalysisServiceImpl::class.java).asSingleton()
 
@@ -52,8 +54,5 @@ internal class ClerkModule : AbstractModule() {
         // jenkins
         bind(BuildRunnerService::class.java).to(JenkinsBuildRunnerServiceImpl::class.java).asSingleton()
         bind(JenkinsApiClientBuilder::class.java).asSingleton()
-
-        // parser
-        bind(Parser::class.java).asSingleton()
     }
 }

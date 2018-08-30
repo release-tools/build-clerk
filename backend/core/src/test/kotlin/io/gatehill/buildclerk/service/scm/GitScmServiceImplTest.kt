@@ -1,7 +1,7 @@
 package io.gatehill.buildclerk.service.scm
 
 import com.nhaarman.mockitokotlin2.mock
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File

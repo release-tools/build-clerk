@@ -85,7 +85,7 @@ config {
         )
     }
 
-    // run every hour
+    // send a branch summary every hour
     cron("0 0 * * * ?") {
         publishSummary(
             branchName = "branch",

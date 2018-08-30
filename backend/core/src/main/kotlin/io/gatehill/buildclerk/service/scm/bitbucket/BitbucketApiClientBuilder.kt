@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.service.rest.ApiClientBuilder
 import okhttp3.Credentials
 

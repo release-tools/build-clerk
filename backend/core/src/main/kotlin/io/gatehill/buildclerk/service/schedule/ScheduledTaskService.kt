@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.service.schedule
 
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.dsl.CronBlock
 import io.gatehill.buildclerk.parser.Parser
 import org.quartz.CronScheduleBuilder.cronSchedule

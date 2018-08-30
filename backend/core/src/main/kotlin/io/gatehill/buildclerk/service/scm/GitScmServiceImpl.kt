@@ -1,7 +1,7 @@
 package io.gatehill.buildclerk.service.scm
 
 import com.jcraft.jsch.Session
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.model.scm.CommitUserInfo
 import io.gatehill.buildclerk.model.scm.ScmUser
 import io.gatehill.buildclerk.service.CommandExecutorService

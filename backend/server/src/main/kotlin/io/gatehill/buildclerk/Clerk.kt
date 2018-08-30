@@ -1,7 +1,7 @@
 package io.gatehill.buildclerk
 
 import com.google.inject.Guice
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.inject.ClerkModule
 import io.gatehill.buildclerk.inject.DaemonModule
 import io.gatehill.buildclerk.inject.buildStoreModule

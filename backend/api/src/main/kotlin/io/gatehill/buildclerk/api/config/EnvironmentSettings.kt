@@ -1,4 +1,4 @@
-package io.gatehill.buildclerk.config
+package io.gatehill.buildclerk.api.config
 
 /**
  * Base class to allow environment to be injected or read from `System`.

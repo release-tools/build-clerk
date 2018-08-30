@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.service.notify.slack
 
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.util.jsonMapper
 import org.apache.http.NameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity

@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.service.builder.jenkins
 
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.service.rest.ApiClientBuilder
 import okhttp3.Credentials
 

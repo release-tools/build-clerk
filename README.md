@@ -42,6 +42,7 @@ Currently, you can react to the following events:
 * `branchStartsPassing` - a formerly failing branch just passed
 * `repository` - repository wide rules - good for setting maximum thresholds for things like failures on a branch
 * `pullRequestMerged` - a pull request was merged
+* `cron(<cron expression)` - trigger action on a schedule - good for sending periodic summaries
 
 ### Actions
 
@@ -95,6 +96,7 @@ Security configuration:
 Advanced configuration:
 
 * `SERVER_PORT` - the HTTP port on which to listen
+* `RULES_PARSE_ON_STARTUP` - whether to parse the rules file on startup - useful to fail fast if configuration is broken
 
 ### Data storage
 

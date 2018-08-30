@@ -1,4 +1,4 @@
-package io.gatehill.buildclerk.config
+package io.gatehill.buildclerk.api.config
 
 import java.io.File
 import java.nio.file.Files
@@ -70,6 +70,7 @@ object Settings {
             System.getenv("RULES_FILE")?.let { Paths.get(it) }
                 ?: throw IllegalStateException("Missing rules file")
         }
+        val parseOnStartup: Boolean by lazy { System.getenv("RULES_PARSE_ON_STARTUP")?.toBoolean() != false }
     }
 
     object Bitbucket {

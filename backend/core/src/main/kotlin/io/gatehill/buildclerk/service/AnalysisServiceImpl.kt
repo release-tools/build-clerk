@@ -10,8 +10,8 @@ import io.gatehill.buildclerk.api.service.NotificationService
 import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.api.util.toShortCommit
-import io.gatehill.buildclerk.config.Settings
-import io.gatehill.buildclerk.dsl.AbstractBuildBlock
+import io.gatehill.buildclerk.api.config.Settings
+import io.gatehill.buildclerk.dsl.BuildBlock
 import io.gatehill.buildclerk.parser.Parser
 import io.gatehill.buildclerk.service.scm.ScmService
 import kotlinx.coroutines.experimental.async
@@ -48,7 +48,7 @@ class AnalysisServiceImpl @Inject constructor(
         )
 
         val config = parser.parse(Settings.Rules.configFile)
-        val blockConfigurer = { block: AbstractBuildBlock ->
+        val blockConfigurer = { block: BuildBlock ->
             block.analysis = analysis
             block.branchName = branchName
             block.report = report

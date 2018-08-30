@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
-import io.gatehill.buildclerk.config.Settings
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.service.CommandExecutorService
 import io.gatehill.buildclerk.service.support.IntegrationTest
 import org.junit.Test
