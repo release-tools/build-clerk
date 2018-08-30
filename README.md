@@ -25,7 +25,7 @@ if (failuresForCommitOnBranch == 1) {
     perform action rebuildBranch()
     
 } else {
-    // these actions will be posted to Slack as buttons
+    // these actions will be posted to Slack for a human decision
     suggest action revertCommit()
     suggest action lockBranch()
 }
@@ -45,7 +45,7 @@ Currently, you can react to the following events:
 * `branchStartsPassing` - a formerly failing branch just passed
 * `repository` - repository wide rules - good for setting maximum thresholds for things like failures on a branch
 * `pullRequestMerged` - a pull request was merged
-* `cron(<cron expression)` - trigger action on a schedule - good for sending periodic summaries
+* `cron` - trigger action on a schedule - good for sending periodic summaries
 
 ### Actions
 

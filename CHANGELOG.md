@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.4.0] - 2018-08-31
+### Added
+- Adds scheduled events support to DSL.
+- Allows actions to be performed immediately or suggested for human interaction.
+- Adds branch summary function to DSL.
+
+### Changed
+- Parse configuration rules on startup (enabled by default).
+
 ## [0.3.5] - 2018-08-30
 ### Added
 - Adds earliest and newest record timestamps to statistics endpoint.
