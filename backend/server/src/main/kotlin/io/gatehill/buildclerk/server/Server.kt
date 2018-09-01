@@ -9,6 +9,7 @@ import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.config.ServerSettings
+import io.gatehill.buildclerk.query.QueryResolverException
 import io.gatehill.buildclerk.query.QueryService
 import io.gatehill.buildclerk.service.builder.BuildEventService
 import io.gatehill.buildclerk.util.jsonMapper
@@ -27,6 +28,7 @@ import io.vertx.kotlin.core.json.obj
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
+import kotlin.reflect.KClass
 import kotlin.system.exitProcess
 
 /**
@@ -63,9 +65,11 @@ class Server @Inject constructor(
     }
 
     private fun buildRouter(vertx: Vertx) = Router.router(vertx).apply {
-        route().handler(CorsHandler.create(ServerSettings.Http.corsPattern)
-            .allowCredentials(true)
-            .allowedHeader("Content-Type"))
+        route().handler(
+            CorsHandler.create(ServerSettings.Http.corsPattern)
+                .allowCredentials(true)
+                .allowedHeader("Content-Type")
+        )
 
         route().handler(BodyHandler.create())
         configureAuth(vertx, this)
@@ -151,8 +155,21 @@ class Server @Inject constructor(
         }
 
         post("/graphql").produces(JSON_CONTENT_TYPE).handler { rc ->
-            val result = queryService.query(rc.readBodyJson())
-            rc.response().end(result)
+            launch {
+                val result = try {
+                    queryService.query(rc.readBodyJson())
+                } catch (e: Exception) {
+                    logger.error(e)
+                    if (e.causeContains(QueryResolverException::class)) {
+                        rc.fail(e)
+                        return@launch
+                    } else {
+                        rc.response().setStatusCode(400).end()
+                        return@launch
+                    }
+                }
+                rc.response().end(result)
+            }
         }
     }
 
@@ -208,4 +225,8 @@ class Server @Inject constructor(
     companion object {
         private const val JSON_CONTENT_TYPE = "application/json"
     }
+}
+
+private fun Throwable.causeContains(causeClass: KClass<out Throwable>): Boolean {
+    return cause?.causeContains(causeClass) ?: false
 }

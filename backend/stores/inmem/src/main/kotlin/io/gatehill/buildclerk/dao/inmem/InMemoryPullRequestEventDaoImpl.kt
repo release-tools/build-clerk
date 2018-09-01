@@ -13,4 +13,16 @@ class InMemoryPullRequestEventDaoImpl : AbstractInMemoryDao<PullRequestMergedEve
 
     override fun findByMergeCommit(commit: String): PullRequestMergedEvent? =
         store.find { it.record.pullRequest.mergeCommit.hash == commit }?.record
+
+    override fun fetchLast(branchName: String?): PullRequestMergedEvent? =
+        store.asReversed().firstOrNull { wrapper ->
+            branchName?.let { wrapper.record.pullRequest.destination.branch.name == branchName } ?: true
+        }?.record
+
+    override fun list(branchName: String?): List<PullRequestMergedEvent> =
+        store.filter { wrapper ->
+            branchName?.let { wrapper.record.pullRequest.destination.branch.name == branchName } ?: true
+        }.map {
+            it.record
+        }
 }

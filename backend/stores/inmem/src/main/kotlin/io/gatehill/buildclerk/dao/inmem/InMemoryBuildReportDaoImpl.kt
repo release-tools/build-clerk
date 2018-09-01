@@ -12,8 +12,8 @@ class InMemoryBuildReportDaoImpl : AbstractInMemoryDao<BuildReport>(), BuildRepo
         store += Record.create(report)
     }
 
-    override fun fetchLastBuildForBranch(branchName: String): BuildReport? = store.asReversed().firstOrNull {
-        it.record.build.scm.branch == branchName
+    override fun fetchLast(branchName: String?): BuildReport? = store.asReversed().firstOrNull { wrapper ->
+        branchName?.let { wrapper.record.build.scm.branch == branchName } ?: true
     }?.record
 
     override fun hasEverSucceeded(commit: String): Boolean = store.asReversed().any {
@@ -37,8 +37,8 @@ class InMemoryBuildReportDaoImpl : AbstractInMemoryDao<BuildReport>(), BuildRepo
         it.record.build.scm.branch == branchName && it.record.build.status == BuildStatus.FAILED
     }.size
 
-    override fun listForBranch(branchName: String): List<BuildReport> = store.filter {
-        it.record.build.scm.branch == branchName
+    override fun list(branchName: String?): List<BuildReport> = store.filter { wrapper ->
+        branchName?.let { wrapper.record.build.scm.branch == branchName } ?: true
     }.map {
         it.record
     }

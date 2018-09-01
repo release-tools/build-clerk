@@ -1,11 +1,16 @@
 package io.gatehill.buildclerk.dao.mongo
 
 import io.gatehill.buildclerk.api.dao.PullRequestEventDao
+import io.gatehill.buildclerk.api.model.Branch
 import io.gatehill.buildclerk.api.model.Commit
 import io.gatehill.buildclerk.api.model.PullRequest
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.RepoBranch
+import io.gatehill.buildclerk.dao.mongo.model.Dated
 import io.gatehill.buildclerk.dao.mongo.model.MongoPullRequestMergedEventWrapper
 import io.gatehill.buildclerk.dao.mongo.model.wrap
+import org.litote.kmongo.ascending
+import org.litote.kmongo.descending
 import org.litote.kmongo.div
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
@@ -36,4 +41,33 @@ class MongoPullRequestEventDaoImpl : AbstractMongoDao(), PullRequestEventDao {
 
     override val newestDate: ZonedDateTime?
         get() = newestDate<MongoPullRequestMergedEventWrapper>()
+
+    override fun fetchLast(
+        branchName: String?
+    ): PullRequestMergedEvent? = withCollection<MongoPullRequestMergedEventWrapper, PullRequestMergedEvent?> {
+        val iterable = branchName?.let {
+            find(MongoPullRequestMergedEventWrapper::mergeEvent / PullRequestMergedEvent::pullRequest / PullRequest::destination / RepoBranch::branch / Branch::name eq branchName)
+        } ?: find()
+
+        iterable
+            .sort(descending(Dated::createdDate))
+            .limit(1)
+            .firstOrNull()
+            ?.mergeEvent
+    }
+
+    override fun list(
+        branchName: String?
+    ): List<PullRequestMergedEvent> =
+        withCollection<MongoPullRequestMergedEventWrapper, List<PullRequestMergedEvent>> {
+            val iterable = branchName?.let {
+                find(MongoPullRequestMergedEventWrapper::mergeEvent / PullRequestMergedEvent::pullRequest / PullRequest::destination / RepoBranch::branch / Branch::name eq branchName)
+            } ?: find()
+
+            // convert to list to avoid leaking mongo connection when method returns
+            iterable
+                .sort(ascending(Dated::createdDate))
+                .map { it.mergeEvent }
+                .toList()
+        }
 }

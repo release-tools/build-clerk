@@ -24,11 +24,14 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         insertOne(report.wrap())
     }
 
-    override fun fetchLastBuildForBranch(
-        branchName: String
+    override fun fetchLast(
+        branchName: String?
     ): BuildReport? = withCollection<MongoBuildReportWrapper, BuildReport?> {
-        find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
-            .sort(descending(MongoBuildReportWrapper::createdDate))
+        val iterable = branchName?.let {
+            find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
+        } ?: find()
+
+        iterable.sort(descending(MongoBuildReportWrapper::createdDate))
             .limit(1).first()?.buildReport
     }
 
@@ -90,12 +93,15 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             .count()
     }
 
-    override fun listForBranch(
-        branchName: String
+    override fun list(
+        branchName: String?
     ): List<BuildReport> = withCollection<MongoBuildReportWrapper, List<BuildReport>> {
-        // converts to list to avoid leaking mongo connection when method returns
-        find(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName)
-            .sort(ascending(MongoBuildReportWrapper::createdDate))
+        val iterable = branchName?.let {
+            find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
+        } ?: find()
+
+        // convert to list to avoid leaking mongo connection when method returns
+        iterable.sort(ascending(MongoBuildReportWrapper::createdDate))
             .map { it.buildReport }
             .toList()
     }

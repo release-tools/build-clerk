@@ -10,4 +10,6 @@ interface PullRequestEventService : Recorded {
     fun checkPullRequest(event: PullRequestMergedEvent)
     fun describePullRequest(event: PullRequestMergedEvent): String
     fun findPullRequestByMergeCommit(commit: String): PullRequestMergedEvent?
+    fun fetchLastPullRequest(branchName: String? = null): PullRequestMergedEvent?
+    fun fetchPullRequests(branchName: String? = null): List<PullRequestMergedEvent>
 }

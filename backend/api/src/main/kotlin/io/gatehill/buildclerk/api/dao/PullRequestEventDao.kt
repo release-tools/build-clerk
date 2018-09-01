@@ -6,4 +6,6 @@ import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 interface PullRequestEventDao: Recorded {
     fun record(mergedEvent: PullRequestMergedEvent)
     fun findByMergeCommit(commit: String): PullRequestMergedEvent?
+    fun fetchLast(branchName: String? = null): PullRequestMergedEvent?
+    fun list(branchName: String? = null): List<PullRequestMergedEvent>
 }

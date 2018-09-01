@@ -1,12 +1,12 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
+import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.api.dao.PullRequestEventDao
 import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
-import io.gatehill.buildclerk.api.config.Settings
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
@@ -19,7 +19,6 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     private val analysisService: AnalysisService,
     private val pullRequestEventDao: PullRequestEventDao
 ) : PullRequestEventService {
-
     private val logger = LogManager.getLogger(PullRequestEventService::class.java)
 
     override val count
@@ -53,7 +52,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
         }
 
         launch {
-            buildReportService.fetchLastBuildForBranch(branchName)?.let { buildReport ->
+            buildReportService.fetchLastReport(branchName)?.let { buildReport ->
                 val currentBranchStatus = buildReport.build.status
                 logger.info("Status of branch: $branchName is $currentBranchStatus - triggering PR: $prInfo")
                 analyse(event, currentBranchStatus)
@@ -79,4 +78,10 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
 
     override fun findPullRequestByMergeCommit(commit: String): PullRequestMergedEvent? =
         pullRequestEventDao.findByMergeCommit(commit)
+
+    override fun fetchLastPullRequest(branchName: String?): PullRequestMergedEvent? =
+        pullRequestEventDao.fetchLast(branchName)
+
+    override fun fetchPullRequests(branchName: String?): List<PullRequestMergedEvent> =
+        pullRequestEventDao.list(branchName)
 }

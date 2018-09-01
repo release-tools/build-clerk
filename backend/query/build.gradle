@@ -7,8 +7,12 @@ repositories {
 }
 
 dependencies {
-    compile project(':backend:core')
+    compile project(':backend:api')
 
+    // di
+    compile 'javax.inject:javax.inject:1'
+
+    // graphql
     compile 'com.github.pgutkowski:kgraphql:0.2.7'
 }
 

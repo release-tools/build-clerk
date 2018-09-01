@@ -88,7 +88,7 @@ config {
     // send a branch summary every hour
     cron("0 0 * * * ?") {
         publishSummary(
-            branchName = "branch",
+            branchName = "master",
             channelName = "general"
         )
     }

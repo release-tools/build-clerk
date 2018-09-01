@@ -14,7 +14,7 @@ class BuildSummaryServiceImpl @Inject constructor(
 ) : BuildSummaryService {
 
     override fun summarise(branchName: String): BuildSummary {
-        return buildReportService.fetchLastBuildForBranch(branchName)?.let { lastBuild ->
+        return buildReportService.fetchLastReport(branchName)?.let { lastBuild ->
             val currentStatus = if (lastBuild.build.status == BuildStatus.SUCCESS) "healthy" else "unhealthy"
             val branchStatus = analysisService.analyseCommitHistory(
                 branchName = branchName,

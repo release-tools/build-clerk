@@ -31,8 +31,8 @@ class BuildReportServiceImpl @Inject constructor(
         buildReportDao.save(buildReport)
     }
 
-    override fun fetchLastBuildForBranch(branchName: String): BuildReport? =
-        buildReportDao.fetchLastBuildForBranch(branchName)
+    override fun fetchLastReport(branchName: String?): BuildReport? =
+        buildReportDao.fetchLast(branchName)
 
     override fun hasEverSucceeded(commit: String): Boolean =
         buildReportDao.hasEverSucceeded(commit)
@@ -49,6 +49,6 @@ class BuildReportServiceImpl @Inject constructor(
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int =
         buildReportDao.countConsecutiveFailuresOnBranch(branchName)
 
-    override fun fetchReportsForBranch(branchName: String): List<BuildReport> =
-        buildReportDao.listForBranch(branchName)
+    override fun fetchReports(branchName: String?): List<BuildReport> =
+        buildReportDao.list(branchName)
 }

@@ -11,11 +11,11 @@ import io.gatehill.buildclerk.api.model.BuildStatus
  */
 interface BuildReportService : Recorded {
     fun record(buildReport: BuildReport)
-    fun fetchLastBuildForBranch(branchName: String): BuildReport?
     fun hasEverSucceeded(commit: String): Boolean
     fun fetchLastPassingBuildForBranch(branchName: String): BuildReport?
     fun countStatusForCommitOnBranch(commit: String, branch: String, status: BuildStatus): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
-    fun fetchReportsForBranch(branchName: String): List<BuildReport>
+    fun fetchLastReport(branchName: String? = null): BuildReport?
+    fun fetchReports(branchName: String? = null): List<BuildReport>
 }
