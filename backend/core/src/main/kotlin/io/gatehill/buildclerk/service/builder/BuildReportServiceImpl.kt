@@ -15,7 +15,6 @@ import javax.inject.Inject
 class BuildReportServiceImpl @Inject constructor(
     private val buildReportDao: BuildReportDao
 ) : BuildReportService {
-
     private val logger = LogManager.getLogger(BuildReportServiceImpl::class.java)
 
     override val count
@@ -38,7 +37,7 @@ class BuildReportServiceImpl @Inject constructor(
     override fun hasEverSucceeded(commit: String): Boolean =
         buildReportDao.hasEverSucceeded(commit)
 
-    override fun lastPassingBuildForBranch(branchName: String): BuildReport? =
+    override fun fetchLastPassingBuildForBranch(branchName: String): BuildReport? =
         buildReportDao.lastPassingCommitForBranch(branchName)
 
     override fun countStatusForCommitOnBranch(commit: String, branch: String, status: BuildStatus): Int =
@@ -49,4 +48,7 @@ class BuildReportServiceImpl @Inject constructor(
 
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int =
         buildReportDao.countConsecutiveFailuresOnBranch(branchName)
+
+    override fun fetchReportsForBranch(branchName: String): List<BuildReport> =
+        buildReportDao.listForBranch(branchName)
 }

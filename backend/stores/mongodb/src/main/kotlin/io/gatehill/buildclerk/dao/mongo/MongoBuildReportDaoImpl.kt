@@ -7,6 +7,7 @@ import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.api.model.Scm
 import io.gatehill.buildclerk.dao.mongo.model.MongoBuildReportWrapper
 import io.gatehill.buildclerk.dao.mongo.model.wrap
+import org.litote.kmongo.ascending
 import org.litote.kmongo.descending
 import org.litote.kmongo.div
 import org.litote.kmongo.eq
@@ -87,6 +88,16 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             .sort(descending(MongoBuildReportWrapper::createdDate))
             .takeWhile { it.buildReport.build.status == BuildStatus.FAILED }
             .count()
+    }
+
+    override fun listForBranch(
+        branchName: String
+    ): List<BuildReport> = withCollection<MongoBuildReportWrapper, List<BuildReport>> {
+        // converts to list to avoid leaking mongo connection when method returns
+        find(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName)
+            .sort(ascending(MongoBuildReportWrapper::createdDate))
+            .map { it.buildReport }
+            .toList()
     }
 
     override val count

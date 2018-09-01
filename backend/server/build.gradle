@@ -7,6 +7,7 @@ apply plugin: 'kotlin'
 
 dependencies {
     compile project(':backend:core')
+    compile project(':backend:query')
     compile project(':backend:plugin')
 
     // backing store

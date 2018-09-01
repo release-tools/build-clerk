@@ -177,7 +177,7 @@ interface BranchBlock : AnalysisBlock {
         get() = buildReportService.countConsecutiveFailuresOnBranch(branchName)
 
     val lastPassingBuildForBranch: BuildReport?
-        get() = buildReportService.lastPassingBuildForBranch(branchName)
+        get() = buildReportService.fetchLastPassingBuildForBranch(branchName)
 
     val lastPassingCommitForBranch: String?
         get() = lastPassingBuildForBranch?.build?.scm?.commit

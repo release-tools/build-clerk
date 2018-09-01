@@ -17,4 +17,5 @@ interface BuildReportDao : Recorded {
     fun countStatusForCommitOnBranch(commit: String, branchName: String, status: BuildStatus): Int
     fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
+    fun listForBranch(branchName: String): List<BuildReport>
 }

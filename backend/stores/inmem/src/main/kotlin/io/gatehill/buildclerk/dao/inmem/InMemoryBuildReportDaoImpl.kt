@@ -36,4 +36,10 @@ class InMemoryBuildReportDaoImpl : AbstractInMemoryDao<BuildReport>(), BuildRepo
     override fun countConsecutiveFailuresOnBranch(branchName: String): Int = store.takeLastWhile {
         it.record.build.scm.branch == branchName && it.record.build.status == BuildStatus.FAILED
     }.size
+
+    override fun listForBranch(branchName: String): List<BuildReport> = store.filter {
+        it.record.build.scm.branch == branchName
+    }.map {
+        it.record
+    }
 }

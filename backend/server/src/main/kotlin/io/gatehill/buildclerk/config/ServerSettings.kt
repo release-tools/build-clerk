@@ -3,6 +3,7 @@ package io.gatehill.buildclerk.config
 object ServerSettings {
     object Http {
         val port: Int by lazy { System.getenv("SERVER_PORT")?.toInt() ?: 9090 }
+        val corsPattern: String by lazy { System.getenv("CORS_PATTERN") ?: "http(s?)://.+" }
     }
 
     object Auth {

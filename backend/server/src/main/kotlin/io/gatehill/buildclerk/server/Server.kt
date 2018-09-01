@@ -9,6 +9,7 @@ import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.config.ServerSettings
+import io.gatehill.buildclerk.query.QueryService
 import io.gatehill.buildclerk.service.builder.BuildEventService
 import io.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
@@ -20,6 +21,7 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BasicAuthHandler
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
 import kotlinx.coroutines.experimental.launch
@@ -36,7 +38,8 @@ class Server @Inject constructor(
     private val buildEventService: BuildEventService,
     private val buildReportService: BuildReportService,
     private val pullRequestEventService: PullRequestEventService,
-    private val pendingActionService: PendingActionService
+    private val pendingActionService: PendingActionService,
+    private val queryService: QueryService
 ) {
     private val logger = LogManager.getLogger(Server::class.java)
 
@@ -60,6 +63,10 @@ class Server @Inject constructor(
     }
 
     private fun buildRouter(vertx: Vertx) = Router.router(vertx).apply {
+        route().handler(CorsHandler.create(ServerSettings.Http.corsPattern)
+            .allowCredentials(true)
+            .allowedHeader("Content-Type"))
+
         route().handler(BodyHandler.create())
         configureAuth(vertx, this)
 
@@ -141,6 +148,11 @@ class Server @Inject constructor(
                 logger.error(e)
                 rc.response().setStatusCode(500).end(e.message)
             }
+        }
+
+        post("/graphql").produces(JSON_CONTENT_TYPE).handler { rc ->
+            val result = queryService.query(rc.readBodyJson())
+            rc.response().end(result)
         }
     }
 
