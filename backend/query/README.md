@@ -5,10 +5,6 @@ Endpoint:
 
     http://localhost:9090/graphql
 
-## Simple GraphQL web UI
-
-    docker run --rm -it --name graphiql -p 4000:4000 -e API_URL=http://localhost:9090/graphql npalm/graphiql
-
 ## Sample queries
 
 ### Build reports
@@ -105,3 +101,20 @@ List PRs for a branch:
         }
       }
     }
+
+### Analyse build reports
+
+Analyse reports for a branch between dates.
+
+    query {
+      analyseReports(branchName: "master", start: "2018-01-01T00:00:00Z", end:"2019-01-01T00:00:00Z") {
+        dataPoints
+        successful
+        failed
+        passRate
+      }
+    }
+
+## Start a GraphQL web UI
+
+    docker run --rm -it --name graphiql -p 4000:4000 -e API_URL=http://localhost:9090/graphql npalm/graphiql

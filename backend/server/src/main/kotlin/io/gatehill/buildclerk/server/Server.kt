@@ -1,6 +1,7 @@
 package io.gatehill.buildclerk.server
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.pgutkowski.kgraphql.RequestException
 import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
@@ -9,7 +10,6 @@ import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.config.ServerSettings
-import io.gatehill.buildclerk.query.QueryResolverException
 import io.gatehill.buildclerk.query.QueryService
 import io.gatehill.buildclerk.service.builder.BuildEventService
 import io.gatehill.buildclerk.util.jsonMapper
@@ -160,11 +160,11 @@ class Server @Inject constructor(
                     queryService.query(rc.readBodyJson())
                 } catch (e: Exception) {
                     logger.error(e)
-                    if (e.causeContains(QueryResolverException::class)) {
-                        rc.fail(e)
+                    if (e.causeContains(RequestException::class)) {
+                        rc.response().setStatusCode(400).end()
                         return@launch
                     } else {
-                        rc.response().setStatusCode(400).end()
+                        rc.fail(e)
                         return@launch
                     }
                 }

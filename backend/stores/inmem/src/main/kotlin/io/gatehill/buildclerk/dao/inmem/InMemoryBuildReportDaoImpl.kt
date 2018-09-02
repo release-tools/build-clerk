@@ -4,6 +4,7 @@ import io.gatehill.buildclerk.api.dao.BuildReportDao
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.dao.inmem.model.Record
+import java.time.ZonedDateTime
 
 class InMemoryBuildReportDaoImpl : AbstractInMemoryDao<BuildReport>(), BuildReportDao {
     override val store = mutableListOf<Record<BuildReport>>()
@@ -39,6 +40,18 @@ class InMemoryBuildReportDaoImpl : AbstractInMemoryDao<BuildReport>(), BuildRepo
 
     override fun list(branchName: String?): List<BuildReport> = store.filter { wrapper ->
         branchName?.let { wrapper.record.build.scm.branch == branchName } ?: true
+    }.map {
+        it.record
+    }
+
+    override fun fetchBetween(
+        branchName: String?,
+        start: ZonedDateTime,
+        end: ZonedDateTime
+    ): List<BuildReport> = store.filter { wrapper ->
+        branchName?.let { wrapper.record.build.scm.branch == branchName } ?: true
+    }.filter { wrapper ->
+        wrapper.createdDate >= start && wrapper.createdDate < end
     }.map {
         it.record
     }

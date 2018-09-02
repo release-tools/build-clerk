@@ -5,6 +5,7 @@ import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.api.service.BuildReportService
 import org.apache.logging.log4j.LogManager
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 /**
@@ -51,4 +52,7 @@ class BuildReportServiceImpl @Inject constructor(
 
     override fun fetchReports(branchName: String?): List<BuildReport> =
         buildReportDao.list(branchName)
+
+    override fun fetchReportsBetween(branchName: String?, start: ZonedDateTime, end: ZonedDateTime): List<BuildReport> =
+            buildReportDao.fetchBetween(branchName, start, end)
 }

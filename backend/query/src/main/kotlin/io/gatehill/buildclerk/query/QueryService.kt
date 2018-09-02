@@ -16,7 +16,9 @@ import io.gatehill.buildclerk.api.model.User
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.query.model.Query
+import io.gatehill.buildclerk.query.model.ReportSpan
 import org.apache.logging.log4j.LogManager
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 /**
@@ -39,6 +41,7 @@ class QueryService @Inject constructor(
 
         addBuildReportQueries()
         addPullRequestQueries()
+        addAnalysisQueries()
 
         // workaround for GraphiQL bug: https://github.com/pgutkowski/KGraphQL/issues/17
         mutation("doNothing") {
@@ -50,21 +53,13 @@ class QueryService @Inject constructor(
     private fun SchemaBuilder<Unit>.addBuildReportQueries() {
         query("getLastReport") {
             resolver { branchName: String? ->
-                try {
-                    buildReportService.fetchLastReport(branchName)
-                } catch (e: Exception) {
-                    throw QueryResolverException(e)
-                }
+                buildReportService.fetchLastReport(branchName)
             }
         }
 
         query("getReports") {
             resolver { branchName: String? ->
-                try {
-                    buildReportService.fetchReports(branchName)
-                } catch (e: Exception) {
-                    throw QueryResolverException(e)
-                }
+                buildReportService.fetchReports(branchName)
             }
         }
 
@@ -80,31 +75,19 @@ class QueryService @Inject constructor(
     private fun SchemaBuilder<Unit>.addPullRequestQueries() {
         query("getPullRequestByCommit") {
             resolver { commit: String ->
-                try {
-                    pullRequestEventService.findPullRequestByMergeCommit(commit)
-                } catch (e: Exception) {
-                    throw QueryResolverException(e)
-                }
+                pullRequestEventService.findPullRequestByMergeCommit(commit)
             }
         }
 
         query("getLastPullRequest") {
             resolver { branchName: String? ->
-                try {
-                    pullRequestEventService.fetchLastPullRequest(branchName)
-                } catch (e: Exception) {
-                    throw QueryResolverException(e)
-                }
+                pullRequestEventService.fetchLastPullRequest(branchName)
             }
         }
 
         query("getPullRequests") {
             resolver { branchName: String? ->
-                try {
-                    pullRequestEventService.fetchPullRequests(branchName)
-                } catch (e: Exception) {
-                    throw QueryResolverException(e)
-                }
+                pullRequestEventService.fetchPullRequests(branchName)
             }
         }
 
@@ -119,8 +102,38 @@ class QueryService @Inject constructor(
         type<Commit>()
     }
 
+    private fun SchemaBuilder<Unit>.addAnalysisQueries() {
+        query("analyseReports") {
+            resolver { branchName: String?, start: String, end: String ->
+                buildReportService.fetchReportsBetween(
+                    branchName,
+                    toZonedDateTimeUtc(start),
+                    toZonedDateTimeUtc(end)
+                ).let { reports ->
+                    val reportCount = reports.size
+                    val successful = reports.count { it.build.status == BuildStatus.FAILED }
+                    val failed = reports.count { it.build.status == BuildStatus.SUCCESS }
+
+                    ReportSpan(
+                        dataPoints = reportCount,
+                        successful = successful,
+                        failed = failed,
+                        passRate = when (reportCount) {
+                            0 -> 0.toDouble()
+                            else -> successful / reportCount.toDouble()
+                        }
+                    )
+                }
+            }
+        }
+
+        type<ReportSpan>()
+    }
+
     fun query(query: Query): String {
         logger.debug("Executing GraphQL query")
         return schema.execute(query.query, query.variables)
     }
 }
+
+private fun toZonedDateTimeUtc(input: String): ZonedDateTime = ZonedDateTime.parse(input)

@@ -13,6 +13,8 @@ import org.litote.kmongo.div
 import org.litote.kmongo.eq
 import org.litote.kmongo.find
 import org.litote.kmongo.findOne
+import org.litote.kmongo.gte
+import org.litote.kmongo.lt
 import java.time.ZonedDateTime
 
 class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
@@ -31,7 +33,8 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
         } ?: find()
 
-        iterable.sort(descending(MongoBuildReportWrapper::createdDate))
+        return@withCollection iterable
+            .sort(descending(MongoBuildReportWrapper::createdDate))
             .limit(1).first()?.buildReport
     }
 
@@ -101,7 +104,26 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         } ?: find()
 
         // convert to list to avoid leaking mongo connection when method returns
-        iterable.sort(ascending(MongoBuildReportWrapper::createdDate))
+        return@withCollection iterable
+            .sort(ascending(MongoBuildReportWrapper::createdDate))
+            .map { it.buildReport }
+            .toList()
+    }
+
+    override fun fetchBetween(
+        branchName: String?,
+        start: ZonedDateTime,
+        end: ZonedDateTime
+    ): List<BuildReport> = withCollection<MongoBuildReportWrapper, List<BuildReport>> {
+        val iterable = branchName?.let {
+            find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
+        } ?: find()
+
+        // convert to list to avoid leaking mongo connection when method returns
+        return@withCollection iterable
+            .filter(MongoBuildReportWrapper::createdDate gte start)
+            .filter(MongoBuildReportWrapper::createdDate lt end)
+            .sort(ascending(MongoBuildReportWrapper::createdDate))
             .map { it.buildReport }
             .toList()
     }

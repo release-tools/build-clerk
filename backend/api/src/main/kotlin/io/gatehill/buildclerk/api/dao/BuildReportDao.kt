@@ -3,6 +3,7 @@ package io.gatehill.buildclerk.api.dao
 import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
+import java.time.ZonedDateTime
 
 /**
  * Stores build reports and provides access to build metadata.
@@ -18,4 +19,5 @@ interface BuildReportDao : Recorded {
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
     fun fetchLast(branchName: String? = null): BuildReport?
     fun list(branchName: String? = null): List<BuildReport>
+    fun fetchBetween(branchName: String? = null, start: ZonedDateTime, end: ZonedDateTime): List<BuildReport>
 }
