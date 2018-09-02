@@ -104,7 +104,7 @@ List PRs for a branch:
 
 ### Analyse build reports
 
-Analyse reports for a branch between dates.
+Analyse reports for a branch between dates:
 
     query {
       analyseReports(branchName: "master", start: "2018-01-01T00:00:00Z", end:"2019-01-01T00:00:00Z") {
@@ -115,6 +115,10 @@ Analyse reports for a branch between dates.
       }
     }
 
-## Start a GraphQL web UI
+## Testing
+
+You can query the GraphQL endpoint with any compatible client, such as [Insomnia](https://insomnia.rest/).
+
+Alternatively, you can start a GraphQL web UI, using GraphiQL, as follows:
 
     docker run --rm -it --name graphiql -p 4000:4000 -e API_URL=http://localhost:9090/graphql npalm/graphiql
