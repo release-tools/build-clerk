@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.1] - 2018-09-03
+### Added
+- Improves branch summary.
+- Improves Analysis description.
+
+### Fixed
+- Fixes build report ordering to use build number instead of date report received.
+
 ## [0.5.0] - 2018-09-03
 ### Added
 - Adds GraphQL endpoint for analysing build reports.
