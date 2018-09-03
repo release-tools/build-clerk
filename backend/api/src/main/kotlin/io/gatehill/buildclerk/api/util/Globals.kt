@@ -5,10 +5,8 @@ package io.gatehill.buildclerk.api.util
  */
 fun toShortCommit(commitHash: String) = shortenCommit(commitHash, 8)
 
-fun shortenCommit(commitHash: String, length: Int): String {
-    return if (commitHash.length > length) {
-        commitHash.substring(0, length)
-    } else {
-        commitHash
-    }
+fun shortenCommit(commitHash: String, length: Int) = if (commitHash.length > length) {
+    commitHash.substring(0, length)
+} else {
+    commitHash
 }

@@ -180,7 +180,7 @@ class AnalysisServiceImpl @Inject constructor(
         }
     }
 
-    override fun analyseCommitHistory(branchName: String, commit: String): String {
+    private fun analyseCommitHistory(branchName: String, commit: String): String {
         val passedCount = analyseBranchStatus(commit, branchName, BuildStatus.SUCCESS, "passed")
         val failedCount = analyseBranchStatus(commit, branchName, BuildStatus.FAILED, "failed")
         return "$passedCount and $failedCount on this branch"

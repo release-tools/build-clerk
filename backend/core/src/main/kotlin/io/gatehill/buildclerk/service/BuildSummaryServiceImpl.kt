@@ -24,20 +24,21 @@ class BuildSummaryServiceImpl @Inject constructor(
                 else -> Color.RED
             }
 
+            // no padding, to accommodate multiline basic analysis                                                         
             val summary = """
-                Summary of `$branchName`:
-                Current status is $currentStatus
-                Most recent commit is `${toShortCommit(lastBuild.build.scm.commit)}`
-                ${basicAnalysis.joinToString("\n")}
-            """.trimIndent()
+Summary of `$branchName` branch:
+Current status is $currentStatus
+Most recent commit is `${toShortCommit(lastBuild.build.scm.commit)}`
+${basicAnalysis.joinToString("\n")}
+""".trimIndent()
 
             BuildSummary(summary, color)
 
         } ?: run {
             val summary = """
-                Summary of `$branchName`:
-                No history for branch.
-            """.trimIndent()
+Summary of `$branchName` branch:
+No build history for branch.
+""".trimIndent()
 
             BuildSummary(summary, Color.BLACK)
         }
