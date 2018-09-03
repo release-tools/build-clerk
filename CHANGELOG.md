@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.3] - 2018-09-03
+### Fixed
+- Normalises PR commit hash length for storage and queries.
+
+## [0.5.2] - 2018-09-03
+### Added
+- Allows credentials to be specified for MongoDB store.
+- Sets JSON content type on GraphQL endpoint.
+- Fixes successful/failed count in branch analysis query.
+
 ## [0.5.1] - 2018-09-03
 ### Added
 - Improves branch summary.
