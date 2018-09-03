@@ -17,6 +17,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.awaitAll
 import kotlinx.coroutines.experimental.runBlocking
 import org.apache.logging.log4j.LogManager
+import java.util.Collections.synchronizedList
 import javax.inject.Inject
 
 /**
@@ -38,7 +39,21 @@ class AnalysisServiceImpl @Inject constructor(
     override fun analyseBuild(report: BuildReport): Analysis {
         logger.info("Analysing build report: $report")
 
-        val analysis = initBuildAnalysis(report)
+        val name = when (report.build.status) {
+            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on ${report.build.scm.branch}"
+            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on ${report.build.scm.branch}"
+            else -> "${report.name} build #${report.build.number} on ${report.build.scm.branch}"
+        }
+
+        val analysis = Analysis(
+            logger = logger,
+            name = name,
+            branch = report.build.scm.branch,
+            user = report.build.triggeredBy,
+            url = report.build.fullUrl
+        )
+
+        performBasicBuildAnalysis(report).forEach { analysis.log(it) }
 
         val previousBuildStatus = buildReportService.fetchBuildStatus(
             branchName = report.build.scm.branch,
@@ -93,25 +108,13 @@ class AnalysisServiceImpl @Inject constructor(
         return analysis
     }
 
-    private fun initBuildAnalysis(report: BuildReport): Analysis {
-        val name = when (report.build.status) {
-            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on ${report.build.scm.branch}"
-            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on ${report.build.scm.branch}"
-            else -> "${report.name} build #${report.build.number} on ${report.build.scm.branch}"
-        }
-
-        val analysis = Analysis(
-            logger = logger,
-            name = name,
-            branch = report.build.scm.branch,
-            user = report.build.triggeredBy,
-            url = report.build.fullUrl
-        )
+    override fun performBasicBuildAnalysis(report: BuildReport): List<String> {
+        val analysisLines = synchronizedList(mutableListOf<String>())
 
         runBlocking {
             // perform some basic history checks on the commit
             val checkHistory = async {
-                performHistoryChecks(report, analysis)
+                performHistoryChecks(report, analysisLines)
             }
 
             // check if the commit originated from a PR
@@ -130,7 +133,7 @@ class AnalysisServiceImpl @Inject constructor(
 
             findPr.getCompleted()?.let { pullRequest ->
                 val prInfo = pullRequestEventService.describePullRequest(pullRequest)
-                analysis.log("This commit was introduced by PR $prInfo")
+                analysisLines += "This commit was introduced by PR $prInfo"
             }
 
             fetchUserInfo.getCompleted().let { userInfo ->
@@ -139,11 +142,11 @@ class AnalysisServiceImpl @Inject constructor(
                 if (userInfo.author != userInfo.committer) {
                     sb.append(", committer is ${userInfo.author.userName} <${userInfo.author.email}>")
                 }
-                analysis.log(sb.toString())
+                analysisLines += sb.toString()
             }
         }
 
-        return analysis
+        return analysisLines
     }
 
     /**
@@ -151,13 +154,13 @@ class AnalysisServiceImpl @Inject constructor(
      */
     private fun performHistoryChecks(
         report: BuildReport,
-        analysis: Analysis
+        analysisLines: MutableList<String>
     ) {
         val branchName = report.build.scm.branch
         val commit = report.build.scm.commit
 
         val commitHistory = analyseCommitHistory(branchName, commit)
-        analysis.log("Commit `${toShortCommit(commit)}` has $commitHistory")
+        analysisLines += "Commit `${toShortCommit(commit)}` has $commitHistory"
 
         if (report.build.status == BuildStatus.FAILED) {
             val passesOnBranch = buildReportService.countStatusForCommitOnBranch(
@@ -169,9 +172,9 @@ class AnalysisServiceImpl @Inject constructor(
             // check other branches for commit
             if (passesOnBranch == 0) {
                 if (buildReportService.hasEverSucceeded(commit)) {
-                    analysis.log("This commit has previously succeeded (on at least 1 branch)")
+                    analysisLines += "This commit has previously succeeded (on at least 1 branch)"
                 } else {
-                    analysis.log("This commit has never succeeded on any branch")
+                    analysisLines += "This commit has never succeeded on any branch"
                 }
             }
         }

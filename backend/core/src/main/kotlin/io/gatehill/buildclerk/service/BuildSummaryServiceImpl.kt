@@ -6,6 +6,7 @@ import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.util.Color
+import io.gatehill.buildclerk.api.util.toShortCommit
 import javax.inject.Inject
 
 class BuildSummaryServiceImpl @Inject constructor(
@@ -16,10 +17,7 @@ class BuildSummaryServiceImpl @Inject constructor(
     override fun summarise(branchName: String): BuildSummary {
         return buildReportService.fetchLastReport(branchName)?.let { lastBuild ->
             val currentStatus = if (lastBuild.build.status == BuildStatus.SUCCESS) "healthy" else "unhealthy"
-            val branchStatus = analysisService.analyseCommitHistory(
-                branchName = branchName,
-                commit = lastBuild.build.scm.commit
-            )
+            val basicAnalysis = analysisService.performBasicBuildAnalysis(lastBuild)
 
             val color = when (lastBuild.build.status) {
                 BuildStatus.SUCCESS -> Color.GREEN
@@ -29,7 +27,8 @@ class BuildSummaryServiceImpl @Inject constructor(
             val summary = """
                 Summary of `$branchName`:
                 Current status is $currentStatus
-                Most recent commit `${lastBuild.build.scm.commit}` has $branchStatus
+                Most recent commit is `${toShortCommit(lastBuild.build.scm.commit)}`
+                ${basicAnalysis.joinToString("\n")}
             """.trimIndent()
 
             BuildSummary(summary, color)

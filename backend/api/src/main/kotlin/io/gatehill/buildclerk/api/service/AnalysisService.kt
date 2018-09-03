@@ -14,4 +14,5 @@ interface AnalysisService {
     fun analyseBuild(report: BuildReport): Analysis
     fun analysePullRequest(mergeEvent: PullRequestMergedEvent, currentBranchStatus: BuildStatus): Analysis
     fun analyseCommitHistory(branchName: String, commit: String): String
+    fun performBasicBuildAnalysis(report: BuildReport): List<String>
 }
