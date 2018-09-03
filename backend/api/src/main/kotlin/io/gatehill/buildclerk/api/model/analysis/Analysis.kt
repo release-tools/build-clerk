@@ -33,8 +33,8 @@ class Analysis(
 ----- Analysis of $name -----
 ${events.joinToString("\n")}
 Performed actions:
-${perform.actions.joinToString("\n")}
+${if (perform.actions.isEmpty()) "None" else perform.actions.joinToString("\n")}
 Suggested actions:
-${suggested.actions.joinToString("\n")}
+${if (suggested.actions.isEmpty()) "None" else suggested.actions.joinToString("\n")}
 """.trimMargin()
 }
