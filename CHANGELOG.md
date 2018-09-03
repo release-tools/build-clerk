@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.0] - 2018-09-03
+### Added
+- Adds GraphQL endpoint for analysing build reports.
+- Adds GraphQL endpoint for pull requests.
+- Adds GraphQL endpoint for build reports.
+
 ## [0.4.0] - 2018-08-31
 ### Added
 - Adds scheduled events support to DSL.

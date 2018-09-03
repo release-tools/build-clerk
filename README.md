@@ -196,3 +196,13 @@ When you are configuring the various third parties to call back Clerk, you can e
 For example:
 
     https://someuser:secretpass@clerk.example.com/actions
+
+### Querying data
+
+Data held by Clerk can be queried via its GraphQL endpoint:
+
+    /graphql
+
+From this, you can fetch information about builds and pull requests, as well as performing analyses on them.
+
+For more details, see the [query service](./backend/query) docs.
