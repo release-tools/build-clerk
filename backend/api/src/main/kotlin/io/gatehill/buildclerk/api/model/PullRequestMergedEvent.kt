@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-open class PullRequestMergedEvent(
-    open val actor: User,
-    open val repository: Repository,
+data class PullRequestMergedEvent(
+    val actor: User,
+    val repository: Repository,
 
     @JsonProperty("pullrequest")
-    open val pullRequest: PullRequest
+    val pullRequest: PullRequest
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

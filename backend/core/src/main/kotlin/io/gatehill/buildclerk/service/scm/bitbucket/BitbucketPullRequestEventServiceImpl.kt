@@ -7,6 +7,7 @@ import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
+import io.gatehill.buildclerk.api.util.shortenCommit
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
@@ -19,6 +20,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     private val analysisService: AnalysisService,
     private val pullRequestEventDao: PullRequestEventDao
 ) : PullRequestEventService {
+
     private val logger = LogManager.getLogger(PullRequestEventService::class.java)
 
     override val count
@@ -33,6 +35,13 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     override fun checkPullRequest(event: PullRequestMergedEvent) {
         logger.debug("Processing PR merge event: $event")
 
+        val normalised = normaliseCommitLengths(event)
+        internalCheckPullRequest(normalised)
+    }
+
+    private fun internalCheckPullRequest(
+        event: PullRequestMergedEvent
+    ) {
         pullRequestEventDao.record(event)
 
         val prInfo = "PR ${describePullRequest(event)}"
@@ -76,12 +85,42 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
         )
     }
 
+    /**
+     * Normalise the length of `commit` using `toPrLengthCommit()` then query the DAO for a corresponding PR.
+     */
     override fun findPullRequestByMergeCommit(commit: String): PullRequestMergedEvent? =
-        pullRequestEventDao.findByMergeCommit(commit)
+        pullRequestEventDao.findByMergeCommit(toPrLengthCommit(commit))
 
     override fun fetchLastPullRequest(branchName: String?): PullRequestMergedEvent? =
         pullRequestEventDao.fetchLast(branchName)
 
     override fun fetchPullRequests(branchName: String?): List<PullRequestMergedEvent> =
         pullRequestEventDao.list(branchName)
+
+    /**
+     * @return a copy of the `PullRequestMergedEvent` with source, destination and merge commit
+     * hashes normalised using `toPrLengthCommit()`
+     */
+    private fun normaliseCommitLengths(event: PullRequestMergedEvent) = event.copy(
+        pullRequest = event.pullRequest.copy(
+            mergeCommit = event.pullRequest.mergeCommit.copy(
+                hash = toPrLengthCommit(event.pullRequest.mergeCommit.hash)
+            ),
+            source = event.pullRequest.source.copy(
+                commit = event.pullRequest.source.commit.copy(
+                    hash = toPrLengthCommit(event.pullRequest.source.commit.hash)
+                )
+            ),
+            destination = event.pullRequest.destination.copy(
+                commit = event.pullRequest.destination.commit.copy(
+                    hash = toPrLengthCommit(event.pullRequest.destination.commit.hash)
+                )
+            )
+        )
+    )
+
+    /**
+     * Normalise a commit hash to match BitBucket PR event length (12).
+     */
+    private fun toPrLengthCommit(commitHash: String) = shortenCommit(commitHash, 12)
 }
