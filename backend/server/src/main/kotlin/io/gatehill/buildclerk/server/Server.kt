@@ -168,7 +168,7 @@ class Server @Inject constructor(
                         return@launch
                     }
                 }
-                rc.response().end(result)
+                rc.response().putHeader("Content-Type", JSON_CONTENT_TYPE).end(result)
             }
         }
     }

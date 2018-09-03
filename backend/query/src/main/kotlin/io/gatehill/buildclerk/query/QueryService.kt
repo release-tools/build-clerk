@@ -111,8 +111,8 @@ class QueryService @Inject constructor(
                     toZonedDateTimeUtc(end)
                 ).let { reports ->
                     val reportCount = reports.size
-                    val successful = reports.count { it.build.status == BuildStatus.FAILED }
-                    val failed = reports.count { it.build.status == BuildStatus.SUCCESS }
+                    val successful = reports.count { it.build.status == BuildStatus.SUCCESS }
+                    val failed = reports.count { it.build.status == BuildStatus.FAILED }
 
                     ReportSpan(
                         dataPoints = reportCount,
