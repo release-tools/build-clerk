@@ -107,8 +107,8 @@ class QueryService @Inject constructor(
             resolver { branchName: String?, start: String, end: String ->
                 buildReportService.fetchReportsBetween(
                     branchName,
-                    toZonedDateTimeUtc(start),
-                    toZonedDateTimeUtc(end)
+                    ZonedDateTime.parse(start),
+                    ZonedDateTime.parse(end)
                 ).let { reports ->
                     val reportCount = reports.size
                     val successful = reports.count { it.build.status == BuildStatus.SUCCESS }
@@ -135,5 +135,3 @@ class QueryService @Inject constructor(
         return schema.execute(query.query, query.variables)
     }
 }
-
-private fun toZonedDateTimeUtc(input: String): ZonedDateTime = ZonedDateTime.parse(input)
