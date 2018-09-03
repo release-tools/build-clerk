@@ -15,9 +15,21 @@ interface BuildReportDao : Recorded {
     fun hasEverSucceeded(commit: String): Boolean
     fun lastPassingCommitForBranch(branchName: String): BuildReport?
     fun countStatusForCommitOnBranch(commit: String, branchName: String, status: BuildStatus): Int
-    fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
     fun countConsecutiveFailuresOnBranch(branchName: String): Int
     fun fetchLast(branchName: String? = null): BuildReport?
+
+    /**
+     * @return the status of a specific build on a branch
+     */
+    fun fetchBuildStatus(branchName: String, buildNumber: Int): BuildStatus
+
+    /**
+     * @return build reports sorted in ascending order by build number
+     */
     fun list(branchName: String? = null): List<BuildReport>
+
+    /**
+     * @return build reports received between the given timestamps, sorted in ascending order by build number
+     */
     fun fetchBetween(branchName: String? = null, start: ZonedDateTime, end: ZonedDateTime): List<BuildReport>
 }

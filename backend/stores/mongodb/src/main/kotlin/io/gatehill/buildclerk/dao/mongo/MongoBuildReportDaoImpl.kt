@@ -34,7 +34,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         } ?: find()
 
         return@withCollection iterable
-            .sort(descending(MongoBuildReportWrapper::createdDate))
+            .sort(descending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
             .limit(1).first()?.buildReport
     }
 
@@ -51,7 +51,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::status eq BuildStatus.SUCCESS
         ).run {
-            sort(descending(MongoBuildReportWrapper::createdDate))
+            sort(descending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
                 .limit(1).first()
                 ?.buildReport
         }
@@ -66,9 +66,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::commit eq commit,
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::status eq status
-        ).run {
-            sort(descending(MongoBuildReportWrapper::createdDate)).count()
-        }
+        ).count()
     }
 
     override fun fetchBuildStatus(
@@ -79,9 +77,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number eq buildNumber
         ).run {
-            sort(descending(MongoBuildReportWrapper::createdDate))
-                .limit(1).first()?.buildReport?.build?.status
-                ?: BuildStatus.UNKNOWN
+            limit(1).first()?.buildReport?.build?.status ?: BuildStatus.UNKNOWN
         }
     }
 
@@ -91,7 +87,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         // Note: find() returns a cursor, so only the required results are fetched, until takeWhile {} terminates.
         // see: `KMongoIterable.takeWhile`
         find(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName)
-            .sort(descending(MongoBuildReportWrapper::createdDate))
+            .sort(descending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
             .takeWhile { it.buildReport.build.status == BuildStatus.FAILED }
             .count()
     }
@@ -105,7 +101,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
 
         // convert to list to avoid leaking mongo connection when method returns
         return@withCollection iterable
-            .sort(ascending(MongoBuildReportWrapper::createdDate))
+            .sort(ascending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
             .map { it.buildReport }
             .toList()
     }
@@ -123,7 +119,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         return@withCollection iterable
             .filter(MongoBuildReportWrapper::createdDate gte start)
             .filter(MongoBuildReportWrapper::createdDate lt end)
-            .sort(ascending(MongoBuildReportWrapper::createdDate))
+            .sort(ascending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
             .map { it.buildReport }
             .toList()
     }
