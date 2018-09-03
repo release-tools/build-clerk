@@ -6,6 +6,8 @@ Set environment variables:
     STORE_IMPL=mongo
     MONGO_HOST=localhost
     MONGO_PORT=27017
+    MONGO_USERNAME=someuser
+    MONGO_PASSWORD=secretpass
 
 Testing with a local MongoDB:
 
