@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.5] - 2018-09-04
+### Added
+- Adds pass rate to branch summary.
+
 ## [0.5.4] - 2018-09-04
 ### Fixed
 - Fix branch summary line padding.
