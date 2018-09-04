@@ -116,7 +116,7 @@ class AnalysisServiceImpl @Inject constructor(
         runBlocking {
             // perform some basic history checks on the commit
             val checkHistory = async {
-                performHistoryChecks(report, analysisLines)
+                performHistoryChecks(report)
             }
 
             // check if the commit originated from a PR
@@ -132,6 +132,8 @@ class AnalysisServiceImpl @Inject constructor(
             // wait for all jobs to complete, including ones with unit return value
             // to avoid race condition updates to analysis
             awaitAll(checkHistory, findPr, fetchUserInfo)
+
+            analysisLines += checkHistory.getCompleted()
 
             findPr.getCompleted()?.let { pullRequest ->
                 val prInfo = pullRequestEventService.describePullRequest(pullRequest)
@@ -154,10 +156,8 @@ class AnalysisServiceImpl @Inject constructor(
     /**
      * Perform some basic history checks on the commit.
      */
-    private fun performHistoryChecks(
-        report: BuildReport,
-        analysisLines: MutableList<String>
-    ) {
+    private fun performHistoryChecks(report: BuildReport) : List<String> {
+        val analysisLines = mutableListOf<String>()
         val branchName = report.build.scm.branch
         val commit = report.build.scm.commit
 
@@ -180,6 +180,8 @@ class AnalysisServiceImpl @Inject constructor(
                 }
             }
         }
+
+        return analysisLines
     }
 
     private fun analyseCommitHistory(branchName: String, commit: String): String {
