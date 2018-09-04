@@ -10,13 +10,14 @@ import io.gatehill.buildclerk.api.model.Commit
 import io.gatehill.buildclerk.api.model.PullRequest
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.model.RepoBranch
+import io.gatehill.buildclerk.api.model.ReportSpan
 import io.gatehill.buildclerk.api.model.Repository
 import io.gatehill.buildclerk.api.model.Scm
 import io.gatehill.buildclerk.api.model.User
+import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.query.model.Query
-import io.gatehill.buildclerk.query.model.ReportSpan
 import org.apache.logging.log4j.LogManager
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -28,7 +29,8 @@ import javax.inject.Inject
  */
 class QueryService @Inject constructor(
     private val buildReportService: BuildReportService,
-    private val pullRequestEventService: PullRequestEventService
+    private val pullRequestEventService: PullRequestEventService,
+    private val analysisService: AnalysisService
 ) {
     private val logger = LogManager.getLogger(QueryService::class.java)
 
@@ -105,30 +107,17 @@ class QueryService @Inject constructor(
     private fun SchemaBuilder<Unit>.addAnalysisQueries() {
         query("analyseReports") {
             resolver { branchName: String?, start: String, end: String ->
-                buildReportService.fetchReportsBetween(
-                    branchName,
-                    ZonedDateTime.parse(start),
-                    ZonedDateTime.parse(end)
-                ).let { reports ->
-                    val reportCount = reports.size
-                    val successful = reports.count { it.build.status == BuildStatus.SUCCESS }
-                    val failed = reports.count { it.build.status == BuildStatus.FAILED }
-
-                    ReportSpan(
-                        dataPoints = reportCount,
-                        successful = successful,
-                        failed = failed,
-                        passRate = when (reportCount) {
-                            0 -> 0.toDouble()
-                            else -> successful / reportCount.toDouble()
-                        }
-                    )
-                }
+                analysisService.analyseReportSpan(
+                    branchName = branchName,
+                    start = ZonedDateTime.parse(start),
+                    end = ZonedDateTime.parse(end)
+                )
             }
         }
 
         type<ReportSpan>()
     }
+
 
     fun query(query: Query): String {
         logger.debug("Executing GraphQL query")

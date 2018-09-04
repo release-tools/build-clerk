@@ -3,6 +3,7 @@ package io.gatehill.buildclerk.service
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.ReportSpan
 import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
@@ -17,6 +18,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.awaitAll
 import kotlinx.coroutines.experimental.runBlocking
 import org.apache.logging.log4j.LogManager
+import java.time.ZonedDateTime
 import java.util.Collections.synchronizedList
 import javax.inject.Inject
 
@@ -247,5 +249,26 @@ class AnalysisServiceImpl @Inject constructor(
         analysis.publishConfig?.let { postConfig ->
             notificationService.notify(postConfig.channelName, analysis, postConfig.color.hexCode)
         }
+    }
+
+    override fun analyseReportSpan(
+        branchName: String?,
+        start: ZonedDateTime,
+        end: ZonedDateTime
+    ): ReportSpan = buildReportService.fetchReportsBetween(branchName, start, end).let { reports ->
+
+        val reportCount = reports.size
+        val successful = reports.count { it.build.status == BuildStatus.SUCCESS }
+        val failed = reports.count { it.build.status == BuildStatus.FAILED }
+
+        ReportSpan(
+            dataPoints = reportCount,
+            successful = successful,
+            failed = failed,
+            passRate = when (reportCount) {
+                0 -> 0.toDouble()
+                else -> successful / reportCount.toDouble()
+            }
+        )
     }
 }

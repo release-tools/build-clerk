@@ -1,4 +1,4 @@
-package io.gatehill.buildclerk.query.model
+package io.gatehill.buildclerk.api.model
 
 data class ReportSpan(
     val dataPoints: Int,
