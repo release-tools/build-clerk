@@ -15,6 +15,8 @@ Respond to events in your build pipeline and keep your main branch stable.
 
 <img alt="PR merged notification" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/pr_merged.png" width="338">
 
+<img alt="Branch summary" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/branch_summary.png" width="345">
+
 ## Configure your build
 
 Clerk has a powerful DSL that lets you customise your rules:
