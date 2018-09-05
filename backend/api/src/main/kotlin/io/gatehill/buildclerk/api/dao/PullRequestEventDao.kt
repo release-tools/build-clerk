@@ -1,7 +1,7 @@
 package io.gatehill.buildclerk.api.dao
 
 import io.gatehill.buildclerk.api.Recorded
-import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
 
 interface PullRequestEventDao: Recorded {
     fun record(mergedEvent: PullRequestMergedEvent)

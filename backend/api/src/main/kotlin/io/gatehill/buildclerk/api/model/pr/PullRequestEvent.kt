@@ -1,25 +1,53 @@
-package io.gatehill.buildclerk.api.model
+package io.gatehill.buildclerk.api.model.pr
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
+enum class PullRequestEventType {
+    CREATED,
+    UPDATED;
+
+    override fun toString() = super.toString().toLowerCase()
+
+    companion object {
+
+        fun parse(eventKey: String): PullRequestEventType = when (eventKey) {
+            "pullrequest:created" -> CREATED
+            "pullrequest:updated" -> UPDATED
+            else -> throw IllegalStateException("Unsupported event key $eventKey")
+        }
+    }
+}
+
+interface PullRequestEvent {
+    val actor: User
+    val repository: Repository
+    val pullRequest: PullRequest
+}
+
+/**
+ * A PR has been created or updated.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PullRequestCreatedOrUpdatedEvent(
-    val actor: User,
-    val repository: Repository,
+data class PullRequestModifiedEvent(
+    override val actor: User,
+    override val repository: Repository,
 
     @JsonProperty("pullrequest")
-    val pullRequest: PullRequest
-)
+    override val pullRequest: PullRequest
+) : PullRequestEvent
 
+/**
+ * A PR has been merged.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PullRequestMergedEvent(
-    val actor: User,
-    val repository: Repository,
+    override val actor: User,
+    override val repository: Repository,
 
     @JsonProperty("pullrequest")
-    val pullRequest: PullRequest
-)
+    override val pullRequest: PullRequest
+) : PullRequestEvent
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class User(

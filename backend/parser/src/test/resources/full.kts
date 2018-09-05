@@ -50,6 +50,12 @@ config {
         }
     }
 
+    pullRequestModified {
+        if (files.any { it.path.endsWith(".sql") }) {
+            ensureComment("You have modified files with a .sql extension. Make sure to plan for backward compatibility!")
+        }
+    }
+
     pullRequestMerged {
         if (currentBranchStatus == BuildStatus.FAILED) {
             log("PR $prSummary was merged into failing branch `$branchName`")

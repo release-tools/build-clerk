@@ -2,9 +2,11 @@ package io.gatehill.buildclerk.service
 
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
-import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.model.ReportSpan
 import io.gatehill.buildclerk.api.model.analysis.Analysis
+import io.gatehill.buildclerk.api.model.pr.PullRequestEventType
+import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.pr.PullRequestModifiedEvent
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.NotificationService
@@ -156,7 +158,7 @@ class AnalysisServiceImpl @Inject constructor(
     /**
      * Perform some basic history checks on the commit.
      */
-    private fun performHistoryChecks(report: BuildReport) : List<String> {
+    private fun performHistoryChecks(report: BuildReport): List<String> {
         val analysisLines = mutableListOf<String>()
         val branchName = report.build.scm.branch
         val commit = report.build.scm.commit
@@ -212,16 +214,45 @@ class AnalysisServiceImpl @Inject constructor(
         }
     }
 
-    override fun analysePullRequest(
-        mergeEvent: PullRequestMergedEvent,
+    override fun analyseModifiedPullRequest(
+        prEvent: PullRequestModifiedEvent,
+        eventType: PullRequestEventType
+    ): Analysis {
+        val analysis = Analysis(
+            logger = logger,
+            name = "Pull request #${prEvent.pullRequest.id} $eventType, with destination branch ${prEvent.pullRequest.destination.branch.name}",
+            branch = prEvent.pullRequest.destination.branch.name,
+            user = prEvent.actor.displayName
+        )
+
+        val config = parser.parse()
+
+        parser.invoke(
+            body = config.bodyHolder.pullRequestModified,
+            blockConfigurer = { block ->
+                block.analysis = analysis
+                block.pullRequestEvent = prEvent
+                block.files = scmService.listModifiedFiles(
+                    sourceBranch = prEvent.pullRequest.source.branch.name,
+                    destinationBranch = prEvent.pullRequest.destination.branch.name
+                )
+            }
+        )
+
+        finaliseAnalysis(analysis)
+        return analysis
+    }
+
+    override fun analyseMergedPullRequest(
+        prEvent: PullRequestMergedEvent,
         currentBranchStatus: BuildStatus
     ): Analysis {
 
         val analysis = Analysis(
             logger = logger,
-            name = "Pull request #${mergeEvent.pullRequest.id} merged into ${mergeEvent.pullRequest.destination.branch.name}",
-            branch = mergeEvent.pullRequest.destination.branch.name,
-            user = mergeEvent.actor.displayName
+            name = "Pull request #${prEvent.pullRequest.id} merged into ${prEvent.pullRequest.destination.branch.name}",
+            branch = prEvent.pullRequest.destination.branch.name,
+            user = prEvent.actor.displayName
         )
 
         val config = parser.parse()
@@ -230,7 +261,7 @@ class AnalysisServiceImpl @Inject constructor(
             body = config.bodyHolder.pullRequestMerged,
             blockConfigurer = { block ->
                 block.analysis = analysis
-                block.mergeEvent = mergeEvent
+                block.pullRequestEvent = prEvent
                 block.currentBranchStatus = currentBranchStatus
             }
         )

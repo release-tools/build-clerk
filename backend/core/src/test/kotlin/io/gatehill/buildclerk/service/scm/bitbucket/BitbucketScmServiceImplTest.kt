@@ -1,5 +1,6 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
+import com.nhaarman.mockitokotlin2.mock
 import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.service.CommandExecutorService
 import io.gatehill.buildclerk.service.support.IntegrationTest
@@ -19,7 +20,7 @@ class BitbucketScmServiceImplTest {
             Settings.Repository(),
             CommandExecutorService(),
             BitbucketApiClientBuilder(),
-            BitbucketOperationsService()
+            BitbucketOperationsService(mock())
         )
         service.lockBranch("test")
     }

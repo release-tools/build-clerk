@@ -49,7 +49,42 @@ interface BitbucketApi {
         @Path("id") id: Int,
         @Body branchRestriction: BranchRestriction
     ): Call<Void>
+
+    /**
+     * List the comments on a PR.
+     *
+     * See https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/pullrequests/%7Bpull_request_id%7D/comments
+     */
+    @GET("2.0/repositories/{username}/{repoSlug}/pullrequests/{pullRequestId}/comments")
+    fun listPullRequestComments(
+        @Path("username") username: String,
+        @Path("repoSlug") repoSlug: String,
+        @Path("pullRequestId") pullRequestId: Int
+    ): Call<BitbucketList<PullRequestComment>>
+
+    /**
+     * Create a comment on a PR.
+     *
+     * See https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/pullrequests/%7Bpull_request_id%7D/comments
+     */
+    @POST("2.0/repositories/{username}/{repoSlug}/pullrequests/{pullRequestId}/comments")
+        fun createPullRequestComment(
+        @Path("username") username: String,
+        @Path("repoSlug") repoSlug: String,
+        @Path("pullRequestId") pullRequestId: Int,
+        @Body comment: PullRequestComment
+    ): Call<BitbucketList<PullRequestComment>>
 }
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PullRequestComment(
+    val content: CommentContent
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CommentContent(
+    val raw: String
+)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BitbucketList<T>(

@@ -4,8 +4,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.pgutkowski.kgraphql.RequestException
 import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
-import io.gatehill.buildclerk.api.model.PullRequestCreatedOrUpdatedEvent
-import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.pr.PullRequestEventType
+import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.pr.PullRequestModifiedEvent
 import io.gatehill.buildclerk.api.model.slack.ActionTriggeredEvent
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PendingActionService
@@ -115,8 +116,9 @@ class Server @Inject constructor(
 
             when (eventKey) {
                 "pullrequest:fulfilled" -> handlePrMergedEvent(rc)
-                "pullrequest:created", "pullrequest:updated" -> handlePrCreatedOrUpdateEvent(rc)
-
+                "pullrequest:created", "pullrequest:updated" -> {
+                    handlePrModifiedEvent(rc, PullRequestEventType.parse(eventKey))
+                }
                 else -> {
                     val message = "Ignoring unsupported event: $eventKey"
                     logger.debug(message)
@@ -172,7 +174,7 @@ class Server @Inject constructor(
             rc.readBodyJson<PullRequestMergedEvent>()
         } catch (e: Exception) {
             logger.error(e)
-            rc.response().setStatusCode(400).end("Cannot parse webhook for 'PR merged' event. ${e.message}")
+            rc.response().setStatusCode(400).end("Cannot parse webhook for PR merged event. ${e.message}")
             return
         }
 
@@ -188,17 +190,20 @@ class Server @Inject constructor(
     /**
      * A pull request has been created or merged.
      */
-    private fun handlePrCreatedOrUpdateEvent(rc: RoutingContext) {
+    private fun handlePrModifiedEvent(
+        rc: RoutingContext,
+        eventType: PullRequestEventType
+    ) {
         val event = try {
-            rc.readBodyJson<PullRequestCreatedOrUpdatedEvent>()
+            rc.readBodyJson<PullRequestModifiedEvent>()
         } catch (e: Exception) {
             logger.error(e)
-            rc.response().setStatusCode(400).end("Cannot parse webhook for 'PR created or updated' event. ${e.message}")
+            rc.response().setStatusCode(400).end("Cannot parse webhook for PR $eventType event. ${e.message}")
             return
         }
 
         try {
-            pullRequestEventService.checkCreatedOrUpdatedPullRequest(event)
+            pullRequestEventService.checkModifiedPullRequest(event, eventType)
             rc.response().setStatusCode(200).end()
         } catch (e: Exception) {
             logger.error(e)

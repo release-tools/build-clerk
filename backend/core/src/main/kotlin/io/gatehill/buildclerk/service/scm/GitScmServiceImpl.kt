@@ -2,12 +2,15 @@ package io.gatehill.buildclerk.service.scm
 
 import com.jcraft.jsch.Session
 import io.gatehill.buildclerk.api.config.Settings
+import io.gatehill.buildclerk.api.model.pr.FileChangeType
+import io.gatehill.buildclerk.api.model.pr.SourceFile
 import io.gatehill.buildclerk.model.scm.CommitUserInfo
 import io.gatehill.buildclerk.model.scm.ScmUser
 import io.gatehill.buildclerk.service.CommandExecutorService
 import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.TransportCommand
+import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -16,6 +19,7 @@ import org.eclipse.jgit.transport.OpenSshConfig.Host
 import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.TransportHttp
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.FileUtils
 import java.util.Objects.nonNull
 import javax.inject.Inject
@@ -30,7 +34,6 @@ open class GitScmServiceImpl @Inject constructor(
     private val repositorySettings: Settings.Repository,
     private val commandExecutorService: CommandExecutorService
 ) : ScmService {
-
     private val logger = LogManager.getLogger(ScmService::class.java)
 
     override fun fetchUserInfoForCommit(commit: String): CommitUserInfo = withGit {
@@ -74,6 +77,55 @@ open class GitScmServiceImpl @Inject constructor(
 
     override fun lockBranch(branchName: String) {
         throw NotImplementedError("locking branches is not implemented")
+    }
+
+    override fun listModifiedFiles(sourceBranch: String, destinationBranch: String): List<SourceFile> {
+        logger.debug("Listing modified files between '$sourceBranch' and '$destinationBranch'")
+
+        return withGit {
+            fetchRefs()
+
+            repository.newObjectReader().use { objectReader ->
+                val oldTree = CanonicalTreeParser()
+                oldTree.reset(objectReader, repository.resolve("$sourceBranch{tree}"))
+
+                val newTree = CanonicalTreeParser()
+                newTree.reset(objectReader, repository.resolve("$destinationBranch{tree}"))
+
+                val diffResult = diff()
+                    .setOldTree(oldTree)
+                    .setNewTree(newTree)
+                    .call()
+
+                diffResult.mapNotNull { diffEntry -> convertDiffToSourceFile(diffEntry) }
+            }
+        }
+    }
+
+    private fun convertDiffToSourceFile(diffEntry: DiffEntry): SourceFile? = when (diffEntry.changeType) {
+        DiffEntry.ChangeType.ADD -> SourceFile(
+            path = diffEntry.newPath,
+            changeType = FileChangeType.ADDED
+        )
+        DiffEntry.ChangeType.MODIFY -> SourceFile(
+            path = diffEntry.oldPath,
+            changeType = FileChangeType.MODIFIED
+        )
+        DiffEntry.ChangeType.DELETE -> SourceFile(
+            path = diffEntry.oldPath,
+            changeType = FileChangeType.DELETED
+        )
+
+        // consider copy and rename as 'modified'
+        DiffEntry.ChangeType.COPY, DiffEntry.ChangeType.RENAME -> SourceFile(
+            path = diffEntry.oldPath,
+            changeType = FileChangeType.MODIFIED
+        )
+
+        else -> {
+            logger.warn("Ignoring unsupported diff change type ${diffEntry.changeType}")
+            null
+        }
     }
 
     private fun Git.fetchCheckout(branchName: String) {
