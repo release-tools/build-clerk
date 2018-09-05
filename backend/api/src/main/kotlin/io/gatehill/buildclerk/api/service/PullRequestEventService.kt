@@ -1,6 +1,7 @@
 package io.gatehill.buildclerk.api.service
 
 import io.gatehill.buildclerk.api.Recorded
+import io.gatehill.buildclerk.api.model.PullRequestCreatedOrUpdatedEvent
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 
 /**
@@ -12,4 +13,5 @@ interface PullRequestEventService : Recorded {
     fun findPullRequestByMergeCommit(commit: String): PullRequestMergedEvent?
     fun fetchLastPullRequest(branchName: String? = null): PullRequestMergedEvent?
     fun fetchPullRequests(branchName: String? = null): List<PullRequestMergedEvent>
+    fun checkCreatedOrUpdatedPullRequest(event: PullRequestCreatedOrUpdatedEvent)
 }

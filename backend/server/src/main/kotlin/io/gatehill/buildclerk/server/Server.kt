@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.pgutkowski.kgraphql.RequestException
 import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
+import io.gatehill.buildclerk.api.model.PullRequestCreatedOrUpdatedEvent
 import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.model.slack.ActionTriggeredEvent
 import io.gatehill.buildclerk.api.service.BuildReportService
@@ -109,29 +110,19 @@ class Server @Inject constructor(
             }
         }
 
-        post("/pull-requests/merged").consumes(JSON_CONTENT_TYPE).handler { rc ->
+        post("/pull-requests").consumes(JSON_CONTENT_TYPE).handler { rc ->
             val eventKey = rc.request().getHeader("X-Event-Key")
-            if (eventKey != "pullrequest:fulfilled") {
-                val message = "Ignoring unsupported event: $eventKey"
-                logger.debug(message)
-                rc.response().end(message)
-                return@handler
-            }
 
-            val event = try {
-                rc.readBodyJson<PullRequestMergedEvent>()
-            } catch (e: Exception) {
-                logger.error(e)
-                rc.response().setStatusCode(400).end("Cannot parse webhook. ${e.message}")
-                return@handler
-            }
+            when (eventKey) {
+                "pullrequest:fulfilled" -> handlePrMergedEvent(rc)
+                "pullrequest:created", "pullrequest:updated" -> handlePrCreatedOrUpdateEvent(rc)
 
-            try {
-                pullRequestEventService.checkPullRequest(event)
-                rc.response().setStatusCode(200).end()
-            } catch (e: Exception) {
-                logger.error(e)
-                rc.response().setStatusCode(500).end(e.message)
+                else -> {
+                    val message = "Ignoring unsupported event: $eventKey"
+                    logger.debug(message)
+                    rc.response().end(message)
+                    return@handler
+                }
             }
         }
 
@@ -170,6 +161,48 @@ class Server @Inject constructor(
                 }
                 rc.response().putHeader("Content-Type", JSON_CONTENT_TYPE).end(result)
             }
+        }
+    }
+
+    /**
+     * A pull request has been merged
+     */
+    private fun handlePrMergedEvent(rc: RoutingContext) {
+        val event = try {
+            rc.readBodyJson<PullRequestMergedEvent>()
+        } catch (e: Exception) {
+            logger.error(e)
+            rc.response().setStatusCode(400).end("Cannot parse webhook for 'PR merged' event. ${e.message}")
+            return
+        }
+
+        try {
+            pullRequestEventService.checkPullRequest(event)
+            rc.response().setStatusCode(200).end()
+        } catch (e: Exception) {
+            logger.error(e)
+            rc.response().setStatusCode(500).end(e.message)
+        }
+    }
+
+    /**
+     * A pull request has been created or merged.
+     */
+    private fun handlePrCreatedOrUpdateEvent(rc: RoutingContext) {
+        val event = try {
+            rc.readBodyJson<PullRequestCreatedOrUpdatedEvent>()
+        } catch (e: Exception) {
+            logger.error(e)
+            rc.response().setStatusCode(400).end("Cannot parse webhook for 'PR created or updated' event. ${e.message}")
+            return
+        }
+
+        try {
+            pullRequestEventService.checkCreatedOrUpdatedPullRequest(event)
+            rc.response().setStatusCode(200).end()
+        } catch (e: Exception) {
+            logger.error(e)
+            rc.response().setStatusCode(500).end(e.message)
         }
     }
 
