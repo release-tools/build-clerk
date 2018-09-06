@@ -11,6 +11,7 @@ import io.gatehill.buildclerk.api.model.action.RevertCommitAction
 import io.gatehill.buildclerk.api.model.action.ShowTextAction
 import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.model.analysis.PublishConfig
+import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.model.pr.SourceFile
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.BuildSummaryService
@@ -252,7 +253,7 @@ class PullRequestMergedBlock @Inject constructor(
     override val pullRequestEventService: PullRequestEventService
 ) : AnalysisBlock, CommitBlock, PullRequestBlock, BuildBlock() {
 
-    override lateinit var pullRequestEvent: PullRequestEvent
+    override lateinit var pullRequestEvent: PullRequestMergedEvent
     lateinit var currentBranchStatus: BuildStatus
 
     override val branchName: String

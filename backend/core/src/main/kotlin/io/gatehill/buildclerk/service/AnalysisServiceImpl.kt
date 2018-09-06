@@ -225,6 +225,13 @@ class AnalysisServiceImpl @Inject constructor(
             user = prEvent.actor.displayName
         )
 
+        val filesChanged = scmService.listModifiedFiles(
+            source = prEvent.pullRequest.source,
+            destination = prEvent.pullRequest.destination,
+            sourceCommit = prEvent.pullRequest.source.commit.hash,
+            destinationCommit = prEvent.pullRequest.destination.commit.hash
+        )
+
         val config = parser.parse()
 
         parser.invoke(
@@ -232,10 +239,7 @@ class AnalysisServiceImpl @Inject constructor(
             blockConfigurer = { block ->
                 block.analysis = analysis
                 block.pullRequestEvent = prEvent
-                block.files = scmService.listModifiedFiles(
-                    sourceBranch = prEvent.pullRequest.source.branch.name,
-                    destinationBranch = prEvent.pullRequest.destination.branch.name
-                )
+                block.files = filesChanged
             }
         )
 

@@ -46,18 +46,20 @@ Currently, you can react to the following events:
 * `buildPassed` - a build just passed
 * `branchStartsPassing` - a formerly failing branch just passed
 * `repository` - repository wide rules - good for setting maximum thresholds for things like failures on a branch
+* `pullRequestModified` - a pull request was created or updated
 * `pullRequestMerged` - a pull request was merged
 * `cron` - trigger action on a schedule - good for sending periodic summaries
 
 ### Actions
 
-With Clerk's DSL, you can perform arbitrary logic in response to build events. Once you've figured out how you want to react, you do things like:
+With Clerk's DSL, you can perform arbitrary logic in response to build events. Once you've figured out how you want to react, you can do things like:
 
 * revert the offending commit
 * lock down the branch against further changes
 * trigger a rebuild of the branch - useful to help determine if you have a flaky test
 * publish a summary of a branch's health - useful in combination with the `cron` event for sending periodic status updates
-* post an arbitrary message to a Slack channel of your choice, in case you need to notify people of something or cajole someone into action.
+* post a comment on a pull request - helpful in conjunction with the `pullRequestModified` event for automating review steps 
+* post an arbitrary message to a Slack channel, in case you need to notify people of something or cajole someone into action
 
 #### Performing vs. suggesting actions
 
@@ -77,33 +79,40 @@ See http://localhost:9090 to check it's running.
 
 * `RULES_FILE` (required) - path to rules file to respond to build lifecycle events
 
-Slack configuration:
+### Slack configuration
 
 * `SLACK_USER_TOKEN` - a token with the `chat.write` permission
 
-Jenkins configuration:
+### Jenkins configuration
 
 * `JENKINS_BASE_URL` - base URL for Jenkins server
 * `JENKINS_USERNAME` - username for Jenkins
 * `JENKINS_PASSWORD` - API key or password for Jenkins
 
-Bitbucket configuration:
+### Bitbucket configuration
 
 * `BITBUCKET_REPO_USERNAME` - the username for the Bitbucket repository's user (might be a organisation)
 * `BITBUCKET_REPO_SLUG` - the 'repo slug' name for the Bitbucker repository
 * `BITBUCKET_AUTH_USERNAME` - the username to authenticate with Bitbucket (if it differs from the repository username)
 * `BITBUCKET_PASSWORD` - the password (preferably an 'app password') to authenticate with Bitbucket
 
-Global filters:
+The Bitbucket user should have the appropriate permissions if you want to enable the respective Clerk feature:
+
+| Permission                | Feature                        |
+|---------------------------|---------------------------------
+| Pull request Read/Write   | Add comments to PRs.           |
+| Repository Admin          | Lock branch access.            |
+
+### Global filters
 
 * `FILTER_BRANCHES` - only process events for this SCM branch
 * `FILTER_REPOS` - only process events from this repository (applies to PRs only)
 
-Security configuration:
+### Security configuration
 
 * `AUTH_CONFIG_FILE` - path to [Shiro](https://shiro.apache.org) properties file for HTTP Basic authentication
 
-Advanced configuration:
+### Advanced configuration
 
 * `SERVER_PORT` - the HTTP port on which to listen
 * `RULES_PARSE_ON_STARTUP` - whether to parse the rules file on startup - useful to fail fast if configuration is broken

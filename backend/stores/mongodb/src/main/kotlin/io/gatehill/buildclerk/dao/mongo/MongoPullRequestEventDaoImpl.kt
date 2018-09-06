@@ -3,6 +3,7 @@ package io.gatehill.buildclerk.dao.mongo
 import io.gatehill.buildclerk.api.dao.PullRequestEventDao
 import io.gatehill.buildclerk.api.model.pr.Branch
 import io.gatehill.buildclerk.api.model.pr.Commit
+import io.gatehill.buildclerk.api.model.pr.MergedPullRequest
 import io.gatehill.buildclerk.api.model.pr.PullRequest
 import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.model.pr.RepoBranch
@@ -29,7 +30,7 @@ class MongoPullRequestEventDaoImpl : AbstractMongoDao(), PullRequestEventDao {
         commit: String
     ): PullRequestMergedEvent? =
         withCollection<MongoPullRequestMergedEventWrapper, PullRequestMergedEvent?> {
-            findOne(MongoPullRequestMergedEventWrapper::mergeEvent / PullRequestMergedEvent::pullRequest / PullRequest::mergeCommit / Commit::hash eq commit)
+            findOne(MongoPullRequestMergedEventWrapper::mergeEvent / PullRequestMergedEvent::pullRequest / MergedPullRequest::mergeCommit / Commit::hash eq commit)
                 ?.mergeEvent
         }
 

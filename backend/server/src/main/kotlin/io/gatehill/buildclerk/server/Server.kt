@@ -106,24 +106,25 @@ class Server @Inject constructor(
                 rc.response().setStatusCode(200).end()
 
             } catch (e: Exception) {
-                logger.error(e)
-                rc.response().setStatusCode(500).end(e.message)
+                rc.respondWithError(e)
             }
         }
 
         post("/pull-requests").consumes(JSON_CONTENT_TYPE).handler { rc ->
-            val eventKey = rc.request().getHeader("X-Event-Key")
+            launch {
+                val eventKey = rc.request().getHeader("X-Event-Key")
 
-            when (eventKey) {
-                "pullrequest:fulfilled" -> handlePrMergedEvent(rc)
-                "pullrequest:created", "pullrequest:updated" -> {
-                    handlePrModifiedEvent(rc, PullRequestEventType.parse(eventKey))
-                }
-                else -> {
-                    val message = "Ignoring unsupported event: $eventKey"
-                    logger.debug(message)
-                    rc.response().end(message)
-                    return@handler
+                when (eventKey) {
+                    "pullrequest:fulfilled" -> handlePrMergedEvent(rc)
+                    "pullrequest:created", "pullrequest:updated" -> {
+                        handlePrModifiedEvent(rc, PullRequestEventType.parse(eventKey))
+                    }
+                    else -> {
+                        "Ignoring unsupported event: $eventKey".let { message ->
+                            logger.debug(message)
+                            rc.response().end(message)
+                        }
+                    }
                 }
             }
         }
@@ -142,8 +143,7 @@ class Server @Inject constructor(
                 pendingActionService.handleAsync(event)
                 rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
-                logger.error(e)
-                rc.response().setStatusCode(500).end(e.message)
+                rc.respondWithError(e)
             }
         }
 
@@ -182,8 +182,7 @@ class Server @Inject constructor(
             pullRequestEventService.checkPullRequest(event)
             rc.response().setStatusCode(200).end()
         } catch (e: Exception) {
-            logger.error(e)
-            rc.response().setStatusCode(500).end(e.message)
+            rc.respondWithError(e)
         }
     }
 
@@ -206,9 +205,16 @@ class Server @Inject constructor(
             pullRequestEventService.checkModifiedPullRequest(event, eventType)
             rc.response().setStatusCode(200).end()
         } catch (e: Exception) {
-            logger.error(e)
-            rc.response().setStatusCode(500).end(e.message)
+            rc.respondWithError(e)
         }
+    }
+
+    private fun RoutingContext.respondWithError(e: Exception) {
+        logger.error(e)
+        
+        val response = response()
+        response.statusCode = 500
+        e.message?.let { message -> response.end(message) } ?: response.end()
     }
 
     private fun gatherStats() = mapOf(

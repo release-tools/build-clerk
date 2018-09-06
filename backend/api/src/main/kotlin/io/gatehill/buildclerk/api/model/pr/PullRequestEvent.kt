@@ -46,7 +46,7 @@ data class PullRequestMergedEvent(
     override val repository: Repository,
 
     @JsonProperty("pullrequest")
-    override val pullRequest: PullRequest
+    override val pullRequest: MergedPullRequest
 ) : PullRequestEvent
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -58,16 +58,40 @@ data class User(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PullRequest(
+open class PullRequest(
     val id: Int,
     val title: String,
     val author: User,
     val source: RepoBranch,
-    val destination: RepoBranch,
+    val destination: RepoBranch
+) {
+    override fun toString(): String {
+        return "PullRequest(id=$id, title='$title', author=$author, source=$source, destination=$destination)"
+    }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+class MergedPullRequest(
+    id: Int,
+    title: String,
+    author: User,
+    source: RepoBranch,
+    destination: RepoBranch,
 
     @JsonProperty("merge_commit")
     val mergeCommit: Commit
-)
+
+) : PullRequest(
+    id = id,
+    title = title,
+    author = author,
+    source = source,
+    destination = destination
+) {
+    override fun toString(): String {
+        return "MergedPullRequest(${super.toString()}, mergeCommit=$mergeCommit)"
+    }
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class RepoBranch(

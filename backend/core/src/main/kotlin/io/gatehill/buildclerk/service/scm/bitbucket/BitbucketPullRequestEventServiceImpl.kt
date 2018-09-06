@@ -3,6 +3,7 @@ package io.gatehill.buildclerk.service.scm.bitbucket
 import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.api.dao.PullRequestEventDao
 import io.gatehill.buildclerk.api.model.BuildStatus
+import io.gatehill.buildclerk.api.model.pr.MergedPullRequest
 import io.gatehill.buildclerk.api.model.pr.PullRequestEvent
 import io.gatehill.buildclerk.api.model.pr.PullRequestEventType
 import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
@@ -143,7 +144,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
      * hashes normalised using `toPrLengthCommit()`
      */
     private fun normaliseCommitLengths(event: PullRequestMergedEvent) = event.copy(
-        pullRequest = event.pullRequest.copy(
+        pullRequest = MergedPullRequest(
             mergeCommit = event.pullRequest.mergeCommit.copy(
                 hash = toPrLengthCommit(event.pullRequest.mergeCommit.hash)
             ),
@@ -156,7 +157,10 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
                 commit = event.pullRequest.destination.commit.copy(
                     hash = toPrLengthCommit(event.pullRequest.destination.commit.hash)
                 )
-            )
+            ),
+            author = event.pullRequest.author,
+            id = event.pullRequest.id,
+            title = event.pullRequest.title
         )
     )
 
