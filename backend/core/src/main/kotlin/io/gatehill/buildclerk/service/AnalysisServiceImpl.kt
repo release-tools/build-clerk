@@ -226,10 +226,8 @@ class AnalysisServiceImpl @Inject constructor(
         )
 
         val filesChanged = scmService.listModifiedFiles(
-            source = prEvent.pullRequest.source,
-            destination = prEvent.pullRequest.destination,
-            sourceCommit = prEvent.pullRequest.source.commit.hash,
-            destinationCommit = prEvent.pullRequest.destination.commit.hash
+            oldCommit = prEvent.pullRequest.destination.commit.hash,
+            newCommit = prEvent.pullRequest.source.commit.hash
         )
 
         val config = parser.parse()

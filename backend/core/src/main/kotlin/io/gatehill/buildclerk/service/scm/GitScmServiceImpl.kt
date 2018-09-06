@@ -3,7 +3,6 @@ package io.gatehill.buildclerk.service.scm
 import com.jcraft.jsch.Session
 import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.api.model.pr.FileChangeType
-import io.gatehill.buildclerk.api.model.pr.RepoBranch
 import io.gatehill.buildclerk.api.model.pr.SourceFile
 import io.gatehill.buildclerk.model.scm.CommitUserInfo
 import io.gatehill.buildclerk.model.scm.ScmUser
@@ -84,20 +83,18 @@ open class GitScmServiceImpl @Inject constructor(
     }
 
     override fun listModifiedFiles(
-        source: RepoBranch,
-        destination: RepoBranch,
-        sourceCommit: String,
-        destinationCommit: String
+        oldCommit: String,
+        newCommit: String
     ): List<SourceFile> {
-        logger.debug("Listing modified files between '$source' and '$destination'")
+        logger.debug("Listing modified files between '$oldCommit' and '$newCommit'")
 
         return withGit {
             fetchRefs()
 
             repository.newObjectReader().use { objectReader ->
                 val diffResult = diff()
-                    .setOldTree(fetchTreeIterator(objectReader, sourceCommit))
-                    .setNewTree(fetchTreeIterator(objectReader, destinationCommit))
+                    .setOldTree(fetchTreeIterator(objectReader, oldCommit))
+                    .setNewTree(fetchTreeIterator(objectReader, newCommit))
                     .call()
 
                 diffResult.mapNotNull { diffEntry -> convertDiffToSourceFile(diffEntry) }
@@ -162,10 +159,14 @@ open class GitScmServiceImpl @Inject constructor(
     }
 
     private fun Git.fetchRefs() {
-        fetch()
-            .configureTransport()
-            .setRemoveDeletedRefs(true)
-            .call()
+        val remotes = remoteList().call()
+        when (remotes.size) {
+            0 -> logger.debug("No remotes for local repo - skipping fetch")
+            else -> fetch()
+                .configureTransport()
+                .setRemoveDeletedRefs(true)
+                .call()
+        }
     }
 
     private fun Git.revertCommit(commit: String) {
