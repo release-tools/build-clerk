@@ -26,7 +26,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     private val bitbucketOperationsService: BitbucketOperationsService
 ) : PullRequestEventService {
 
-    private val logger = LogManager.getLogger(PullRequestEventService::class.java)
+    private val logger = LogManager.getLogger(BitbucketPullRequestEventServiceImpl::class.java)
 
     override val count
         get() = pullRequestEventDao.count
@@ -115,16 +115,21 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     }
 
     override fun ensureComment(pullRequestId: Int, comment: String) {
-        val comments = bitbucketOperationsService.listComments(pullRequestId)
+        try {
+            val comments = bitbucketOperationsService.listComments(pullRequestId)
 
-        val exists = comments.any { it.content.raw.trim() == comment.trim() }
-        if (exists) {
-            logger.info("Skipped adding existing comment '$comment' to PR $pullRequestId")
-            return
+            val exists = comments.any { it.content.raw.trim() == comment.trim() }
+            if (exists) {
+                logger.info("Skipped adding existing comment '$comment' to PR $pullRequestId")
+                return
+            }
+
+            logger.info("Adding comment '$comment' to PR $pullRequestId")
+            bitbucketOperationsService.createComment(pullRequestId, comment)
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error ensuring comment '$comment' to PR $pullRequestId", e)
         }
-
-        logger.info("Adding comment '$comment' to PR $pullRequestId")
-        bitbucketOperationsService.createComment(pullRequestId, comment)
     }
 
     /**

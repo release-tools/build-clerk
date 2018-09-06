@@ -7,6 +7,7 @@ import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.model.pr.PullRequestEventType
 import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
 import io.gatehill.buildclerk.api.model.pr.PullRequestModifiedEvent
+import io.gatehill.buildclerk.api.model.pr.SourceFile
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.NotificationService
@@ -225,10 +226,13 @@ class AnalysisServiceImpl @Inject constructor(
             user = prEvent.actor.displayName
         )
 
-        val filesChanged = scmService.listModifiedFiles(
-            oldCommit = prEvent.pullRequest.destination.commit.hash,
-            newCommit = prEvent.pullRequest.source.commit.hash
-        )
+        // defer calculation of files changed until required
+        val filesChanged: List<SourceFile> by lazy {
+            scmService.listModifiedFiles(
+                oldCommit = prEvent.pullRequest.destination.commit.hash,
+                newCommit = prEvent.pullRequest.source.commit.hash
+            )
+        }
 
         val config = parser.parse()
 

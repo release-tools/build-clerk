@@ -88,17 +88,22 @@ open class GitScmServiceImpl @Inject constructor(
     ): List<SourceFile> {
         logger.debug("Listing modified files between '$oldCommit' and '$newCommit'")
 
-        return withGit {
-            fetchRefs()
+        return try {
+            withGit {
+                fetchRefs()
 
-            repository.newObjectReader().use { objectReader ->
-                val diffResult = diff()
-                    .setOldTree(fetchTreeIterator(objectReader, oldCommit))
-                    .setNewTree(fetchTreeIterator(objectReader, newCommit))
-                    .call()
+                repository.newObjectReader().use { objectReader ->
+                    val diffResult = diff()
+                        .setOldTree(fetchTreeIterator(objectReader, oldCommit))
+                        .setNewTree(fetchTreeIterator(objectReader, newCommit))
+                        .call()
 
-                diffResult.mapNotNull { diffEntry -> convertDiffToSourceFile(diffEntry) }
+                    diffResult.mapNotNull { diffEntry -> convertDiffToSourceFile(diffEntry) }
+                }
             }
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error listing modified files between '$oldCommit' and '$newCommit'", e)
         }
     }
 
