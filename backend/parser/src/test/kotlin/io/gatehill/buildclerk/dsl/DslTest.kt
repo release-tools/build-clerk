@@ -25,6 +25,7 @@ class DslTest {
         assertNotNull(config.bodyHolder.buildFailed)
         assertNotNull(config.bodyHolder.branchStartsPassing)
         assertNotNull(config.bodyHolder.branchStartsFailing)
+        assertNotNull(config.bodyHolder.pullRequestModified)
         assertNotNull(config.bodyHolder.pullRequestMerged)
         assertNotNull(config.bodyHolder.repository)
     }

@@ -1,6 +1,6 @@
 package io.gatehill.buildclerk.dao.mongo.model
 
-import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
 import org.bson.codecs.pojo.annotations.BsonId
 import org.litote.kmongo.Id
 import org.litote.kmongo.newId

@@ -2,20 +2,27 @@ package io.gatehill.buildclerk.service.scm
 
 import com.jcraft.jsch.Session
 import io.gatehill.buildclerk.api.config.Settings
+import io.gatehill.buildclerk.api.model.pr.FileChangeType
+import io.gatehill.buildclerk.api.model.pr.SourceFile
 import io.gatehill.buildclerk.model.scm.CommitUserInfo
 import io.gatehill.buildclerk.model.scm.ScmUser
 import io.gatehill.buildclerk.service.CommandExecutorService
 import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.TransportCommand
+import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
+import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.JschConfigSessionFactory
 import org.eclipse.jgit.transport.OpenSshConfig.Host
 import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.TransportHttp
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.FileUtils
 import java.util.Objects.nonNull
 import javax.inject.Inject
@@ -30,7 +37,6 @@ open class GitScmServiceImpl @Inject constructor(
     private val repositorySettings: Settings.Repository,
     private val commandExecutorService: CommandExecutorService
 ) : ScmService {
-
     private val logger = LogManager.getLogger(ScmService::class.java)
 
     override fun fetchUserInfoForCommit(commit: String): CommitUserInfo = withGit {
@@ -76,6 +82,73 @@ open class GitScmServiceImpl @Inject constructor(
         throw NotImplementedError("locking branches is not implemented")
     }
 
+    override fun listModifiedFiles(
+        oldCommit: String,
+        newCommit: String
+    ): List<SourceFile> {
+        logger.debug("Listing modified files between '$oldCommit' and '$newCommit'")
+
+        return try {
+            withGit {
+                fetchRefs()
+
+                repository.newObjectReader().use { objectReader ->
+                    val diffResult = diff()
+                        .setOldTree(fetchTreeIterator(objectReader, oldCommit))
+                        .setNewTree(fetchTreeIterator(objectReader, newCommit))
+                        .call()
+
+                    diffResult.mapNotNull { diffEntry -> convertDiffToSourceFile(diffEntry) }
+                }
+            }
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error listing modified files between '$oldCommit' and '$newCommit'", e)
+        }
+    }
+
+    /**
+     * @return a tree iterator for the object, using the given object reader
+     */
+    private fun Git.fetchTreeIterator(objectReader: ObjectReader, objectId: String): CanonicalTreeParser {
+        val walk = RevWalk(repository)
+        val commit = walk.parseCommit(ObjectId.fromString(objectId))
+        val tree = walk.parseTree(commit.tree.id)
+
+        val newTree = CanonicalTreeParser()
+        newTree.reset(objectReader, tree)
+        return newTree
+    }
+
+    /**
+     * @return a `SourceFile` for the specified `DiffEntry` - may be `null`
+     */
+    private fun convertDiffToSourceFile(diffEntry: DiffEntry): SourceFile? = when (diffEntry.changeType) {
+        DiffEntry.ChangeType.ADD -> SourceFile(
+            path = diffEntry.newPath,
+            changeType = FileChangeType.ADDED
+        )
+        DiffEntry.ChangeType.MODIFY -> SourceFile(
+            path = diffEntry.oldPath,
+            changeType = FileChangeType.MODIFIED
+        )
+        DiffEntry.ChangeType.DELETE -> SourceFile(
+            path = diffEntry.oldPath,
+            changeType = FileChangeType.DELETED
+        )
+
+        // consider copy and rename as 'modified'
+        DiffEntry.ChangeType.COPY, DiffEntry.ChangeType.RENAME -> SourceFile(
+            path = diffEntry.oldPath,
+            changeType = FileChangeType.MODIFIED
+        )
+
+        else -> {
+            logger.warn("Ignoring unsupported diff change type ${diffEntry.changeType}")
+            null
+        }
+    }
+
     private fun Git.fetchCheckout(branchName: String) {
         logger.debug("Performing checkout of branch $branchName")
 
@@ -91,10 +164,14 @@ open class GitScmServiceImpl @Inject constructor(
     }
 
     private fun Git.fetchRefs() {
-        fetch()
-            .configureTransport()
-            .setRemoveDeletedRefs(true)
-            .call()
+        val remotes = remoteList().call()
+        when (remotes.size) {
+            0 -> logger.debug("No remotes for local repo - skipping fetch")
+            else -> fetch()
+                .configureTransport()
+                .setRemoveDeletedRefs(true)
+                .call()
+        }
     }
 
     private fun Git.revertCommit(commit: String) {
@@ -112,7 +189,14 @@ open class GitScmServiceImpl @Inject constructor(
         }
     }
 
-    private fun <T> withRepo(block: Repository.() -> T): T {
+    /**
+     * Execute the `block` against the local repository.
+     *
+     * Note: this method is prevented from concurrent execution to avoid
+     * race conditions when testing for the presence of a local repository,
+     * and subsequently performing a clone.
+     */
+    private fun <T> withRepo(block: Repository.() -> T): T = synchronized(cloneMutex) {
         val repository: Repository = if (isLocalRepoPresent()) {
             logger.debug("Existing local bare repository found at: ${repositorySettings.localDir}")
             FileRepositoryBuilder()
@@ -136,6 +220,8 @@ open class GitScmServiceImpl @Inject constructor(
 
     /**
      * Clone a repository.
+     *
+     * Note: this function is not thread safe.
      */
     internal fun clone(): Git {
         logger.info("Cloning remote repository: ${repositorySettings.remoteUrl}")
@@ -204,4 +290,11 @@ open class GitScmServiceImpl @Inject constructor(
 
     private fun isUserNameAndPasswordConfigured() =
         nonNull(repositorySettings.userName) && nonNull(repositorySettings.password)
+
+    companion object {
+        /**
+         * The lock on which repository use synchronises.
+         */
+        private val cloneMutex = Any()
+    }
 }

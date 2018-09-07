@@ -2,7 +2,7 @@ package io.gatehill.buildclerk.dsl
 
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
-import io.gatehill.buildclerk.api.model.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.pr.PullRequestEvent
 import io.gatehill.buildclerk.api.model.action.LockBranchAction
 import io.gatehill.buildclerk.api.model.action.PendingAction
 import io.gatehill.buildclerk.api.model.action.PendingActionSet
@@ -11,6 +11,8 @@ import io.gatehill.buildclerk.api.model.action.RevertCommitAction
 import io.gatehill.buildclerk.api.model.action.ShowTextAction
 import io.gatehill.buildclerk.api.model.analysis.Analysis
 import io.gatehill.buildclerk.api.model.analysis.PublishConfig
+import io.gatehill.buildclerk.api.model.pr.PullRequestMergedEvent
+import io.gatehill.buildclerk.api.model.pr.SourceFile
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.service.NotificationService
@@ -49,6 +51,10 @@ class ConfigBlock(
         bodyHolder.repository = body
     }
 
+    fun pullRequestModified(body: PullRequestModifiedBlock.() -> Unit) {
+        bodyHolder.pullRequestModified = body
+    }
+
     fun pullRequestMerged(body: PullRequestMergedBlock.() -> Unit) {
         bodyHolder.pullRequestMerged = body
     }
@@ -66,6 +72,7 @@ class BodyHolder {
     var buildFailed: (BuildFailedBlock.() -> Unit)? = null
     var branchStartsPassing: (BuildHealthyBlock.() -> Unit)? = null
     var branchStartsFailing: (BuildFailingBlock.() -> Unit)? = null
+    var pullRequestModified: (PullRequestModifiedBlock.() -> Unit)? = null
     var pullRequestMerged: (PullRequestMergedBlock.() -> Unit)? = null
     var repository: (RepositoryBlock.() -> Unit)? = null
 }
@@ -231,24 +238,45 @@ class RepositoryBlock @Inject constructor(
     override val buildSummaryService: BuildSummaryService
 ) : BuildBlock()
 
+interface PullRequestBlock {
+    val pullRequestEventService: PullRequestEventService
+    val pullRequestEvent: PullRequestEvent
+
+    val prSummary: String
+        get() = pullRequestEventService.describePullRequest(pullRequestEvent)
+}
+
 class PullRequestMergedBlock @Inject constructor(
     override val buildReportService: BuildReportService,
     override val notificationService: NotificationService,
     override val buildSummaryService: BuildSummaryService,
-    private val pullRequestEventService: PullRequestEventService
-) : AnalysisBlock, CommitBlock, BuildBlock() {
+    override val pullRequestEventService: PullRequestEventService
+) : AnalysisBlock, CommitBlock, PullRequestBlock, BuildBlock() {
 
-    lateinit var mergeEvent: PullRequestMergedEvent
+    override lateinit var pullRequestEvent: PullRequestMergedEvent
     lateinit var currentBranchStatus: BuildStatus
 
     override val branchName: String
-        get() = mergeEvent.pullRequest.destination.branch.name
+        get() = pullRequestEvent.pullRequest.destination.branch.name
 
     override val commit: String
-        get() = mergeEvent.pullRequest.mergeCommit.hash
+        get() = pullRequestEvent.pullRequest.mergeCommit.hash
+}
 
-    val prSummary: String
-        get() = pullRequestEventService.describePullRequest(mergeEvent)
+class PullRequestModifiedBlock @Inject constructor(
+    override val buildReportService: BuildReportService,
+    override val notificationService: NotificationService,
+    override val buildSummaryService: BuildSummaryService,
+    override val pullRequestEventService: PullRequestEventService
+) : AnalysisBlock, PullRequestBlock, BuildBlock() {
+
+    override lateinit var pullRequestEvent: PullRequestEvent
+
+    lateinit var files: List<SourceFile>
+
+    fun ensureComment(comment: String) {
+        pullRequestEventService.ensureComment(pullRequestEvent.pullRequest.id, comment)
+    }
 }
 
 class CronBlock @Inject constructor(

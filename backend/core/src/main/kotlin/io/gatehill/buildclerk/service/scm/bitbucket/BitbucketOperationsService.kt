@@ -5,13 +5,16 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import retrofit2.Call
 import retrofit2.Response
+import javax.inject.Inject
 
 /**
  * Common Bitbucket operations.
  *
  * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
-class BitbucketOperationsService {
+class BitbucketOperationsService @Inject constructor(
+    private val apiClientBuilder: BitbucketApiClientBuilder
+) {
     private val logger: Logger = LogManager.getLogger(BitbucketOperationsService::class.java)
 
     fun listRestrictions(branchName: String, apiClient: BitbucketApi): List<BranchRestriction> {
@@ -121,6 +124,60 @@ class BitbucketOperationsService {
             else -> {
                 throw RuntimeException("Unsuccessfully set branch restriction [branch name: $branchName, kind: $kind, request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
             }
+        }
+    }
+
+    fun listComments(pullRequestId: Int) : List<PullRequestComment> {
+        logger.debug("Checking for comments on PR $pullRequestId")
+
+        val apiClient = apiClientBuilder.buildApiClient()
+
+        val call: Call<BitbucketList<PullRequestComment>> = apiClient.listPullRequestComments(
+            username = Settings.Bitbucket.repoUsername,
+            repoSlug = Settings.Bitbucket.repoSlug,
+            pullRequestId = pullRequestId
+        )
+
+        try {
+            val response = call.execute()
+            if (response.isSuccessful) {
+                return response.body().values
+            } else {
+                throw RuntimeException("Unsuccessfully listed PR comments [PR: $pullRequestId, request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
+            }
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error listing PR comments [PR: $pullRequestId]", e)
+        }
+    }
+
+    fun createComment(pullRequestId: Int, comment: String) {
+        logger.debug("Adding comment to PR $pullRequestId: $comment")
+
+        val apiClient = apiClientBuilder.buildApiClient()
+
+        val call: Call<PullRequestComment> = apiClient.createPullRequestComment(
+            username = Settings.Bitbucket.repoUsername,
+            repoSlug = Settings.Bitbucket.repoSlug,
+            pullRequestId = pullRequestId,
+            comment = PullRequestComment(
+                content = CommentContent(
+                    raw = comment
+                )
+            )
+        )
+
+        try {
+            val response = call.execute()
+            if (response.isSuccessful) {
+                val createdComment = response.body()
+                logger.debug("Added PR comment [PR: $pullRequestId, comment: $comment] with ID: ${createdComment.id}")
+            } else {
+                throw RuntimeException("Unsuccessfully added PR comment [PR: $pullRequestId, comment: $comment, request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
+            }
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error adding PR comment [PR: $pullRequestId, comment: $comment]", e)
         }
     }
 }
