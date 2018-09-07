@@ -73,11 +73,12 @@ interface BitbucketApi {
         @Path("repoSlug") repoSlug: String,
         @Path("pullRequestId") pullRequestId: Int,
         @Body comment: PullRequestComment
-    ): Call<BitbucketList<PullRequestComment>>
+    ): Call<PullRequestComment>
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PullRequestComment(
+    val id: String? = null,
     val content: CommentContent
 )
 

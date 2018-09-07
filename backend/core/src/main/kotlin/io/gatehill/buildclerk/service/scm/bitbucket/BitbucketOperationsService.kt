@@ -156,7 +156,7 @@ class BitbucketOperationsService @Inject constructor(
 
         val apiClient = apiClientBuilder.buildApiClient()
 
-        val call: Call<BitbucketList<PullRequestComment>> = apiClient.createPullRequestComment(
+        val call: Call<PullRequestComment> = apiClient.createPullRequestComment(
             username = Settings.Bitbucket.repoUsername,
             repoSlug = Settings.Bitbucket.repoSlug,
             pullRequestId = pullRequestId,
@@ -170,7 +170,8 @@ class BitbucketOperationsService @Inject constructor(
         try {
             val response = call.execute()
             if (response.isSuccessful) {
-                logger.debug("Added PR comment [PR: $pullRequestId, comment: $comment")
+                val createdComment = response.body()
+                logger.debug("Added PR comment [PR: $pullRequestId, comment: $comment] with ID: ${createdComment.id}")
             } else {
                 throw RuntimeException("Unsuccessfully added PR comment [PR: $pullRequestId, comment: $comment, request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
             }

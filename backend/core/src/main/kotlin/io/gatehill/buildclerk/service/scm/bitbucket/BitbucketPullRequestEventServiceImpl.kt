@@ -117,18 +117,21 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     override fun ensureComment(pullRequestId: Int, comment: String) {
         try {
             val comments = bitbucketOperationsService.listComments(pullRequestId)
+            val existingComment = comments.find { it.content.raw.trim() == comment.trim() }
 
-            val exists = comments.any { it.content.raw.trim() == comment.trim() }
-            if (exists) {
-                logger.info("Skipped adding existing comment '$comment' to PR $pullRequestId")
-                return
+            existingComment?.let {
+                if (logger.isDebugEnabled) {
+                    logger.debug("Existing comment '$comment' on PR $pullRequestId with ID: ${existingComment.id}")
+                }
+                logger.info("Skipped adding comment to PR $pullRequestId - already exists with ID: ${existingComment.id}")
+
+            } ?: run {
+                logger.info("Adding comment '$comment' to PR $pullRequestId")
+                bitbucketOperationsService.createComment(pullRequestId, comment)
             }
 
-            logger.info("Adding comment '$comment' to PR $pullRequestId")
-            bitbucketOperationsService.createComment(pullRequestId, comment)
-
         } catch (e: Exception) {
-            throw RuntimeException("Error ensuring comment '$comment' to PR $pullRequestId", e)
+            throw RuntimeException("Error ensuring comment '$comment' on PR $pullRequestId", e)
         }
     }
 
