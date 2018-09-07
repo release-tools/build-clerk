@@ -244,6 +244,10 @@ interface PullRequestBlock {
 
     val prSummary: String
         get() = pullRequestEventService.describePullRequest(pullRequestEvent)
+
+    fun ensureComment(comment: String) {
+        pullRequestEventService.ensureComment(pullRequestEvent.pullRequest.id, comment)
+    }
 }
 
 class PullRequestMergedBlock @Inject constructor(
@@ -273,10 +277,6 @@ class PullRequestModifiedBlock @Inject constructor(
     override lateinit var pullRequestEvent: PullRequestEvent
 
     lateinit var files: List<SourceFile>
-
-    fun ensureComment(comment: String) {
-        pullRequestEventService.ensureComment(pullRequestEvent.pullRequest.id, comment)
-    }
 }
 
 class CronBlock @Inject constructor(

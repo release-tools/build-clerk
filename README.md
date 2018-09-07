@@ -180,11 +180,11 @@ Slack interactive message callbacks should target:
 
 ### Bitbucket
 
-Bitbucket webhooks for the 'Pull request merged' event should target:
+Bitbucket webhooks for Pull Request events should target:
 
-    /pull-requests/merged
+    /pull-requests
 
-> Example: https://clerk.example.com/pull-requests/merged
+> Example: https://clerk.example.com/pull-requests
 
 ### Utility endpoints
 
