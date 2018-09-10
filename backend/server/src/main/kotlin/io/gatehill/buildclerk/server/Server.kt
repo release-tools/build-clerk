@@ -96,7 +96,7 @@ class Server @Inject constructor(
             val buildReport = try {
                 rc.readBodyJson<BuildReport>()
             } catch (e: Exception) {
-                logger.error(e)
+                logger.error("Error parsing build report", e)
                 rc.response().setStatusCode(400).end("Cannot parse build report. ${e.message}")
                 return@handler
             }
@@ -106,7 +106,7 @@ class Server @Inject constructor(
                 rc.response().setStatusCode(200).end()
 
             } catch (e: Exception) {
-                rc.respondWithError(e)
+                rc.respondWithError("Error handling build report", e)
             }
         }
 
@@ -134,8 +134,8 @@ class Server @Inject constructor(
             val event = try {
                 jsonMapper.readValue<ActionTriggeredEvent>(rc.request().getParam("payload"))
             } catch (e: Exception) {
-                logger.error(e)
-                rc.response().setStatusCode(400).end("Cannot parse action. ${e.message}")
+                logger.error("Error parsing action callback", e)
+                rc.response().setStatusCode(400).end("Cannot parse action callback. ${e.message}")
                 return@handler
             }
 
@@ -143,7 +143,7 @@ class Server @Inject constructor(
                 pendingActionService.handleAsync(event)
                 rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
-                rc.respondWithError(e)
+                rc.respondWithError("Error handling action callback", e)
             }
         }
 
@@ -152,7 +152,7 @@ class Server @Inject constructor(
                 val result = try {
                     queryService.query(rc.readBodyJson())
                 } catch (e: Exception) {
-                    logger.error(e)
+                    logger.error("Error parsing GraphQL query", e)
                     if (e.causeContains(RequestException::class)) {
                         rc.response().setStatusCode(400).end()
                         return@launch
@@ -173,7 +173,7 @@ class Server @Inject constructor(
         val event = try {
             rc.readBodyJson<PullRequestMergedEvent>()
         } catch (e: Exception) {
-            logger.error(e)
+            logger.error("Error parsing webhook for PR merged event", e)
             rc.response().setStatusCode(400).end("Cannot parse webhook for PR merged event. ${e.message}")
             return
         }
@@ -182,7 +182,7 @@ class Server @Inject constructor(
             pullRequestEventService.checkPullRequest(event)
             rc.response().setStatusCode(200).end()
         } catch (e: Exception) {
-            rc.respondWithError(e)
+            rc.respondWithError("Error handling PR merged event", e)
         }
     }
 
@@ -196,7 +196,7 @@ class Server @Inject constructor(
         val event = try {
             rc.readBodyJson<PullRequestModifiedEvent>()
         } catch (e: Exception) {
-            logger.error(e)
+            logger.error("Error parsing webhook for PR $eventType event", e)
             rc.response().setStatusCode(400).end("Cannot parse webhook for PR $eventType event. ${e.message}")
             return
         }
@@ -205,16 +205,16 @@ class Server @Inject constructor(
             pullRequestEventService.checkModifiedPullRequest(event, eventType)
             rc.response().setStatusCode(200).end()
         } catch (e: Exception) {
-            rc.respondWithError(e)
+            rc.respondWithError("Error handling PR $eventType event", e)
         }
     }
 
-    private fun RoutingContext.respondWithError(e: Exception) {
-        logger.error(e)
+    private fun RoutingContext.respondWithError(message: String, e: Exception) {
+        logger.error(message, e)
         
         val response = response()
         response.statusCode = 500
-        e.message?.let { message -> response.end(message) } ?: response.end()
+        e.message?.let { response.end(e.message) } ?: response.end()
     }
 
     private fun gatherStats() = mapOf(
