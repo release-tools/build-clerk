@@ -14,6 +14,7 @@ import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
+import org.eclipse.jgit.revwalk.RevTree
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.JschConfigSessionFactory
@@ -110,9 +111,13 @@ open class GitScmServiceImpl @Inject constructor(
      * @return a tree iterator for the object, using the given object reader
      */
     private fun Git.fetchTreeIterator(objectReader: ObjectReader, objectId: String): CanonicalTreeParser {
-        val walk = RevWalk(repository)
-        val commit = walk.parseCommit(repository.resolve(objectId))
-        val tree = walk.parseTree(commit.tree.id)
+        val tree: RevTree = try {
+            val walk = RevWalk(repository)
+            val commit = walk.parseCommit(repository.resolve(objectId))
+            walk.parseTree(commit.tree.id)
+        } catch (e: Exception) {
+            throw IllegalStateException("Unable to resolve commit: $objectId", e)
+        }
 
         val newTree = CanonicalTreeParser()
         newTree.reset(objectReader, tree)
