@@ -1,6 +1,7 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -68,7 +69,7 @@ interface BitbucketApi {
      * See https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/pullrequests/%7Bpull_request_id%7D/comments
      */
     @POST("2.0/repositories/{username}/{repoSlug}/pullrequests/{pullRequestId}/comments")
-        fun createPullRequestComment(
+    fun createPullRequestComment(
         @Path("username") username: String,
         @Path("repoSlug") repoSlug: String,
         @Path("pullRequestId") pullRequestId: Int,
@@ -76,6 +77,10 @@ interface BitbucketApi {
     ): Call<PullRequestComment>
 }
 
+/**
+ * Don't serialise null IDs.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PullRequestComment(
     val id: String? = null,
