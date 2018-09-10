@@ -31,11 +31,14 @@ class BitbucketScmServiceImplTest {
         service.lockBranch("test")
     }
 
+    /**
+     * Test a branch diff using two short commit hashes.
+     */
     @Test
     fun branchDiff() = withTempRepo { git ->
         // on master
         createAndCommitFile(git, "test1.txt", "First change")
-        val masterHead = resolve("HEAD").name
+        val masterHead = resolve("HEAD").name.substring(0, 10)
 
         git.checkout()
             .setName("feature/1")
@@ -43,7 +46,7 @@ class BitbucketScmServiceImplTest {
             .call()
 
         createAndCommitFile(git, "test2.txt", "Second change")
-        val featureBranchHead = resolve("HEAD").name
+        val featureBranchHead = resolve("HEAD").name.substring(0, 10)
 
         val service = BitbucketScmServiceImpl(
             Settings.Repository(

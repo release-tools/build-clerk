@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.2] - 2018-09-10
+### Fixed
+- Allows file diff to use partial Git hash.
+
 ## [0.6.1] - 2018-09-10
 ### Fixed
 - Fixes logging of exception stack traces.

@@ -11,7 +11,6 @@ import org.apache.logging.log4j.LogManager
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.TransportCommand
 import org.eclipse.jgit.diff.DiffEntry
-import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryState
@@ -112,7 +111,7 @@ open class GitScmServiceImpl @Inject constructor(
      */
     private fun Git.fetchTreeIterator(objectReader: ObjectReader, objectId: String): CanonicalTreeParser {
         val walk = RevWalk(repository)
-        val commit = walk.parseCommit(ObjectId.fromString(objectId))
+        val commit = walk.parseCommit(repository.resolve(objectId))
         val tree = walk.parseTree(commit.tree.id)
 
         val newTree = CanonicalTreeParser()
