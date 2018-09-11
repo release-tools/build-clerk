@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.4] - 2018-09-11
+### Fixed
+- Fixes date range build report query.
+
 ## [0.6.3] - 2018-09-10
 ### Fixed
 - Fixes posting PR comments.

@@ -7,6 +7,7 @@ import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.api.model.Scm
 import io.gatehill.buildclerk.dao.mongo.model.MongoBuildReportWrapper
 import io.gatehill.buildclerk.dao.mongo.model.wrap
+import org.bson.BsonDocument
 import org.litote.kmongo.ascending
 import org.litote.kmongo.descending
 import org.litote.kmongo.div
@@ -111,14 +112,19 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         start: ZonedDateTime,
         end: ZonedDateTime
     ): List<BuildReport> = withCollection<MongoBuildReportWrapper, List<BuildReport>> {
-        val iterable = branchName?.let {
-            find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
-        } ?: find()
+
+        val branchFilter = branchName?.let {
+            MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName
+        } ?: BsonDocument()
+
+        val iterable = find(
+            branchFilter,
+            MongoBuildReportWrapper::createdDate gte start,
+            MongoBuildReportWrapper::createdDate lt end
+        )
 
         // convert to list to avoid leaking mongo connection when method returns
         return@withCollection iterable
-            .filter(MongoBuildReportWrapper::createdDate gte start)
-            .filter(MongoBuildReportWrapper::createdDate lt end)
             .sort(ascending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
             .map { it.buildReport }
             .toList()
