@@ -8,6 +8,7 @@ import io.gatehill.buildclerk.inject.buildStoreModule
 import io.gatehill.buildclerk.parser.inject.InstanceFactory
 import io.gatehill.buildclerk.parser.inject.InstanceFactoryLocator
 import io.gatehill.buildclerk.server.Server
+import io.gatehill.buildclerk.util.VersionUtil
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -18,7 +19,7 @@ object Clerk {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        logger.info("Starting Build Clerk")
+        logger.info("Starting Build Clerk, version ${VersionUtil.version}")
 
         val injector = Guice.createInjector(
             ClerkModule(),

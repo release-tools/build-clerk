@@ -14,6 +14,7 @@ import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.config.ServerSettings
 import io.gatehill.buildclerk.query.QueryService
 import io.gatehill.buildclerk.service.builder.BuildEventService
+import io.gatehill.buildclerk.util.VersionUtil
 import io.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerResponse
@@ -48,7 +49,9 @@ class Server @Inject constructor(
     private val logger = LogManager.getLogger(Server::class.java)
 
     private val homePage by lazy {
-        Server::class.java.getResourceAsStream("/index.html").bufferedReader().use { it.readText() }
+        Server::class.java.getResourceAsStream("/index.html")
+            .bufferedReader().use { it.readText() }
+            .replace("@VERSION@", VersionUtil.version)
     }
 
     fun startServer() {
@@ -211,7 +214,7 @@ class Server @Inject constructor(
 
     private fun RoutingContext.respondWithError(message: String, e: Exception) {
         logger.error(message, e)
-        
+
         val response = response()
         response.statusCode = 500
         e.message?.let { response.end(e.message) } ?: response.end()

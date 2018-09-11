@@ -16,9 +16,11 @@ if [[ "y" != "${CONFIRMATION}" ]]; then
 	exit 1
 fi
 
+BUILD_VERSION="$( git rev-parse HEAD ) (${CURRENT_VERSION})"
+
 echo -e "\nBuilding distribution"
 cd ${ROOT_DIR}
-./gradlew clean test shadowJar jpi
+./gradlew clean test shadowJar jpi -PbuildVersion="${BUILD_VERSION}"
 
 echo -e "\nPackaging and pushing"
 cd ${SCRIPT_DIR}

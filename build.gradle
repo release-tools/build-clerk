@@ -19,7 +19,7 @@ subprojects {
     }
 
     group 'io.gatehill'
-    version '0.1.0'
+    version findProperty('buildVersion') ?: 'dev'
 
     repositories {
         jcenter()

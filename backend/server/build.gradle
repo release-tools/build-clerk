@@ -15,7 +15,7 @@ dependencies {
     compile project(':backend:stores:mongodb')
 
     // server
-    compile ('io.vertx:vertx-lang-kotlin:3.5.3') {
+    compile('io.vertx:vertx-lang-kotlin:3.5.3') {
         // these are deprecated and superseded by their -jdk* equivalents
         exclude module: 'kotlin-stdlib-jre7'
         exclude module: 'kotlin-stdlib-jre8'
@@ -45,6 +45,12 @@ kotlin {
 }
 
 mainClassName = 'io.gatehill.buildclerk.Clerk'
+
+jar {
+    manifest {
+        attributes 'Clerk-Version': version
+    }
+}
 
 shadowJar {
     baseName 'clerk'
