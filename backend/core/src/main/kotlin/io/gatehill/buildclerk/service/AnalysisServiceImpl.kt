@@ -234,7 +234,7 @@ class AnalysisServiceImpl @Inject constructor(
             user = prEvent.actor.displayName
         )
 
-        // defer calculation of file diff changed until required
+        // defer calculation of file diff until required
         val filesChanged: List<SourceFile> by lazy {
             scmService.listModifiedFiles(prEvent.pullRequest.id)
         }

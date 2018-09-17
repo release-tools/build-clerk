@@ -94,8 +94,6 @@ interface BitbucketApi {
      * Fetch a diffstat.
      *
      * See https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/diffstat/%7Bspec%7D
-     *
-     * @param spec a commit hash or two hashes separated by double dot notation, e.g. `3a8b42..9ff173`
      */
     @GET
     fun fetchDiffstat(
@@ -103,9 +101,37 @@ interface BitbucketApi {
     ): Call<BitbucketList<Diffstat>>
 }
 
+/**
+ * See https://developer.atlassian.com/bitbucket/api/2/reference/meta/pagination
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BitbucketList<T>(
-    val values: List<T>
+    val values: List<T>,
+
+    /**
+     * Current number of objects on the existing page.
+     * The default value is 10 with 100 being the maximum allowed value. Individual APIs may enforce different values.
+     */
+    @JsonProperty("pagelen")
+    val pageLength: Int,
+
+    /**
+     * Page number of the current results.
+     * This is an optional element that is not provided in all responses.
+     */
+    val page: Int?,
+
+    /**
+     * Total number of objects in the response.
+     * This is an optional element that is not provided in all responses, as it can be expensive to compute.
+     */
+    val size: Int?,
+
+    /**
+     * Link to the next page if it exists. The last page of a collection does not have this value.
+     * Use this link to navigate the result set and refrain from constructing your own URLs.
+     */
+    val next: String?
 )
 
 /**

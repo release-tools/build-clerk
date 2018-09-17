@@ -182,11 +182,31 @@ class BitbucketOperationsService @Inject constructor(
     }
 
     fun fetchDiffstat(pullRequestId: Int): List<Diffstat> {
+        val diffstat = mutableListOf<Diffstat>()
+
         val apiClient = apiClientBuilder.buildApiClient()
-        val diffstatUrl = fetchDiffstatUrl(apiClient, pullRequestId)
-        return fetchDiffstat(apiClient, pullRequestId, diffstatUrl)
+        var diffstatUrl: String
+
+        // initial URL
+        diffstatUrl = fetchDiffstatUrl(apiClient, pullRequestId)
+
+        var pages = 0
+        while (pages++ < MAX_PAGES) {
+            try {
+                val diffstatResponse = fetchDiffstat(apiClient, diffstatUrl)
+                diffstat += diffstatResponse.values
+                diffstatResponse.next?.let { next -> diffstatUrl = next } ?: break
+            } catch (e: Exception) {
+                throw RuntimeException("Error fetching diffstat for PR #$pullRequestId", e)
+            }
+        }
+
+        return diffstat
     }
 
+    /**
+     * @return the diffstat URL for the given PR
+     */
     private fun fetchDiffstatUrl(apiClient: BitbucketApi, pullRequestId: Int): String {
         logger.debug("Fetching diffstat URL for PR #$pullRequestId")
 
@@ -216,26 +236,27 @@ class BitbucketOperationsService @Inject constructor(
         }
     }
 
-    private fun fetchDiffstat(
-        apiClient: BitbucketApi,
-        pullRequestId: Int,
-        diffstatUrl: String
-    ): List<Diffstat> {
-
-        logger.debug("Fetching diffstat for PR #$pullRequestId")
+    /**
+     * @return the diffstat from the given URL
+     */
+    private fun fetchDiffstat(apiClient: BitbucketApi, diffstatUrl: String): BitbucketList<Diffstat> {
+        logger.debug("Fetching diffstat for PR from URL: $diffstatUrl")
 
         val call = apiClient.fetchDiffstat(diffstatUrl)
         try {
             val response = call.execute()
             if (response.isSuccessful) {
-                logger.debug("Fetched diffstat for PR #$pullRequestId: $diffstatUrl")
-                return response.body().values
+                return response.body()
             } else {
-                throw RuntimeException("Unsuccessfully fetched diffstat for PR #$pullRequestId [request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
+                throw RuntimeException("Unsuccessfully fetched diffstat for PR [request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
             }
 
         } catch (e: Exception) {
-            throw RuntimeException("Error fetching diffstat for PR #$pullRequestId", e)
+            throw RuntimeException("Error fetching diffstat for PR", e)
         }
+    }
+
+    companion object {
+        private const val MAX_PAGES = 30
     }
 }
