@@ -14,6 +14,7 @@ import org.litote.kmongo.div
 import org.litote.kmongo.eq
 import org.litote.kmongo.find
 import org.litote.kmongo.findOne
+import org.litote.kmongo.gt
 import org.litote.kmongo.gte
 import org.litote.kmongo.lt
 import java.time.ZonedDateTime
@@ -30,10 +31,8 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
     override fun fetchLast(
         branchName: String?
     ): BuildReport? = withCollection<MongoBuildReportWrapper, BuildReport?> {
-        val iterable = branchName?.let {
-            find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
-        } ?: find()
 
+        val iterable = branchName?.let { find(filterByBranchName(branchName)) } ?: find()
         return@withCollection iterable
             .sort(descending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
             .limit(1).first()?.buildReport
@@ -42,14 +41,14 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
     override fun hasEverSucceeded(
         commit: String
     ): Boolean = withCollection<MongoBuildReportWrapper, Boolean> {
-        findOne(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::commit eq commit) != null
+        null != findOne(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::commit eq commit)
     }
 
     override fun lastPassingCommitForBranch(
         branchName: String
     ): BuildReport? = withCollection<MongoBuildReportWrapper, BuildReport?> {
         find(
-            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
+            filterByBranchName(branchName),
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::status eq BuildStatus.SUCCESS
         ).run {
             sort(descending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
@@ -64,7 +63,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         status: BuildStatus
     ): Int = withCollection<MongoBuildReportWrapper, Int> {
         find(
-            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
+            filterByBranchName(branchName),
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::commit eq commit,
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::status eq status
         ).count()
@@ -74,12 +73,12 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         branchName: String,
         buildNumber: Int
     ): BuildStatus = withCollection<MongoBuildReportWrapper, BuildStatus> {
-        find(
-            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName,
+
+        findOne(
+            filterByBranchName(branchName),
             MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number eq buildNumber
-        ).run {
-            limit(1).first()?.buildReport?.build?.status ?: BuildStatus.UNKNOWN
-        }
+        )?.buildReport?.build?.status
+            ?: BuildStatus.UNKNOWN
     }
 
     override fun countConsecutiveFailuresOnBranch(
@@ -87,18 +86,20 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
     ): Int = withCollection<MongoBuildReportWrapper, Int> {
         // Note: find() returns a cursor, so only the required results are fetched, until takeWhile {} terminates.
         // see: `KMongoIterable.takeWhile`
-        find(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName)
+        find(filterByBranchName(branchName))
             .sort(descending(MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number))
             .takeWhile { it.buildReport.build.status == BuildStatus.FAILED }
             .count()
     }
 
+    private fun filterByBranchName(branchName: String) =
+        MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::scm / Scm::branch eq branchName
+
     override fun list(
         branchName: String?
     ): List<BuildReport> = withCollection<MongoBuildReportWrapper, List<BuildReport>> {
-        val iterable = branchName?.let {
-            find(MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName)
-        } ?: find()
+
+        val iterable = branchName?.let { find(filterByBranchName(branchName)) } ?: find()
 
         // convert to list to avoid leaking mongo connection when method returns
         return@withCollection iterable
@@ -113,9 +114,7 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
         end: ZonedDateTime
     ): List<BuildReport> = withCollection<MongoBuildReportWrapper, List<BuildReport>> {
 
-        val branchFilter = branchName?.let {
-            MongoBuildReportWrapper::buildReport / BuildReport::name eq branchName
-        } ?: BsonDocument()
+        val branchFilter = branchName?.let { filterByBranchName(branchName) } ?: BsonDocument()
 
         val iterable = find(
             branchFilter,
