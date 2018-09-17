@@ -25,4 +25,14 @@ interface BuildReportService : Recorded {
      * @param end exclusive
      */
     fun fetchReportsBetween(branchName: String? = null, start: ZonedDateTime, end: ZonedDateTime): List<BuildReport>
+
+    /**
+     * Find any build report for this branch with a build number higher than `buildNumber`.
+     *
+     * Note, there is no guarantee that the build
+     * will be the next consecutive build, only that it has a higher build number.
+     *
+     * @return a build report, if one or more is found
+     */
+    fun findHigherBuild(branchName: String, buildNumber: Int): BuildReport?
 }

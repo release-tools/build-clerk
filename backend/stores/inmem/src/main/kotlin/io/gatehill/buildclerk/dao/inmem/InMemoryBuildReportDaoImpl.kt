@@ -56,4 +56,8 @@ class InMemoryBuildReportDaoImpl : AbstractInMemoryDao<BuildReport>(), BuildRepo
         .filter { wrapper -> branchName?.let { wrapper.record.build.scm.branch == branchName } ?: true }
         .filter { wrapper -> wrapper.createdDate >= start && wrapper.createdDate < end }
         .map { it.record }
+
+    override fun findHigherBuild(branchName: String, buildNumber: Int): BuildReport? = store
+        .firstOrNull { it.record.build.scm.branch == branchName && it.record.build.number > buildNumber }
+        ?.record
 }

@@ -129,6 +129,17 @@ class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
             .toList()
     }
 
+    override fun findHigherBuild(
+        branchName: String,
+        buildNumber: Int
+    ): BuildReport? = withCollection<MongoBuildReportWrapper, BuildReport?> {
+
+        findOne(
+            filterByBranchName(branchName),
+            MongoBuildReportWrapper::buildReport / BuildReport::build / BuildDetails::number gt buildNumber
+        )?.buildReport
+    }
+
     override val count
         get () = count<MongoBuildReportWrapper>()
 

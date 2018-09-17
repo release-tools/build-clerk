@@ -43,16 +43,18 @@ class AnalysisServiceImpl @Inject constructor(
     override fun analyseBuild(report: BuildReport): Analysis {
         logger.info("Analysing build report: $report")
 
-        val name = when (report.build.status) {
-            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on ${report.build.scm.branch}"
-            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on ${report.build.scm.branch}"
-            else -> "${report.name} build #${report.build.number} on ${report.build.scm.branch}"
+        val branchName = report.build.scm.branch
+
+        val analysisName = when (report.build.status) {
+            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on $branchName"
+            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on $branchName"
+            else -> "${report.name} build #${report.build.number} on $branchName"
         }
 
         val analysis = Analysis(
             logger = logger,
-            name = name,
-            branch = report.build.scm.branch,
+            name = analysisName,
+            branch = branchName,
             user = report.build.triggeredBy,
             url = report.build.fullUrl
         )
@@ -60,7 +62,7 @@ class AnalysisServiceImpl @Inject constructor(
         performBasicBuildAnalysis(report).forEach { analysis.log(it) }
 
         val previousBuildStatus = buildReportService.fetchBuildStatus(
-            branchName = report.build.scm.branch,
+            branchName = branchName,
             buildNumber = report.build.number - 1
         )
 
@@ -78,11 +80,16 @@ class AnalysisServiceImpl @Inject constructor(
                 )
 
                 if (previousBuildStatus == BuildStatus.FAILED) {
-                    logger.info("Branch started passing: $report")
-                    parser.invoke(
-                        blockConfigurer = blockConfigurer,
-                        body = config.bodyHolder.branchStartsPassing
-                    )
+                    buildReportService.findHigherBuild(branchName, report.build.number)?.let {
+                        logger.debug("Skipped firing event for branch '$branchName' state transition to passing as newer build already recorded")
+
+                    } ?: run {
+                        logger.info("Branch '$branchName' state transitioned to passing")
+                        parser.invoke(
+                            blockConfigurer = blockConfigurer,
+                            body = config.bodyHolder.branchStartsPassing
+                        )
+                    }
                 }
             }
             BuildStatus.FAILED -> {
@@ -92,11 +99,16 @@ class AnalysisServiceImpl @Inject constructor(
                 )
 
                 if (previousBuildStatus == BuildStatus.SUCCESS) {
-                    logger.info("Branch started failing: $report")
-                    parser.invoke(
-                        blockConfigurer = blockConfigurer,
-                        body = config.bodyHolder.branchStartsFailing
-                    )
+                    buildReportService.findHigherBuild(branchName, report.build.number)?.let {
+                        logger.debug("Skipped firing event for branch '$branchName' state transition to failing as newer build already recorded")
+
+                    } ?: run {
+                        logger.info("Branch '$branchName' state transitioned to failing")
+                        parser.invoke(
+                            blockConfigurer = blockConfigurer,
+                            body = config.bodyHolder.branchStartsFailing
+                        )
+                    }
                 }
             }
             else -> logger.warn("Unexpected build status: ${report.build.status} - skipped invoking build report events")

@@ -55,4 +55,7 @@ class BuildReportServiceImpl @Inject constructor(
 
     override fun fetchReportsBetween(branchName: String?, start: ZonedDateTime, end: ZonedDateTime): List<BuildReport> =
             buildReportDao.fetchBetween(branchName, start, end)
+
+    override fun findHigherBuild(branchName: String, buildNumber: Int): BuildReport? =
+        buildReportDao.findHigherBuild(branchName, buildNumber)
 }
