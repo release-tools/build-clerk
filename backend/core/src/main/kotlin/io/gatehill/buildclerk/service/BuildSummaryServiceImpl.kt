@@ -9,7 +9,6 @@ import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.util.Color
 import io.gatehill.buildclerk.api.util.toShortCommit
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.awaitAll
 import kotlinx.coroutines.experimental.runBlocking
 import java.text.DecimalFormat
 import java.time.LocalTime
@@ -35,16 +34,15 @@ class BuildSummaryServiceImpl @Inject constructor(
                     analysisService.analyseReportSpan(branchName, startOfDay, ZonedDateTime.now())
                 }
 
-                awaitAll(performBasicAnalysis, analyseSpan)
-
-                val basicAnalysis = performBasicAnalysis.getCompleted()
-                val span = analyseSpan.getCompleted()
                 val currentStatus = if (lastBuild.build.status == BuildStatus.SUCCESS) "healthy" else "unhealthy"
 
                 val color = when (lastBuild.build.status) {
                     BuildStatus.SUCCESS -> Color.GREEN
                     else -> Color.RED
                 }
+
+                val basicAnalysis = performBasicAnalysis.await()
+                val span = analyseSpan.await()
 
                 // no padding, to accommodate multiline basic analysis
                 val summary = """

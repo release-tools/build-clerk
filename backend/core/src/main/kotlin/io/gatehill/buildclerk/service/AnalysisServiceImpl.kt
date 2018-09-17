@@ -18,7 +18,6 @@ import io.gatehill.buildclerk.dsl.BuildBlock
 import io.gatehill.buildclerk.parser.Parser
 import io.gatehill.buildclerk.service.scm.ScmService
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.awaitAll
 import kotlinx.coroutines.experimental.runBlocking
 import org.apache.logging.log4j.LogManager
 import java.time.ZonedDateTime
@@ -132,18 +131,14 @@ class AnalysisServiceImpl @Inject constructor(
                 scmService.fetchUserInfoForCommit(report.build.scm.commit)
             }
 
-            // wait for all jobs to complete, including ones with unit return value
-            // to avoid race condition updates to analysis
-            awaitAll(checkHistory, findPr, fetchUserInfo)
+            analysisLines += checkHistory.await()
 
-            analysisLines += checkHistory.getCompleted()
-
-            findPr.getCompleted()?.let { pullRequest ->
+            findPr.await()?.let { pullRequest ->
                 val prInfo = pullRequestEventService.describePullRequest(pullRequest)
                 analysisLines += "This commit was introduced by PR $prInfo"
             }
 
-            fetchUserInfo.getCompleted().let { userInfo ->
+            fetchUserInfo.await().let { userInfo ->
                 val sb = StringBuilder()
                 sb.append("Author is ${userInfo.author.userName} <${userInfo.author.email}>")
                 if (userInfo.author != userInfo.committer) {
