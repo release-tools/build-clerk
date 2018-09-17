@@ -79,7 +79,7 @@ open class GitScmServiceImpl @Inject constructor(
     }
 
     override fun lockBranch(branchName: String) {
-        throw NotImplementedError("locking branches is not implemented")
+        throw NotImplementedError("Locking branches is not implemented")
     }
 
     override fun listModifiedFiles(
@@ -294,6 +294,10 @@ open class GitScmServiceImpl @Inject constructor(
 
     private fun isUserNameAndPasswordConfigured() =
         nonNull(repositorySettings.userName) && nonNull(repositorySettings.password)
+
+    override fun listModifiedFiles(pullRequestId: Int): List<SourceFile> {
+        throw NotImplementedError("Listing modified files in a pull request is not implemented")
+    }
 
     companion object {
         /**

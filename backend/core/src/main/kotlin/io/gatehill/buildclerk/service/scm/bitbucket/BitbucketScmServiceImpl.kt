@@ -1,6 +1,8 @@
 package io.gatehill.buildclerk.service.scm.bitbucket
 
 import io.gatehill.buildclerk.api.config.Settings
+import io.gatehill.buildclerk.api.model.pr.FileChangeType
+import io.gatehill.buildclerk.api.model.pr.SourceFile
 import io.gatehill.buildclerk.service.CommandExecutorService
 import io.gatehill.buildclerk.service.scm.GitScmServiceImpl
 import org.apache.logging.log4j.LogManager
@@ -34,6 +36,37 @@ class BitbucketScmServiceImpl @Inject constructor(
 
         } catch (e: Exception) {
             throw RuntimeException("Error locking branch: $branchName", e)
+        }
+    }
+
+    override fun listModifiedFiles(pullRequestId: Int): List<SourceFile> {
+        logger.debug("Listing modified files for pull request #$pullRequestId")
+        return try {
+            val diffstat = bitbucketOperationsService.fetchDiffstat(pullRequestId)
+
+            diffstat.asSequence().mapNotNull { stat ->
+                val changePath = stat.old.path ?: stat.new.path
+
+                changePath?.let {
+                    SourceFile(
+                        path = changePath,
+                        changeType = when (stat.status) {
+                            "added" -> FileChangeType.ADDED
+                            "deleted" -> FileChangeType.DELETED
+
+                            // if any other status, assume modified
+                            else -> FileChangeType.MODIFIED
+                        }
+                    )
+                } ?: run {
+                    logger.warn("Unsupported diffstat entry without 'path' entries: $stat")
+                    null
+                }
+
+            }.distinctBy { it.path }.toList()
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error listing modified files for pull request #$pullRequestId", e)
         }
     }
 }

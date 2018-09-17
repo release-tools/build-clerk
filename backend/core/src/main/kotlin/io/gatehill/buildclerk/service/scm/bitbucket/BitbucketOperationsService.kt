@@ -127,8 +127,8 @@ class BitbucketOperationsService @Inject constructor(
         }
     }
 
-    fun listComments(pullRequestId: Int) : List<PullRequestComment> {
-        logger.debug("Checking for comments on PR $pullRequestId")
+    fun listComments(pullRequestId: Int): List<PullRequestComment> {
+        logger.debug("Checking for comments on PR #$pullRequestId")
 
         val apiClient = apiClientBuilder.buildApiClient()
 
@@ -152,7 +152,7 @@ class BitbucketOperationsService @Inject constructor(
     }
 
     fun createComment(pullRequestId: Int, comment: String) {
-        logger.debug("Adding comment to PR $pullRequestId: $comment")
+        logger.debug("Adding comment to PR #$pullRequestId: $comment")
 
         val apiClient = apiClientBuilder.buildApiClient()
 
@@ -178,6 +178,64 @@ class BitbucketOperationsService @Inject constructor(
 
         } catch (e: Exception) {
             throw RuntimeException("Error adding PR comment [PR: $pullRequestId, comment: $comment]", e)
+        }
+    }
+
+    fun fetchDiffstat(pullRequestId: Int): List<Diffstat> {
+        val apiClient = apiClientBuilder.buildApiClient()
+        val diffstatUrl = fetchDiffstatUrl(apiClient, pullRequestId)
+        return fetchDiffstat(apiClient, pullRequestId, diffstatUrl)
+    }
+
+    private fun fetchDiffstatUrl(apiClient: BitbucketApi, pullRequestId: Int): String {
+        logger.debug("Fetching diffstat URL for PR #$pullRequestId")
+
+        val call: Call<Void> = apiClient.fetchDiffstatUrl(
+            username = Settings.Bitbucket.repoUsername,
+            repoSlug = Settings.Bitbucket.repoSlug,
+            pullRequestId = pullRequestId
+        )
+
+        try {
+            val response = call.execute()
+            if (response.code() in 301..302) {
+                response.headers()["Location"]?.let { diffstatUrl ->
+                    logger.debug("Fetched diffstat URL for PR #$pullRequestId: $diffstatUrl")
+                    return diffstatUrl
+
+                } ?: throw IllegalStateException(
+                    "Missing Location header when fetching diffstat URL for PR #$pullRequestId [request URL: ${call.request().url()}, response code: ${response.code()}]"
+                )
+
+            } else {
+                throw RuntimeException("Unsuccessfully fetched diffstat URL for PR #$pullRequestId [request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
+            }
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error fetching diffstat URL for PR #$pullRequestId", e)
+        }
+    }
+
+    private fun fetchDiffstat(
+        apiClient: BitbucketApi,
+        pullRequestId: Int,
+        diffstatUrl: String
+    ): List<Diffstat> {
+
+        logger.debug("Fetching diffstat for PR #$pullRequestId")
+
+        val call = apiClient.fetchDiffstat(diffstatUrl)
+        try {
+            val response = call.execute()
+            if (response.isSuccessful) {
+                logger.debug("Fetched diffstat for PR #$pullRequestId: $diffstatUrl")
+                return response.body().values
+            } else {
+                throw RuntimeException("Unsuccessfully fetched diffstat for PR #$pullRequestId [request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
+            }
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error fetching diffstat for PR #$pullRequestId", e)
         }
     }
 }

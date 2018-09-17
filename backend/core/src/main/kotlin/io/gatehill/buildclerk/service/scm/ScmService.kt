@@ -13,4 +13,9 @@ interface ScmService {
      * @param newCommit the topic branch
      */
     fun listModifiedFiles(oldCommit: String, newCommit: String): List<SourceFile>
+
+    /**
+     * List the files changed in the specified pull request.
+     */
+    fun listModifiedFiles(pullRequestId: Int): List<SourceFile>
 }

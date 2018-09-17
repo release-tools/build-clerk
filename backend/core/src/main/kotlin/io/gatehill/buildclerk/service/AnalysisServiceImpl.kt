@@ -226,6 +226,7 @@ class AnalysisServiceImpl @Inject constructor(
         prEvent: PullRequestModifiedEvent,
         eventType: PullRequestEventType
     ): Analysis {
+
         val analysis = Analysis(
             logger = logger,
             name = "Pull request #${prEvent.pullRequest.id} $eventType, with destination branch ${prEvent.pullRequest.destination.branch.name}",
@@ -233,12 +234,9 @@ class AnalysisServiceImpl @Inject constructor(
             user = prEvent.actor.displayName
         )
 
-        // defer calculation of files changed until required
+        // defer calculation of file diff changed until required
         val filesChanged: List<SourceFile> by lazy {
-            scmService.listModifiedFiles(
-                oldCommit = prEvent.pullRequest.destination.commit.hash,
-                newCommit = prEvent.pullRequest.source.commit.hash
-            )
+            scmService.listModifiedFiles(prEvent.pullRequest.id)
         }
 
         val config = parser.parse()
