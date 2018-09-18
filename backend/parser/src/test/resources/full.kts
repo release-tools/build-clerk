@@ -52,6 +52,10 @@ config {
 
     pullRequestModified {
         if (files.any { it.path.endsWith(".sql") }) {
+            // this will be written to Clerk's log
+            debug("Found some files in PR ${pullRequestEvent.pullRequest.id} that look like database changes")
+
+            // this will be posted to the PR
             ensureComment("You have modified files with a .sql extension. Make sure to plan for backward compatibility!")
         }
     }

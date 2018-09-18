@@ -18,6 +18,7 @@ import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.service.NotificationService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.api.util.Color
+import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
 /**
@@ -77,9 +78,13 @@ class BodyHolder {
     var repository: (RepositoryBlock.() -> Unit)? = null
 }
 
+private val logger = LogManager.getLogger("io.gatehill.buildclerk.dsl.Config")
+
 interface BaseBlock {
     val notificationService: NotificationService
     val buildSummaryService: BuildSummaryService
+
+    fun debug(message: String) = logger.debug(message)
 
     fun postMessage(
         channelName: String,
