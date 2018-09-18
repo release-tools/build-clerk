@@ -30,20 +30,25 @@ jobs:
       - run:
           name: Build and push Docker image
           command: |
-            cd ./scripts
-            chmod +x *.sh
+            chmod +x ./scripts/*.sh
             case ${CIRCLE_BRANCH} in
                 master)
-                    ./docker-build.sh -l latest
-                    ./release-trigger.sh
+                    ./scripts/docker-build.sh -l latest
                     ;;
                 develop)
-                    ./docker-build.sh -l beta
+                    ./scripts/docker-build.sh -l beta
                     ;;
                 *)
                     echo "No release required for branch: ${CIRCLE_BRANCH}"
                     ;;
             esac
+
+      - run:
+          name: Tag release
+          command: |
+            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+                ./scripts/release-trigger.sh
+            fi
 
 workflows:
   version: 2
