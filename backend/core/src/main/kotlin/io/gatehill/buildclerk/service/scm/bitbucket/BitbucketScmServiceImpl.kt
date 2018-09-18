@@ -45,7 +45,7 @@ class BitbucketScmServiceImpl @Inject constructor(
             val diffstat = bitbucketOperationsService.fetchDiffstat(pullRequestId)
 
             val modifiedFiles = diffstat.asSequence().mapNotNull { stat ->
-                val changePath = stat.old.path ?: stat.new.path
+                val changePath = stat.old?.path ?: stat.new?.path
 
                 changePath?.let {
                     SourceFile(
@@ -59,7 +59,7 @@ class BitbucketScmServiceImpl @Inject constructor(
                         }
                     )
                 } ?: run {
-                    logger.warn("Unsupported diffstat entry without 'path' entries: $stat")
+                    logger.warn("Unsupported diffstat entry - missing old or new 'path' entries: $stat")
                     null
                 }
 

@@ -187,8 +187,8 @@ data class Diffstat(
     @JsonProperty("lines_removed")
     val linesRemoved: Int,
 
-    val old: DiffstatFile,
-    val new: DiffstatFile
+    val old: DiffstatFile?,
+    val new: DiffstatFile?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
