@@ -41,10 +41,10 @@ class BitbucketScmServiceImpl @Inject constructor(
 
     override fun listModifiedFiles(pullRequestId: Int): List<SourceFile> {
         logger.debug("Listing modified files for pull request #$pullRequestId")
-        return try {
+        try {
             val diffstat = bitbucketOperationsService.fetchDiffstat(pullRequestId)
 
-            diffstat.asSequence().mapNotNull { stat ->
+            val modifiedFiles = diffstat.asSequence().mapNotNull { stat ->
                 val changePath = stat.old.path ?: stat.new.path
 
                 changePath?.let {
@@ -64,6 +64,10 @@ class BitbucketScmServiceImpl @Inject constructor(
                 }
 
             }.distinctBy { it.path }.toList()
+
+            logger.debug("Found ${modifiedFiles.size} modified files for pull request #$pullRequestId")
+
+            return modifiedFiles
 
         } catch (e: Exception) {
             throw RuntimeException("Error listing modified files for pull request #$pullRequestId", e)

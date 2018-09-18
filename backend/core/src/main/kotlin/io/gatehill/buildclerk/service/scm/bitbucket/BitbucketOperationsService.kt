@@ -201,6 +201,7 @@ class BitbucketOperationsService @Inject constructor(
             }
         }
 
+        logger.debug("Found ${diffstat.size} total diffstat entries for PR #$pullRequestId")
         return diffstat
     }
 
@@ -246,7 +247,10 @@ class BitbucketOperationsService @Inject constructor(
         try {
             val response = call.execute()
             if (response.isSuccessful) {
-                return response.body()
+                response.body().let { body ->
+                    logger.debug("Found ${body.values} diffstat entries for PR")
+                    return body
+                }
             } else {
                 throw RuntimeException("Unsuccessfully fetched diffstat for PR [request URL: ${call.request().url()}, response code: ${response.code()}] response body: ${response.errorBody().string()}")
             }
