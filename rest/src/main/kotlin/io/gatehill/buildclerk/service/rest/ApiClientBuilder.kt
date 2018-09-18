@@ -18,6 +18,8 @@ abstract class ApiClientBuilder<T> {
         val correctedBaseUrl = if (!baseUrl.endsWith("/")) "$baseUrl/" else baseUrl
 
         val clientBuilder = OkHttpClient.Builder()
+            .followRedirects(false)
+            .followSslRedirects(false)
 
         if (headers.isNotEmpty()) {
             clientBuilder.addInterceptor { interceptor ->
