@@ -60,6 +60,7 @@ With Clerk's DSL, you can perform arbitrary logic in response to build events. O
 * publish a summary of a branch's health - useful in combination with the `cron` event for sending periodic status updates
 * post a comment on a pull request - helpful in conjunction with the `pullRequestModified` event for automating review steps 
 * post an arbitrary message to a Slack channel, in case you need to notify people of something or cajole someone into action
+* print a message to Clerk's debug log
 
 #### Performing vs. suggesting actions
 

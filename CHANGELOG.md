@@ -3,12 +3,20 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.6] - 2018-09-18
+### Added
+- Adds `debug` log function to DSL.
+
+### Changed
+- Switches to using diffstat to obtain list of changed files in a PR (fixes #23).
+- Disables following HTTP(S) redirects when invoking third party APIs.
+
 ## [0.6.5] - 2018-09-17
 ### Added
 - Embeds version stamp in manifest and prints it to startup log and home page.
 
 ### Fixed
-- Don't trigger build status transition event if there is a newer build already recorded.
+- Don't trigger build status transition event if there is a newer build already recorded (fixes #22).
 - Fixes build report branch filter in MongoDB store.
 
 ## [0.6.4] - 2018-09-11
