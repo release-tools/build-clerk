@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.7] - 2018-09-18
+### Added
+- Improves diffstat logging.
+- Improves release scripts.
+
+### Fixed
+- Improves null safety when parsing for diffstat responses.
+
 ## [0.6.6] - 2018-09-18
 ### Added
 - Adds `debug` log function to DSL.

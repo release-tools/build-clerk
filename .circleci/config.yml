@@ -1,7 +1,7 @@
 ---
 version: 2
 jobs:
-  build:
+  build-and-deploy:
     docker:
       - image: circleci/openjdk:8
     steps:
@@ -24,21 +24,6 @@ jobs:
           paths:
             - ~/.gradle
 
-      - save_cache:
-          key: artifacts-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - backend/server/build/libs
-            - backend/server/Dockerfile
-            - scripts
-
-  deploy:
-    docker:
-      - image: circleci/openjdk:8
-    steps:
-      - restore_cache:
-          keys:
-            - artifacts-{{ .Environment.CIRCLE_SHA1 }}
-
       - setup_remote_docker:
           docker_layer_caching: true
 
@@ -50,13 +35,13 @@ jobs:
             case ${CIRCLE_BRANCH} in
                 master)
                     ./docker-build.sh -l latest
+                    ./release-trigger.sh
                     ;;
                 develop)
                     ./docker-build.sh -l beta
                     ;;
                 *)
-                    echo "Unsupported branch name: ${CIRCLE_BRANCH}"
-                    exit 1
+                    echo "No release required for branch: ${CIRCLE_BRANCH}"
                     ;;
             esac
 
@@ -64,12 +49,4 @@ workflows:
   version: 2
   build-and-deploy:
     jobs:
-      - build
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only:
-               - master
-               - develop
+      - build-and-deploy
