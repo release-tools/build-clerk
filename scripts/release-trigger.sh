@@ -2,7 +2,7 @@
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CURRENT_VERSION="$( git describe --tags --exact-match )"
+CURRENT_VERSION="$( git describe --tags --exact-match || true )"
 
 if [[ "${CURRENT_VERSION:0:1}" != "v" ]]; then
 	echo "No release tag detected"
