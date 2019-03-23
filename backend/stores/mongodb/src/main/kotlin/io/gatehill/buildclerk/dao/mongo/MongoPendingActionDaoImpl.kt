@@ -9,7 +9,7 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import java.time.ZonedDateTime
 
-class MongoPendingActionDaoImpl : AbstractMongoDao(), PendingActionDao {
+class MongoPendingActionDaoImpl : AbstractRecordedMongoDao(), PendingActionDao {
     override val collectionName = "pending_actions"
 
     override fun save(actionSet: PendingActionSet) =

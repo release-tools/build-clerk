@@ -14,6 +14,7 @@ import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.config.ServerSettings
 import io.gatehill.buildclerk.query.QueryService
 import io.gatehill.buildclerk.service.builder.BuildEventService
+import io.gatehill.buildclerk.service.message.MessageService
 import io.gatehill.buildclerk.util.VersionUtil
 import io.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
@@ -43,6 +44,7 @@ class Server @Inject constructor(
     private val buildEventService: BuildEventService,
     private val buildReportService: BuildReportService,
     private val pullRequestEventService: PullRequestEventService,
+    private val messageService: MessageService,
     private val pendingActionService: PendingActionService,
     private val queryService: QueryService
 ) {
@@ -95,6 +97,7 @@ class Server @Inject constructor(
             }
         }
 
+        // Jenkins build reports
         post("/builds").consumes(JSON_CONTENT_TYPE).handler { rc ->
             val buildReport = try {
                 rc.readBodyJson<BuildReport>()
@@ -113,6 +116,7 @@ class Server @Inject constructor(
             }
         }
 
+        // BitBucket pull request webhooks
         post("/pull-requests").consumes(JSON_CONTENT_TYPE).handler { rc ->
             launch {
                 val eventKey = rc.request().getHeader("X-Event-Key")
@@ -132,6 +136,7 @@ class Server @Inject constructor(
             }
         }
 
+        // Slack action callbacks
         // note: no 'consumes' call, as Slack sends JSON as an encoded parameter, not a raw body
         post("/actions").handler { rc ->
             val event = try {
@@ -147,6 +152,19 @@ class Server @Inject constructor(
                 rc.response().setStatusCode(200).end()
             } catch (e: Exception) {
                 rc.respondWithError("Error handling action callback", e)
+            }
+        }
+
+        // Slack event API DMs
+        post("/messages").consumes(JSON_CONTENT_TYPE).handler { rc ->
+            launch {
+                try {
+                    messageService.parse(rc.readBodyJson())
+                    rc.response().end()
+                } catch (e: Exception) {
+                    logger.error("Error parsing message", e)
+                    rc.fail(e)
+                }
             }
         }
 

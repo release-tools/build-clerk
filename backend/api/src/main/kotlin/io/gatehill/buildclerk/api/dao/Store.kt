@@ -7,4 +7,5 @@ interface Store {
     val buildReportDao: Class<out BuildReportDao>
     val pullRequestEventDao: Class<out PullRequestEventDao>
     val pendingActionDao: Class<out PendingActionDao>
+    val branchNotificationDao: Class<out BranchNotificationDao>
 }

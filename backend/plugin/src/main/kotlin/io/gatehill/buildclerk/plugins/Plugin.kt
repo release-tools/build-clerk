@@ -1,7 +1,7 @@
 package io.gatehill.buildclerk.plugins
 
 /**
- * @author pete
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)

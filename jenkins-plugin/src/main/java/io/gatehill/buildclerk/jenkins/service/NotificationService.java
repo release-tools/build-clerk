@@ -105,7 +105,7 @@ public class NotificationService {
             buildStatus = BuildStatus.valueOf(status);
 
         } else {
-            logger.print("Status not specified - attempting to determine from current run");
+            logger.println("Status not specified - attempting to determine from current run");
 
             if (null != run.getResult()) {
                 buildStatus = convertResult(run.getResult());

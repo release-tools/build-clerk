@@ -179,6 +179,12 @@ Slack interactive message callbacks should target:
 
 > Example: https://clerk.example.com/actions
 
+Slack event API requests should target:
+
+    /messages
+
+> Example: https://clerk.example.com/messages
+
 ### Bitbucket
 
 Bitbucket webhooks for Pull Request events should target:

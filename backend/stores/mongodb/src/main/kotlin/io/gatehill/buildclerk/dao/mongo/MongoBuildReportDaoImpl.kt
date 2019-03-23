@@ -19,7 +19,7 @@ import org.litote.kmongo.gte
 import org.litote.kmongo.lt
 import java.time.ZonedDateTime
 
-class MongoBuildReportDaoImpl : AbstractMongoDao(), BuildReportDao {
+class MongoBuildReportDaoImpl : AbstractRecordedMongoDao(), BuildReportDao {
     override val collectionName = "build_reports"
 
     override fun save(

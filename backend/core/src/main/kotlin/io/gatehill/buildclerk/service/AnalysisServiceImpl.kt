@@ -44,12 +44,7 @@ class AnalysisServiceImpl @Inject constructor(
         logger.info("Analysing build report: $report")
 
         val branchName = report.build.scm.branch
-
-        val analysisName = when (report.build.status) {
-            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on $branchName"
-            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on $branchName"
-            else -> "${report.name} build #${report.build.number} on $branchName"
-        }
+        val analysisName = buildShortDescription(report)
 
         val analysis = Analysis(
             logger = logger,
@@ -122,6 +117,14 @@ class AnalysisServiceImpl @Inject constructor(
 
         finaliseAnalysis(analysis)
         return analysis
+    }
+
+    override fun buildShortDescription(report: BuildReport): String {
+        return when (report.build.status) {
+            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on $report.build.scm.branch"
+            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on $report.build.scm.branch"
+            else -> "${report.name} build #${report.build.number} on $report.build.scm.branch"
+        }
     }
 
     override fun performBasicBuildAnalysis(report: BuildReport): List<String> {

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.0] - 2019-04-02
+### Added
+- Adds the ability for users to request and receive branch notifications via Slack DM.
+
 ## [0.6.7] - 2018-09-18
 ### Added
 - Improves diffstat logging.

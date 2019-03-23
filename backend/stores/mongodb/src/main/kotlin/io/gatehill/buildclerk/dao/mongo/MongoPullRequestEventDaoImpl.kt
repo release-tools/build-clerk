@@ -17,7 +17,7 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import java.time.ZonedDateTime
 
-class MongoPullRequestEventDaoImpl : AbstractMongoDao(), PullRequestEventDao {
+class MongoPullRequestEventDaoImpl : AbstractRecordedMongoDao(), PullRequestEventDao {
     override val collectionName = "pull_requests_merged"
 
     override fun record(

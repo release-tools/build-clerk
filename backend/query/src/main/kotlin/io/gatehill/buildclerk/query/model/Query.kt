@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 /**
  *
- * @author pete
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Query(

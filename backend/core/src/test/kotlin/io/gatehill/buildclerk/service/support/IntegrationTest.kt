@@ -2,6 +2,6 @@ package io.gatehill.buildclerk.service.support
 
 /**
  *
- * @author pete
+ * @author Pete Cornish {@literal <outofcoffee@gmail.com>}
  */
 annotation class IntegrationTest
