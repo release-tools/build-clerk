@@ -17,7 +17,7 @@ Respond to events in your build pipeline and keep your main branch stable.
 
 <img alt="Branch summary" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/branch_summary.png" width="345">
 
-## Configure your build
+## Respond to Git and CI/CD events
 
 Clerk has a powerful DSL that lets you customise your rules:
 
@@ -67,6 +67,26 @@ With Clerk's DSL, you can perform arbitrary logic in response to build events. O
 If you choose to _perform_ an action, it will be triggered immediately and a notification will be posted to Slack.
 
 If you would prefer a human to make a decision, you can _suggest_ an action. This will result in the action being posted in Slack with buttons to confirm or dismiss it.
+
+## Branch build notifications in Slack
+
+Clerk can send you a direct message (DM) on Slack when an event happens to a branch you are interested in. For example, if you would like to know when a branch passes or fails a build, you can ask Clerk to notify you.
+
+Send a message to the Clerk Slack bot as follows:
+
+    notify me about defect-23
+
+Clerk will now send you a DM when something happens to a branch containing the 'defect-23'. Branch name matches are case insensitive.
+
+To list your notifications you can do this:
+
+    list
+
+To unsubscribe from notifications just write:
+
+    don't notify me about defect-23
+
+For more options, just type `help` to the bot.
 
 ## Run it
 
