@@ -1,8 +1,12 @@
 package io.gatehill.buildclerk.service.message
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.gatehill.buildclerk.api.service.NotificationService
-import io.gatehill.buildclerk.model.message.EventApiEventWrapper
+import io.gatehill.buildclerk.model.message.EventApiEvent
+import io.gatehill.buildclerk.model.message.EventCallbackWrapper
+import io.gatehill.buildclerk.model.message.UrlVerificationEvent
 import io.gatehill.buildclerk.util.VersionUtil
+import io.gatehill.buildclerk.util.jsonMapper
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -12,44 +16,57 @@ class MessageService @Inject constructor(
 ) {
     private val logger = LogManager.getLogger(MessageService::class.java)
 
-    fun parse(message: EventApiEventWrapper) {
-        val eventType = message.event["type"] as String
-        if (eventType == "message" && message.event["channel_type"] == "im") {
-            val userId = message.event["user"] as String
-            val channel = message.event["channel"] as String
-            val text = message.event["text"] as String
-            handleIm(userId, channel, text)
-
-        } else {
-            logger.debug("Ignoring unsupported event type: $eventType")
+    fun parse(rawEvent: String): String? {
+        val event = jsonMapper.readValue<EventApiEvent>(rawEvent)
+        when (event.type) {
+            "url_verification" -> {
+                val urlVerification = jsonMapper.readValue<UrlVerificationEvent>(rawEvent)
+                logger.debug("Handling URL verification request with challenge: ${urlVerification.challenge}")
+                return urlVerification.challenge
+            }
+            "event_callback" -> {
+                val callback = jsonMapper.readValue<EventCallbackWrapper>(rawEvent)
+                val channelType = callback.event["channel_type"] as? String
+                if (channelType == "im") {
+                    val userId = callback.event["user"] as String
+                    val channel = callback.event["channel"] as String
+                    val text = callback.event["text"] as String
+                    handleIm(userId, channel, text)
+                } else {
+                    logger.debug("Ignoring event callback with unsupported channel type: $channelType")
+                }
+            }
+            else -> logger.debug("Ignoring unsupported event type: ${event.type}")
         }
+        return null
     }
 
     private fun handleIm(userId: String, channel: String, text: String) {
         logger.debug("Handling IM received from user: $userId: $text")
         val normalised = normaliseMessage(text)
-
-        if (normalised.isEmpty()) {
-            logger.warn("Could not parse IM from user: $userId: $text")
-            respondMessageParsingFailure(channel)
-        } else if (normalised.equals("help", ignoreCase = true)) {
-            respondUsage(channel)
-        } else {
-            regexMatchWithBranch(normalised, "notify me about (?<branch>.+)") { branch ->
-                branch?.let {
-                    branchNotificationService.registerNotificationForUser(userId, channel, branch)
-                } ?: respondMessageParsingFailure(channel)
+        when {
+            normalised.isEmpty() -> {
+                logger.warn("Could not parse IM from user: $userId: $text")
+                respondMessageParsingFailure(channel)
             }
-            regexMatchWithBranch(normalised, "don('?)t notify me about (?<branch>.+)") { branch ->
-                branch?.let {
-                    branchNotificationService.unregisterNotificationForUser(userId, branch)
-                } ?: respondMessageParsingFailure(channel)
-            }
-            regexMatch(normalised, "don('?)t notify me") {
-                branchNotificationService.unregisterAllNotificationsForUser(channel)
-            }
-            regexMatch(normalised, "list") {
-                branchNotificationService.fetchNotificationsForUser(userId)
+            normalised.equals("help", ignoreCase = true) -> respondUsage(channel)
+            else -> {
+                regexMatchWithBranch(normalised, "notify me about (?<branch>.+)") { branch ->
+                    branch?.let {
+                        branchNotificationService.registerNotificationForUser(userId, channel, branch)
+                    } ?: respondMessageParsingFailure(channel)
+                }
+                regexMatchWithBranch(normalised, "don('?)t notify me about (?<branch>.+)") { branch ->
+                    branch?.let {
+                        branchNotificationService.unregisterNotificationForUser(userId, branch)
+                    } ?: respondMessageParsingFailure(channel)
+                }
+                regexMatch(normalised, "don('?)t notify me") {
+                    branchNotificationService.unregisterAllNotificationsForUser(channel)
+                }
+                regexMatch(normalised, "list") {
+                    branchNotificationService.fetchNotificationsForUser(userId)
+                }
             }
         }
     }

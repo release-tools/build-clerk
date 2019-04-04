@@ -159,8 +159,8 @@ class Server @Inject constructor(
         post("/messages").consumes(JSON_CONTENT_TYPE).handler { rc ->
             launch {
                 try {
-                    messageService.parse(rc.readBodyJson())
-                    rc.response().end()
+                    val response = messageService.parse(rc.bodyAsString)
+                    response?.let { rc.response().end(response) } ?: rc.response().end()
                 } catch (e: Exception) {
                     logger.error("Error parsing message", e)
                     rc.fail(e)

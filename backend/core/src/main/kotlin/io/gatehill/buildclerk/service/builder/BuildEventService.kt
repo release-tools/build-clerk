@@ -24,8 +24,14 @@ class BuildEventService @Inject constructor(
     private val logger = LogManager.getLogger(BuildEventService::class.java)
 
     fun checkBuildReport(buildReport: BuildReport) {
-        analyseBuild(buildReport)
-        sendNotifications(buildReport)
+        launch {
+            try {
+                analyseBuild(buildReport)
+                sendDirectNotifications(buildReport)
+            } catch (e: Exception) {
+                logger.error("Error handling build report: $buildReport", e)
+            }
+        }
     }
 
     private fun analyseBuild(buildReport: BuildReport) {
@@ -33,39 +39,33 @@ class BuildEventService @Inject constructor(
         if (Settings.EventFilter.branchNames.isEmpty() ||
             Settings.EventFilter.branchNames.any { it.matches(branchName) }
         ) {
-            launch {
-                try {
-                    buildReportService.record(buildReport)
-                    analysisService.analyseBuild(buildReport)
-                } catch (e: Exception) {
-                    logger.error("Error handling build report: $buildReport", e)
-                }
-            }
+            buildReportService.record(buildReport)
+            analysisService.analyseBuild(buildReport)
         } else {
             logger.info("Ignoring build $buildReport because branch name: $branchName does not match filter")
         }
     }
 
-    private fun sendNotifications(buildReport: BuildReport) {
+    private fun sendDirectNotifications(buildReport: BuildReport) {
         val branchName = buildReport.build.scm.branch
-        launch {
-            val matches = branchNotificationService.checkForMatches(branchName)
-            if (matches.isNotEmpty()) {
-                logger.info("Sending ${matches.size} notifications for branch: $branchName")
-                val description = mutableListOf(analysisService.buildShortDescription(buildReport))
-                description += analysisService.performBasicBuildAnalysis(buildReport)
+        val matches = branchNotificationService.checkForMatches(branchName)
+        if (matches.isNotEmpty()) {
+            logger.info("Sending ${matches.size} notifications for branch: $branchName")
+            val description = mutableListOf(analysisService.buildShortDescription(buildReport))
+            description += analysisService.performBasicBuildAnalysis(buildReport)
 
-                matches.forEach { match ->
-                    try {
-                        logger.debug("Notifying user ${match.userId} on channel ${match.channel} about build on branch: $branchName")
-                        notificationService.notify(match.channel, description.joinToString(" "))
-                    } catch (e: Exception) {
-                        logger.warn("Error notifying user ${match.userId} on channel ${match.channel} about build on branch: $branchName - continuing", e)
-                    }
+            matches.forEach { match ->
+                try {
+                    logger.debug("Notifying user ${match.userId} on channel ${match.channel} about build on branch: $branchName")
+                    notificationService.notify(match.channel, description.joinToString(" "))
+                } catch (e: Exception) {
+                    logger.warn(
+                        "Error notifying user ${match.userId} on channel ${match.channel} about build on branch: $branchName - continuing", e
+                    )
                 }
-            } else {
-                logger.info("No notifications required for branch: $branchName")
             }
+        } else {
+            logger.info("No notifications required for branch: $branchName")
         }
     }
 }
