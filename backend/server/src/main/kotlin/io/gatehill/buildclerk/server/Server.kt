@@ -160,7 +160,7 @@ class Server @Inject constructor(
             launch {
                 try {
                     val response = messageService.parse(rc.bodyAsString)
-                    response?.let { rc.response().end(response) } ?: rc.response().end()
+                    response?.let { rc.response().putHeader("Content-Type", "text/plain").end(response) } ?: rc.response().end()
                 } catch (e: Exception) {
                     logger.error("Error parsing message", e)
                     rc.fail(e)
