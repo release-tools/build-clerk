@@ -102,7 +102,18 @@ See http://localhost:9090 to check it's running.
 
 ### Slack configuration
 
-* `SLACK_USER_TOKEN` - a token with the `chat.write` permission
+* `SLACK_USER_TOKEN` - a token with the permissions below
+
+The Slack token should have the appropriate permissions if you want to enable the respective Clerk feature:
+
+| Permission                | Feature                                       |
+|---------------------------|-----------------------------------------------|
+| `chat:write:bot`          | Mandatory. Ability to post to channels.       |
+
+If you wish to allow users to subscribe to notifications via IM, you must:
+
+* add a bot user
+* add the `message.im` event subscription
 
 ### Jenkins configuration
 
@@ -113,14 +124,14 @@ See http://localhost:9090 to check it's running.
 ### Bitbucket configuration
 
 * `BITBUCKET_REPO_USERNAME` - the username for the Bitbucket repository's user (might be a organisation)
-* `BITBUCKET_REPO_SLUG` - the 'repo slug' name for the Bitbucker repository
+* `BITBUCKET_REPO_SLUG` - the 'repo slug' name for the Bitbucket repository
 * `BITBUCKET_AUTH_USERNAME` - the username to authenticate with Bitbucket (if it differs from the repository username)
 * `BITBUCKET_PASSWORD` - the password (preferably an 'app password') to authenticate with Bitbucket
 
 The Bitbucket user should have the appropriate permissions if you want to enable the respective Clerk feature:
 
 | Permission                | Feature                        |
-|---------------------------|---------------------------------
+|---------------------------|--------------------------------|
 | Pull request Read/Write   | Add comments to PRs.           |
 | Repository Admin          | Lock branch access.            |
 

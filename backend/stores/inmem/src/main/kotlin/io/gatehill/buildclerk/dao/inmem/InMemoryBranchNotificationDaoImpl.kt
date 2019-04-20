@@ -13,23 +13,26 @@ class InMemoryBranchNotificationDaoImpl : AbstractInMemoryDao<BranchNotification
     override val store = mutableListOf<Record<BranchNotification>>()
 
     override fun addNotification(notification: BranchNotification) {
-        store += Record.create(notification)
+        store += Record.create(notification.copy(
+            branch = notification.branch.toLowerCase(),
+            userId = notification.userId.toLowerCase()
+        ))
     }
 
     override fun fetchNotificationsForUser(userId: String): List<BranchNotification> {
-        return store.filter { it.record.userId == userId }
+        return store.filter { it.record.userId == userId.toLowerCase() }
             .sortedBy { it.createdDate }
             .map { it.record }
     }
 
     override fun removeNotificationForUser(userId: String, branch: String) {
         store.removeIf {
-            it.record.userId == userId && it.record.branch.equals(branch, ignoreCase = true)
+            it.record.userId == userId.toLowerCase() && it.record.branch.equals(branch, ignoreCase = true)
         }
     }
 
     override fun removeAllNotificationsForUser(userId: String) {
-        store.removeIf { it.record.userId == userId }
+        store.removeIf { it.record.userId == userId.toLowerCase() }
     }
 
     override fun findMatching(branch: String): List<BranchNotification> {

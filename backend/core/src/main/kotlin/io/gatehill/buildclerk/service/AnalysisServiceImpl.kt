@@ -121,9 +121,9 @@ class AnalysisServiceImpl @Inject constructor(
 
     override fun buildShortDescription(report: BuildReport): String {
         return when (report.build.status) {
-            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on $report.build.scm.branch"
-            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on $report.build.scm.branch"
-            else -> "${report.name} build #${report.build.number} on $report.build.scm.branch"
+            BuildStatus.SUCCESS -> "${report.name} build #${report.build.number} passed on ${report.build.scm.branch}"
+            BuildStatus.FAILED -> "${report.name} build #${report.build.number} failed on ${report.build.scm.branch}"
+            else -> "${report.name} build #${report.build.number} on ${report.build.scm.branch}"
         }
     }
 

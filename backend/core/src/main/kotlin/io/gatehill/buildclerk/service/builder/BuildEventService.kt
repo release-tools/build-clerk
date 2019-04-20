@@ -2,9 +2,11 @@ package io.gatehill.buildclerk.service.builder
 
 import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.api.model.BuildReport
+import io.gatehill.buildclerk.api.model.BuildStatus
 import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.NotificationService
+import io.gatehill.buildclerk.api.util.Color
 import io.gatehill.buildclerk.service.message.BranchNotificationService
 import kotlinx.coroutines.experimental.launch
 import org.apache.logging.log4j.LogManager
@@ -51,13 +53,20 @@ class BuildEventService @Inject constructor(
         val matches = branchNotificationService.checkForMatches(branchName)
         if (matches.isNotEmpty()) {
             logger.info("Sending ${matches.size} notifications for branch: $branchName")
+
             val description = mutableListOf(analysisService.buildShortDescription(buildReport))
             description += analysisService.performBasicBuildAnalysis(buildReport)
+
+            val colour = when(buildReport.build.status) {
+                BuildStatus.SUCCESS -> Color.GREEN
+                BuildStatus.FAILED -> Color.RED
+                else -> Color.BLACK
+            }
 
             matches.forEach { match ->
                 try {
                     logger.debug("Notifying user ${match.userId} on channel ${match.channel} about build on branch: $branchName")
-                    notificationService.notify(match.channel, description.joinToString(" "))
+                    notificationService.notify(match.channel, description.joinToString("\n"), colour.hexCode)
                 } catch (e: Exception) {
                     logger.warn(
                         "Error notifying user ${match.userId} on channel ${match.channel} about build on branch: $branchName - continuing", e
