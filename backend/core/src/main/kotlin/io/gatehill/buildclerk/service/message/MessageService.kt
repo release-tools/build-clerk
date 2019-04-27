@@ -18,36 +18,43 @@ class MessageService @Inject constructor(
 
     fun parse(rawEvent: String): String? {
         logger.trace("Received Slack event: $rawEvent")
-        val event = jsonMapper.readValue<EventApiEvent>(rawEvent)
+        try {
+            val event = jsonMapper.readValue<EventApiEvent>(rawEvent)
 
-        when (event.type) {
-            "url_verification" -> {
-                val urlVerification = jsonMapper.readValue<UrlVerificationEvent>(rawEvent)
-                logger.debug("Handling Slack URL verification request with challenge: ${urlVerification.challenge}")
-                return urlVerification.challenge
-            }
-            "event_callback" -> {
-                val callback = jsonMapper.readValue<EventCallbackWrapper>(rawEvent)
-                val channelType = callback.event["channel_type"] as? String
-                val botId = callback.event["bot_id"] as? String
-
-                if (channelType == "im") {
-                    // ignore own IMs
-                    if (botId.isNullOrBlank()) {
-                        val userId = callback.event["user"] as String
-                        val channel = callback.event["channel"] as String
-                        val text = callback.event["text"] as String
-                        handleIm(userId, channel, text)
-                    } else {
-                        logger.trace("Ignoring own IM")
-                    }
-                } else {
-                    logger.debug("Ignoring Slack event callback with unsupported channel type: $channelType")
+            when (event.type) {
+                "url_verification" -> {
+                    val urlVerification = jsonMapper.readValue<UrlVerificationEvent>(rawEvent)
+                    logger.debug("Handling Slack URL verification request with challenge: ${urlVerification.challenge}")
+                    return urlVerification.challenge
                 }
+                "event_callback" -> {
+                    val callback = jsonMapper.readValue<EventCallbackWrapper>(rawEvent)
+                    val channelType = callback.event["channel_type"] as? String
+                    val botId = callback.event["bot_id"] as? String
+                    val userId = callback.event["user"] as String?
+
+                    if (channelType != "im") {
+                        logger.debug("Ignoring Slack event callback with unsupported channel type: $channelType")
+                    } else if (userId == null) {
+                        logger.debug("Ignoring Slack event callback with null user ID")
+                    } else {
+                        // ignore own IMs
+                        if (botId.isNullOrBlank()) {
+                            val channel = callback.event["channel"] as String
+                            val text = callback.event["text"] as String
+                            handleIm(userId, channel, text)
+                        } else {
+                            logger.trace("Ignoring own IM")
+                        }
+                    }
+                }
+                else -> logger.debug("Ignoring unsupported Slack event type: ${event.type}")
             }
-            else -> logger.debug("Ignoring unsupported Slack event type: ${event.type}")
+            return null
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error parsing message: $rawEvent", e)
         }
-        return null
     }
 
     private fun handleIm(userId: String, channel: String, text: String) {
