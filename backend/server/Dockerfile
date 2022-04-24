@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:8u322-b06-jre-focal
 
 LABEL MAINTAINER="Pete Cornish <outofcoffee@gmail.com>"
 
