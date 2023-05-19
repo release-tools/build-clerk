@@ -23,7 +23,7 @@ dependencies {
     compile project(':rest')
 
     // other plugins
-    jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13'
+    jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '615.vb09dac339255'
     jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.42'
 
     // rest
