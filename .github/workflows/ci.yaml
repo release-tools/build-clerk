@@ -38,6 +38,9 @@ jobs:
                   echo "No release required for branch: ${{ github.ref_name }}"
                   ;;
           esac
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Tag release
         if: github.ref_name == 'master'
