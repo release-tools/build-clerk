@@ -28,7 +28,7 @@ class GitScmServiceImplTest {
         val settings = Settings.Repository(
             mapOf(
                 "GIT_REPO_LOCAL_DIR" to localDir.toString(),
-                "GIT_REPO_REMOTE_URL" to "https://github.com/outofcoffee/build-clerk.git"
+                "GIT_REPO_REMOTE_URL" to "https://github.com/release-tools/build-clerk.git"
             )
         )
 
@@ -42,7 +42,7 @@ class GitScmServiceImplTest {
         val settings = Settings.Repository(
             mapOf(
                 "GIT_REPO_LOCAL_DIR" to localDir.toString(),
-                "GIT_REPO_REMOTE_URL" to "git@github.com:outofcoffee/build-clerk.git"
+                "GIT_REPO_REMOTE_URL" to "git@github.com:release-tools/build-clerk.git"
             )
         )
 
