@@ -9,8 +9,10 @@ import io.gatehill.buildclerk.service.scm.bitbucket.BitbucketOperationsService
 import io.gatehill.buildclerk.service.scm.bitbucket.BitbucketScmServiceImpl
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Repository
+import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert
 import org.junit.Assert.assertTrue
+import org.junit.Assume
 import org.junit.Test
 import java.io.File
 import java.nio.file.Files
@@ -37,6 +39,8 @@ class GitScmServiceImplTest {
 
     @Test
     fun `clone SSH repo`() {
+        Assume.assumeThat("Not running in CI", System.getenv("CI"), nullValue())
+
         val localDir = Files.createTempDirectory("bare").toFile().apply { deleteOnExit() }
 
         val settings = Settings.Repository(
@@ -48,6 +52,7 @@ class GitScmServiceImplTest {
 
         cloneAndVerifyLocal(settings, localDir)
     }
+
     /**
      * Test a branch diff using two short commit hashes.
      */
