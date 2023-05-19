@@ -1,5 +1,5 @@
-Build Clerk [![CircleCI](https://circleci.com/gh/outofcoffee/build-clerk.svg?style=svg)](https://circleci.com/gh/outofcoffee/build-clerk)
-===========
+# Build Clerk
+[![CI](https://github.com/release-tools/build-clerk/actions/workflows/ci.yaml/badge.svg)](https://github.com/release-tools/build-clerk/actions/workflows/ci.yaml)
 
 Respond to events in your build pipeline and keep your main branch stable.
 
