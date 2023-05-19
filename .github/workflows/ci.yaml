@@ -3,7 +3,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - master
+      - main
       - develop
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         run: |
           chmod +x ./scripts/*.sh
           case ${{ github.ref_name }} in
-              master)
+              main)
                   ./scripts/docker-build.sh -l latest
                   ;;
               develop)
@@ -43,5 +43,5 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Tag release
-        if: github.ref_name == 'master'
+        if: github.ref_name == 'main'
         run: ./scripts/release-trigger.sh

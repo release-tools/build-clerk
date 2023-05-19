@@ -9,13 +9,13 @@ Respond to events in your build pipeline and keep your main branch stable.
 * Notify the team when a PR was merged whilst your main branch is failing on CI.
 * Lock a branch against further changes after successive build failures.
 
-<img alt="Analysis recommends revert" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/build_analysis_revert.png" width="336">
+<img alt="Analysis recommends revert" src="https://github.com/release-tools/build-clerk/raw/main/docs/img/build_analysis_revert.png" width="336">
 
-<img alt="Analysis recommends lock" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/build_analysis_lock.png" width="342">
+<img alt="Analysis recommends lock" src="https://github.com/release-tools/build-clerk/raw/main/docs/img/build_analysis_lock.png" width="342">
 
-<img alt="PR merged notification" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/pr_merged.png" width="338">
+<img alt="PR merged notification" src="https://github.com/release-tools/build-clerk/raw/main/docs/img/pr_merged.png" width="338">
 
-<img alt="Branch summary" src="https://github.com/outofcoffee/build-clerk/raw/master/docs/img/branch_summary.png" width="345">
+<img alt="Branch summary" src="https://github.com/release-tools/build-clerk/raw/main/docs/img/branch_summary.png" width="345">
 
 ## Respond to Git and CI/CD events
 
