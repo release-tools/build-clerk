@@ -38,7 +38,7 @@ dependencies {
 
 jenkinsPlugin {
     // version of Jenkins core this plugin depends on, must be 1.420 or later
-    jenkinsVersion = '2.89.4'
+    jenkinsVersion = '2.361.1'
 
     // ID of the plugin, defaults to the project name without trailing '-plugin'
     shortName = 'build-clerk'
