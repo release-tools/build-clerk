@@ -24,6 +24,9 @@ dependencies {
     implementation project(':rest')
     implementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
 
+    // step API
+    implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13'
+
     // other plugins
     jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13'
     jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.42'
@@ -35,7 +38,7 @@ dependencies {
 
 jenkinsPlugin {
     // version of Jenkins core this plugin depends on, must be 1.420 or later
-    coreVersion = '2.89.4'
+    jenkinsVersion = '2.89.4'
 
     // ID of the plugin, defaults to the project name without trailing '-plugin'
     shortName = 'build-clerk'
