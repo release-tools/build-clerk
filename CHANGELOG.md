@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.0] - 2023-05-20
+### Changed
+- build: bumps Gradle to 7.6.1 and Kotlin to 1.8.
+- build: bumps Java to 11.
+- build: bumps Jenkins to 2.361.1.
+- chore(deps): bump version_log4j from 2.5 to 2.20.0 (#30)
+- ci: switches to GitHub Actions.
+- test: skip SSH clone test in CI.
+
 ## [0.7.0] - 2019-04-02
 ### Added
 - Adds the ability for users to request and receive branch notifications via Slack DM.
