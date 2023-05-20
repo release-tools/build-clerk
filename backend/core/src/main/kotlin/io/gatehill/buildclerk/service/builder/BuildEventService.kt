@@ -8,7 +8,9 @@ import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.NotificationService
 import io.gatehill.buildclerk.api.util.Color
 import io.gatehill.buildclerk.service.message.BranchNotificationService
-import kotlinx.coroutines.experimental.launch
+import io.gatehill.buildclerk.supervisedDefaultCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -22,7 +24,7 @@ class BuildEventService @Inject constructor(
     private val analysisService: AnalysisService,
     private val branchNotificationService: BranchNotificationService,
     private val notificationService: NotificationService
-) {
+) : CoroutineScope by supervisedDefaultCoroutineScope {
     private val logger = LogManager.getLogger(BuildEventService::class.java)
 
     fun checkBuildReport(buildReport: BuildReport) {

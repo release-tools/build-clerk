@@ -1,6 +1,5 @@
 package io.gatehill.buildclerk.service.builder.jenkins
 
-import com.nhaarman.mockitokotlin2.mock
 import io.gatehill.buildclerk.api.model.BuildDetails
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
@@ -8,6 +7,7 @@ import io.gatehill.buildclerk.api.model.Scm
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 /**
  * Tests for `JenkinsBuildRunnerServiceImpl`.

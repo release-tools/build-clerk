@@ -1,26 +1,20 @@
 apply plugin: 'kotlin'
 
 dependencies {
-    compile project(':model')
+    api project(':model')
 
     // logging
-    compile "org.apache.logging.log4j:log4j-api:$version_log4j"
+    api "org.apache.logging.log4j:log4j-api:$version_log4j"
 
     // json
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: version_jackson
+    api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: version_jackson
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 
 repositories {

@@ -17,8 +17,8 @@ import io.gatehill.buildclerk.api.util.toShortCommit
 import io.gatehill.buildclerk.dsl.BuildBlock
 import io.gatehill.buildclerk.parser.Parser
 import io.gatehill.buildclerk.service.scm.ScmService
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import java.time.ZonedDateTime
 import java.util.Collections.synchronizedList

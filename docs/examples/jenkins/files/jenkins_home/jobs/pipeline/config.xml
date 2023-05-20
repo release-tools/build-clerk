@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     // capture the checkout details for later use
-                    scmVars = git url: 'https://github.com/outofcoffee/build-clerk.git'
+                    scmVars = git url: 'https://github.com/release-tools/build-clerk.git'
                 }
             }
         }

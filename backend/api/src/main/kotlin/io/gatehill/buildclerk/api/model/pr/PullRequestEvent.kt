@@ -7,7 +7,7 @@ enum class PullRequestEventType {
     CREATED,
     UPDATED;
 
-    override fun toString() = super.toString().toLowerCase()
+    override fun toString() = super.toString().lowercase()
 
     companion object {
 

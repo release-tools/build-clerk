@@ -1,12 +1,12 @@
 package io.gatehill.buildclerk.service
 
-import com.nhaarman.mockitokotlin2.mock
 import io.gatehill.buildclerk.api.model.slack.SlackMessageAction
 import io.gatehill.buildclerk.api.model.slack.SlackMessageAttachment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 /**
  * Tests for `PendingActionService`.

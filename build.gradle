@@ -1,13 +1,18 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.8.10' apply false
+}
+
 subprojects {
     buildscript {
         ext {
-            kotlin_version = '1.2.60'
-            version_log4j = '2.5'
+            kotlin_version = '1.8.10'
+            version_coroutines = '1.6.4'
+            version_log4j = '2.18.0'
             version_retrofit = '2.1.0'
-            version_jackson = '2.9.6'
-            version_guice = '4.2.0'
-            version_mockitokotlin = '2.0.0-RC1'
-            version_junit = '4.11'
+            version_jackson = '2.14.2'
+            version_guice = '5.1.0'
+            version_mockito_kotlin = '4.1.0'
+            version_junit = '4.13.1'
         }
 
         repositories {
@@ -22,6 +27,6 @@ subprojects {
     version findProperty('buildVersion') ?: 'dev'
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 }

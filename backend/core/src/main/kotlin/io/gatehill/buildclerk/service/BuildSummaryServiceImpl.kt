@@ -8,8 +8,8 @@ import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.BuildSummaryService
 import io.gatehill.buildclerk.api.util.Color
 import io.gatehill.buildclerk.api.util.toShortCommit
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.ZonedDateTime

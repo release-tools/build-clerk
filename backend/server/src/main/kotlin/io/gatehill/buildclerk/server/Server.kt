@@ -1,7 +1,7 @@
 package io.gatehill.buildclerk.server
 
+import com.apurebase.kgraphql.ValidationException
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.pgutkowski.kgraphql.RequestException
 import io.gatehill.buildclerk.api.Recorded
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.pr.PullRequestEventType
@@ -15,6 +15,7 @@ import io.gatehill.buildclerk.config.ServerSettings
 import io.gatehill.buildclerk.query.QueryService
 import io.gatehill.buildclerk.service.builder.BuildEventService
 import io.gatehill.buildclerk.service.message.MessageService
+import io.gatehill.buildclerk.supervisedDefaultCoroutineScope
 import io.gatehill.buildclerk.util.VersionUtil
 import io.gatehill.buildclerk.util.jsonMapper
 import io.vertx.core.Vertx
@@ -29,7 +30,8 @@ import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.kotlin.core.json.json
 import io.vertx.kotlin.core.json.obj
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 import kotlin.reflect.KClass
@@ -47,7 +49,7 @@ class Server @Inject constructor(
     private val messageService: MessageService,
     private val pendingActionService: PendingActionService,
     private val queryService: QueryService
-) {
+) : CoroutineScope by supervisedDefaultCoroutineScope {
     private val logger = LogManager.getLogger(Server::class.java)
 
     private val homePage by lazy {
@@ -174,7 +176,7 @@ class Server @Inject constructor(
                     queryService.query(rc.readBodyJson())
                 } catch (e: Exception) {
                     logger.error("Error parsing GraphQL query", e)
-                    if (e.causeContains(RequestException::class)) {
+                    if (e.causeContains(ValidationException::class)) {
                         rc.response().setStatusCode(400).end()
                         return@launch
                     } else {

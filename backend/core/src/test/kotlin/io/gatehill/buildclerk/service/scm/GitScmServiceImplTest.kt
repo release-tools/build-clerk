@@ -1,6 +1,5 @@
 package io.gatehill.buildclerk.service.scm
 
-import com.nhaarman.mockitokotlin2.mock
 import io.gatehill.buildclerk.api.config.Settings
 import io.gatehill.buildclerk.api.model.pr.FileChangeType
 import io.gatehill.buildclerk.service.CommandExecutorService
@@ -14,6 +13,7 @@ import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Assume
 import org.junit.Test
+import org.mockito.kotlin.mock
 import java.io.File
 import java.nio.file.Files
 

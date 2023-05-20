@@ -1,43 +1,39 @@
 apply plugin: 'kotlin'
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version_coroutines"
 
-    compile project(':backend:dsl')
-    compile project(':backend:parser')
-    compile project(':rest')
+    api project(':backend:api')
+    api project(':backend:dsl')
+    api project(':backend:parser')
+    api project(':rest')
 
     // DI
-    compile "com.google.inject:guice:$version_guice"
+    api "com.google.inject:guice:$version_guice"
 
     // json
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$version_jackson"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$version_jackson"
+    api "com.fasterxml.jackson.module:jackson-module-kotlin:$version_jackson"
 
     // git
-    compile 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:5.0.2.201807311906-r'
 
     // scheduler
-    compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
+    implementation group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
 
     // testing
-    testCompile "junit:junit:$version_junit"
-    testCompile "org.apache.logging.log4j:log4j-core:$version_log4j"
-    testCompile "org.apache.logging.log4j:log4j-slf4j-impl:$version_log4j"
-    testCompile "com.nhaarman.mockitokotlin2:mockito-kotlin:$version_mockitokotlin"
+    testImplementation "junit:junit:$version_junit"
+    testImplementation "org.apache.logging.log4j:log4j-core:$version_log4j"
+    testImplementation "org.apache.logging.log4j:log4j-slf4j-impl:$version_log4j"
+    testImplementation "org.mockito.kotlin:mockito-kotlin:$version_mockito_kotlin"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 
 test {

@@ -12,7 +12,9 @@ import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.api.util.shortenCommit
-import kotlinx.coroutines.experimental.launch
+import io.gatehill.buildclerk.supervisedDefaultCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
 import javax.inject.Inject
 
@@ -24,7 +26,7 @@ class BitbucketPullRequestEventServiceImpl @Inject constructor(
     private val analysisService: AnalysisService,
     private val pullRequestEventDao: PullRequestEventDao,
     private val bitbucketOperationsService: BitbucketOperationsService
-) : PullRequestEventService {
+) : PullRequestEventService, CoroutineScope by supervisedDefaultCoroutineScope {
 
     private val logger = LogManager.getLogger(BitbucketPullRequestEventServiceImpl::class.java)
 

@@ -1,8 +1,8 @@
 package io.gatehill.buildclerk.query
 
-import com.github.pgutkowski.kgraphql.KGraphQL
-import com.github.pgutkowski.kgraphql.schema.Schema
-import com.github.pgutkowski.kgraphql.schema.dsl.SchemaBuilder
+import com.apurebase.kgraphql.KGraphQL
+import com.apurebase.kgraphql.schema.Schema
+import com.apurebase.kgraphql.schema.dsl.SchemaBuilder
 import io.gatehill.buildclerk.api.model.BuildDetails
 import io.gatehill.buildclerk.api.model.BuildReport
 import io.gatehill.buildclerk.api.model.BuildStatus
@@ -18,9 +18,12 @@ import io.gatehill.buildclerk.api.service.AnalysisService
 import io.gatehill.buildclerk.api.service.BuildReportService
 import io.gatehill.buildclerk.api.service.PullRequestEventService
 import io.gatehill.buildclerk.query.model.Query
+import io.gatehill.buildclerk.supervisedDefaultCoroutineScope
 import org.apache.logging.log4j.LogManager
 import java.time.ZonedDateTime
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 
 /**
  * GraphQL query service.
@@ -31,7 +34,7 @@ class QueryService @Inject constructor(
     private val buildReportService: BuildReportService,
     private val pullRequestEventService: PullRequestEventService,
     private val analysisService: AnalysisService
-) {
+) : CoroutineScope by supervisedDefaultCoroutineScope {
     private val logger = LogManager.getLogger(QueryService::class.java)
 
     private val schema: Schema = KGraphQL.schema {
@@ -52,7 +55,7 @@ class QueryService @Inject constructor(
         }
     }
 
-    private fun SchemaBuilder<Unit>.addBuildReportQueries() {
+    private fun SchemaBuilder.addBuildReportQueries() {
         query("getLastReport") {
             resolver { branchName: String? ->
                 buildReportService.fetchLastReport(branchName)
@@ -74,7 +77,7 @@ class QueryService @Inject constructor(
         enum<BuildStatus>()
     }
 
-    private fun SchemaBuilder<Unit>.addPullRequestQueries() {
+    private fun SchemaBuilder.addPullRequestQueries() {
         query("getPullRequestByCommit") {
             resolver { commit: String ->
                 pullRequestEventService.findPullRequestByMergeCommit(commit)
@@ -104,7 +107,7 @@ class QueryService @Inject constructor(
         type<Commit>()
     }
 
-    private fun SchemaBuilder<Unit>.addAnalysisQueries() {
+    private fun SchemaBuilder.addAnalysisQueries() {
         query("analyseReports") {
             resolver { branchName: String?, start: String, end: String ->
                 analysisService.analyseReportSpan(
@@ -118,9 +121,10 @@ class QueryService @Inject constructor(
         type<ReportSpan>()
     }
 
-
     fun query(query: Query): String {
         logger.debug("Executing GraphQL query")
-        return schema.execute(query.query, query.variables)
+        return runBlocking {
+            schema.execute(query.query, query.variables)
+        }
     }
 }

@@ -21,15 +21,15 @@ class MongoBranchNotificationDaoImpl : AbstractMongoDao(), BranchNotificationDao
         withCollection<MongoBranchNotificationWrapper, Unit> {
             insertOne(
                 notification.copy(
-                    branch = notification.branch.toLowerCase(),
-                    userId = notification.userId.toLowerCase()
+                    branch = notification.branch.lowercase(),
+                    userId = notification.userId.lowercase()
                 ).wrap()
             )
         }
 
     override fun fetchNotificationsForUser(userId: String): List<BranchNotification> =
         withCollection<MongoBranchNotificationWrapper, List<BranchNotification>> {
-            find(MongoBranchNotificationWrapper::notification / BranchNotification::userId eq userId.toLowerCase())
+            find(MongoBranchNotificationWrapper::notification / BranchNotification::userId eq userId.lowercase())
                 .sort(ascending(MongoBranchNotificationWrapper::createdDate))
                 .map { it.notification }
                 .toList()
@@ -40,20 +40,20 @@ class MongoBranchNotificationDaoImpl : AbstractMongoDao(), BranchNotificationDao
             // delete many instead of one in case of duplicate subscriptions
             deleteMany(
                 and(
-                    MongoBranchNotificationWrapper::notification / BranchNotification::userId eq userId.toLowerCase(),
-                    MongoBranchNotificationWrapper::notification / BranchNotification::branch eq branch.toLowerCase()
+                    MongoBranchNotificationWrapper::notification / BranchNotification::userId eq userId.lowercase(),
+                    MongoBranchNotificationWrapper::notification / BranchNotification::branch eq branch.lowercase()
                 )
             )
         }
 
     override fun removeAllNotificationsForUser(userId: String) =
         withCollection<MongoBranchNotificationWrapper, Unit> {
-            deleteMany(MongoBranchNotificationWrapper::notification / BranchNotification::userId eq userId.toLowerCase())
+            deleteMany(MongoBranchNotificationWrapper::notification / BranchNotification::userId eq userId.lowercase())
         }
 
     override fun findMatching(branch: String): List<BranchNotification> =
         withCollection<MongoBranchNotificationWrapper, List<BranchNotification>> {
-            find(MongoBranchNotificationWrapper::notification / BranchNotification::branch eq branch.toLowerCase())
+            find(MongoBranchNotificationWrapper::notification / BranchNotification::branch eq branch.lowercase())
                 .sort(ascending(MongoBranchNotificationWrapper::createdDate))
                 .map { it.notification }
                 .toList()

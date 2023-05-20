@@ -1,34 +1,36 @@
 plugins {
-    id 'org.jenkins-ci.jpi' version '0.27.0'
+    id 'org.jenkins-ci.jpi' version '0.48.0'
 }
 
 apply plugin: 'java'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+}
 
 group = 'io.gatehill.buildclerk.jenkins'
 version = '0.1.0-SNAPSHOT'
 description = 'Jenkins plugin for Build Clerk'
 
 repositories {
-    jcenter()
+    mavenCentral()
     maven {
         url('https://repo.jenkins-ci.org/public/')
     }
 }
 
 dependencies {
-    compile project(':model')
-    compile project(':rest')
+    implementation project(':model')
+    implementation project(':rest')
+    implementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
 
     // other plugins
     jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13'
     jenkinsPlugins group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.42'
 
     // rest
-    compile "com.squareup.retrofit2:retrofit:$version_retrofit"
-    compile "com.squareup.retrofit2:converter-jackson:$version_retrofit"
+    implementation "com.squareup.retrofit2:retrofit:$version_retrofit"
+    implementation "com.squareup.retrofit2:converter-jackson:$version_retrofit"
 }
 
 jenkinsPlugin {
@@ -42,10 +44,10 @@ jenkinsPlugin {
     displayName = 'Build Clerk'
 
     // URL for plugin on Jenkins wiki or elsewhere
-    url = 'https://github.com/outofcoffee/build-clerk'
+    url = 'https://github.com/release-tools/build-clerk'
 
     // plugin URL on GitHub, optional
-    gitHubUrl = 'https://github.com/outofcoffee/build-clerk'
+    gitHubUrl = 'https://github.com/release-tools/build-clerk'
 
     // use the plugin class loader before the core class loader, defaults to false
     pluginFirstClassLoader = true

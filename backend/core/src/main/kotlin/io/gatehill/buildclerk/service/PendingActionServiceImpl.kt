@@ -19,7 +19,9 @@ import io.gatehill.buildclerk.api.service.PendingActionService
 import io.gatehill.buildclerk.service.notify.slack.toMessageAction
 import io.gatehill.buildclerk.service.notify.slack.toMessageAttachment
 import io.gatehill.buildclerk.service.scm.ScmService
-import kotlinx.coroutines.experimental.launch
+import io.gatehill.buildclerk.supervisedDefaultCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import javax.inject.Inject
@@ -34,7 +36,7 @@ class PendingActionServiceImpl @Inject constructor(
     private val buildRunnerService: BuildRunnerService,
     private val notificationService: NotificationService,
     private val pendingActionDao: PendingActionDao
-) : PendingActionService {
+) : PendingActionService, CoroutineScope by supervisedDefaultCoroutineScope {
 
     private val logger: Logger = LogManager.getLogger(PendingActionService::class.java)
 

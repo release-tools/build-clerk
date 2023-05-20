@@ -1,19 +1,13 @@
 apply plugin: 'kotlin'
 
 dependencies {
-    compile project(':backend:api')
-    compile group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
+    api project(':backend:api')
+    implementation group: 'org.jetbrains', name: 'annotations', version: '16.0.2'
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }

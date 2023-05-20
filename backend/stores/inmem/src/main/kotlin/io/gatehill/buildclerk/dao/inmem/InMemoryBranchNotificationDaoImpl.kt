@@ -14,25 +14,25 @@ class InMemoryBranchNotificationDaoImpl : AbstractInMemoryDao<BranchNotification
 
     override fun addNotification(notification: BranchNotification) {
         store += Record.create(notification.copy(
-            branch = notification.branch.toLowerCase(),
-            userId = notification.userId.toLowerCase()
+            branch = notification.branch.lowercase(),
+            userId = notification.userId.lowercase()
         ))
     }
 
     override fun fetchNotificationsForUser(userId: String): List<BranchNotification> {
-        return store.filter { it.record.userId == userId.toLowerCase() }
+        return store.filter { it.record.userId == userId.lowercase() }
             .sortedBy { it.createdDate }
             .map { it.record }
     }
 
     override fun removeNotificationForUser(userId: String, branch: String) {
         store.removeIf {
-            it.record.userId == userId.toLowerCase() && it.record.branch.equals(branch, ignoreCase = true)
+            it.record.userId == userId.lowercase() && it.record.branch.equals(branch, ignoreCase = true)
         }
     }
 
     override fun removeAllNotificationsForUser(userId: String) {
-        store.removeIf { it.record.userId == userId.toLowerCase() }
+        store.removeIf { it.record.userId == userId.lowercase() }
     }
 
     override fun findMatching(branch: String): List<BranchNotification> {

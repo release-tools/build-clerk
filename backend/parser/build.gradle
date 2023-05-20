@@ -1,32 +1,27 @@
 apply plugin: 'kotlin'
 
 dependencies {
-    compile project(':backend:dsl')
+    implementation project(':backend:dsl')
+
+    // DI
+    implementation "com.google.inject:guice:$version_guice"
 
     // scripting support
-    compile "org.jetbrains.kotlin:kotlin-script-runtime"
-    compile "org.jetbrains.kotlin:kotlin-compiler-embeddable"
-    compile "org.jetbrains.kotlin:kotlin-script-util"
+    runtimeOnly("org.jetbrains.kotlin:kotlin-scripting-jsr223:1.8.0")
 
     // caching
-    compile 'com.github.ben-manes.caffeine:caffeine:2.6.2'
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.6.2'
 
     // testing
-    testCompile "junit:junit:$version_junit"
-    testCompile "org.apache.logging.log4j:log4j-core:$version_log4j"
+    testImplementation "junit:junit:$version_junit"
+    testImplementation "org.apache.logging.log4j:log4j-core:$version_log4j"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 
 repositories {

@@ -1,29 +1,23 @@
 apply plugin: 'kotlin'
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     // logging
-    compile "org.apache.logging.log4j:log4j-api:$version_log4j"
+    implementation "org.apache.logging.log4j:log4j-api:$version_log4j"
 
     // json
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: version_jackson
-    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: version_jackson
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$version_jackson"
 
     // rest
-    compile "com.squareup.retrofit2:retrofit:$version_retrofit"
-    compile "com.squareup.retrofit2:converter-jackson:$version_retrofit"
+    api "com.squareup.retrofit2:retrofit:$version_retrofit"
+    implementation "com.squareup.retrofit2:converter-jackson:$version_retrofit"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }

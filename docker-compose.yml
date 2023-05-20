@@ -38,7 +38,7 @@ services:
     - BITBUCKET_AUTH_USERNAME
 
     # Git repository
-    - GIT_REPO_REMOTE_URL=https://github.com/outofcoffee/build-clerk.git
+    - GIT_REPO_REMOTE_URL=https://github.com/release-tools/build-clerk.git
 
   mongo:
     image: mongo:3.6

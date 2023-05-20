@@ -1,26 +1,20 @@
 apply plugin: 'kotlin'
 
 dependencies {
-    compile project(':backend:api')
+    api project(':backend:api')
 
     // logging
-    compile "org.apache.logging.log4j:log4j-api:$version_log4j"
+    implementation "org.apache.logging.log4j:log4j-api:$version_log4j"
 
     // di
-    compile 'javax.inject:javax.inject:1'
+    implementation 'javax.inject:javax.inject:1'
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
 }
 
 repositories {
