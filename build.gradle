@@ -7,7 +7,7 @@ subprojects {
         ext {
             kotlin_version = '1.8.10'
             version_coroutines = '1.6.4'
-            version_log4j = '2.18.0'
+            version_log4j = '2.20.0'
             version_retrofit = '2.1.0'
             version_jackson = '2.14.2'
             version_guice = '5.1.0'
