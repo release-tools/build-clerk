@@ -15,7 +15,7 @@ dependencies {
     implementation project(':backend:stores:mongodb')
 
     // server
-    implementation('io.vertx:vertx-lang-kotlin:3.5.3') {
+    implementation('io.vertx:vertx-lang-kotlin:4.4.4') {
         // these are deprecated and superseded by their -jdk* equivalents
         exclude module: 'kotlin-stdlib-jre7'
         exclude module: 'kotlin-stdlib-jre8'
